@@ -310,29 +310,34 @@ class CardDrawService:
         anxiety = self.anxiety_service.calculate_anxiety(user_id)
         score = anxiety["score"]
         
-        # Build dynamic card metrics
+        # Build dynamic card metrics + full holdings detail for the GPT prompt
         items = self.anxiety_service.portfolio_repo.get_items(user_id)
         worst_name = None
         worst_change = 0.0
-        best_name = None
-        best_change = 0.0
-        
-        if items:
-            for item in items:
-                stock = self.anxiety_service.stock_repo.get_stock(item.symbol)
-                price_info = self.anxiety_service.stock_repo.get_daily_price(item.symbol)
-                change = float(price_info.change_percent) if price_info else 0.0
-                
-                if worst_name is None or change < worst_change:
-                    worst_name = stock.name if stock else item.symbol
-                    worst_change = change
-                if best_name is None or change > best_change:
-                    best_name = stock.name if stock else item.symbol
-                    best_change = change
-                    
+        holdings = []
+        total_change = 0.0
+
+        for item in items:
+            stock = self.anxiety_service.stock_repo.get_stock(item.symbol)
+            price_info = self.anxiety_service.stock_repo.get_daily_price(item.symbol)
+            change = float(price_info.change_percent) if price_info else 0.0
+            name = stock.name if stock else item.symbol
+
+            holdings.append({
+                "symbol": item.symbol,
+                "name": name,
+                "change_percent": change,
+                "shares": item.shares,
+            })
+            total_change += change
+
+            if worst_name is None or change < worst_change:
+                worst_name = name
+                worst_change = change
+
         market_change = get_live_market_change(self.anxiety_service.portfolio_repo.db)
-        avg_change = (worst_change + best_change) / 2.0 if items else 0.0
-        
+        avg_change = total_change / len(items) if items else 0.0
+
         # Draw card via OpenAI (with robust fallback)
         from app.services.openai_service import OpenAIService
         card_data = run_async(
@@ -340,7 +345,8 @@ class CardDrawService:
                 avg_change=avg_change,
                 worst_name=worst_name,
                 worst_change=worst_change,
-                market_change=market_change
+                market_change=market_change,
+                holdings=holdings
             )
         )
         

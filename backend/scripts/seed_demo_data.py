@@ -39,6 +39,7 @@ def seed():
         # Add TSMC and CTBC to the default demo user portfolio
         portfolio_service.add_item("2330", cost_price=980.0, shares=1000)
         portfolio_service.add_item("2891", cost_price=38.0, shares=3000)
+        db.commit()
         print("Successfully seeded demo portfolio holdings.")
         
     except Exception as e:

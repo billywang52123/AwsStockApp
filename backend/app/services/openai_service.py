@@ -112,25 +112,42 @@ class OpenAIService:
         return cls._generate_fallback_analysis(symbol, name, close_price, change_percent)
 
     @classmethod
-    async def fetch_card_draw_message(cls, avg_change: float, worst_name: Optional[str], worst_change: float, market_change: float) -> Dict[str, Any]:
+    async def fetch_card_draw_message(
+        cls,
+        avg_change: float,
+        worst_name: Optional[str],
+        worst_change: float,
+        market_change: float,
+        holdings: Optional[list] = None,
+    ) -> Dict[str, Any]:
         """Queries OpenAI to generate personalized card draw message and motto."""
         fallback_card = cls._generate_fallback_card(avg_change, worst_name, worst_change, market_change)
-        
+
         if not settings.OPENAI_API_KEY:
             logger.info("OPENAI_API_KEY is not set. Using rule-based fallback card.")
             return fallback_card
-            
+
+        holdings_lines = []
+        for h in holdings or []:
+            line = f"- {h['name']} ({h['symbol']})：今日 {h['change_percent']:+.2f}%"
+            if h.get("shares"):
+                line += f"，持有 {h['shares']} 股"
+            holdings_lines.append(line)
+        holdings_desc = "\n".join(holdings_lines) if holdings_lines else "（目前沒有持股資料）"
+
         prompt = (
-            f"你是一位溫暖的投資情緒陪伴塔羅牌大師。今天用戶持股平均漲跌幅為 {avg_change}%，"
-            f"表現最差的持股是 {worst_name}，下跌了 {worst_change}%。大盤（加權指數）漲跌幅為 {market_change}%。\n"
-            "請為用戶隨機抽一張情緒陪伴牌（冷靜觀察卡、信心恢復卡、大盤影響卡、小心震盪卡、個股事件卡之一），並生成以下 JSON 格式：\n"
+            "你是一位幽默風趣、有梗又暖心的投資情緒陪伴塔羅牌大師。以下是用戶今天的持股實況：\n"
+            f"{holdings_desc}\n"
+            f"持股平均漲跌幅 {avg_change:+.2f}%；大盤（加權指數）{market_change:+.2f}%。\n\n"
+            "請依今天的表現挑一張最適合的情緒陪伴牌（冷靜觀察卡、信心恢復卡、大盤影響卡、小心震盪卡、個股事件卡之一），並生成以下 JSON 格式：\n"
             "{\n"
             '  "card_type": "對應英文卡名 (STOCK_EVENT / MARKET_IMPACT / CONFIDENCE_RESTORE / CALM_OBSERVE / VOLATILITY_ALERT)",\n'
             '  "title": "對應繁體中文卡名",\n'
-            '  "message": "專屬牌面溫暖陪伴訊息（字數 80-120 字，結合他持有的這檔個股和今日跌幅，溫柔安撫其情緒，使用繁體中文）",\n'
+            '  "message": "牌面訊息（80-140 字繁體中文）：要幽默風趣、有趣有梗，可用生活化比喻或輕鬆吐槽市場，並具體點名他的持股與今日表現；語氣溫暖，絕不嘲笑用戶虧損，也不製造恐慌",\n'
             '  "action_text": "按鈕行為文字 (例如: 查看詳細分析 / 查看大盤波動)",\n'
-            '  "motto": "今日心法（一句簡短而有力量的投資情緒陪伴格言）"\n'
-            "}"
+            '  "motto": "今日心法（一句簡短、幽默又有力量的投資情緒陪伴格言）"\n'
+            "}\n"
+            "限制：全程繁體中文；不得出現「買進 / 賣出 / 加碼 / 停損」等任何操作建議字眼。"
         )
         
         try:
@@ -144,11 +161,11 @@ class OpenAIService:
                     json={
                         "model": "gpt-4o-mini",
                         "messages": [
-                            {"role": "system", "content": "你是一個專門輸出 JSON 格式的溫暖投資情緒塔羅牌助手。"},
+                            {"role": "system", "content": "你是一個專門輸出 JSON 格式、幽默風趣又暖心的投資情緒塔羅牌助手。"},
                             {"role": "user", "content": prompt}
                         ],
                         "response_format": {"type": "json_object"},
-                        "temperature": 0.8
+                        "temperature": 0.9
                     },
                     timeout=5.0
                 )

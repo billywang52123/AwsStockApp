@@ -15,10 +15,180 @@
 body{margin:0;background:#EBE9E3;}
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes scanY{0%{top:6%}50%{top:86%}100%{top:6%}}
 </style>
 </helmet>
 
 <section style="padding:60px 60px 20px;display:flex;flex-direction:column;gap:24px;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="font-size:24px;font-weight:900;color:#3A3733">新功能畫面 · 第五輪</div>
+    <div style="font-size:14px;color:#8A857C"><a href="#7a" style="color:#7B7FD4">7a 截圖匯入入口</a> · <a href="#7b" style="color:#7B7FD4">7b 辨識中</a> · <a href="#7c" style="color:#7B7FD4">7c 結果確認</a> — 持股影像匯入 · 方向 A 風格</div>
+  </div>
+  <div style="display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start;width:1840px">
+
+    <!-- 7a 截圖匯入入口 -->
+    <div id="7a" data-screen-label="7a 截圖匯入入口" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px">7a</div><div style="font-size:14px;font-weight:600;color:#8A857C">截圖匯入入口 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">新增持股頁 · 截圖優先,手動為輔</span></div></div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:88px 24px 40px">
+          <div style="font-size:30px;font-weight:900;color:#3A3733">新增持股</div>
+          <div style="margin-top:4px;font-size:14px;color:#8A857C">不用一筆一筆打,截圖丟進來就好</div>
+          <div style="margin-top:22px;background:#FFFFFF;border-radius:24px;padding:24px 22px;box-shadow:0 12px 28px rgba(120,100,70,0.1);display:flex;flex-direction:column;gap:16px;position:relative">
+            <div style="position:absolute;top:-11px;right:20px;background:#E4B384;color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;letter-spacing:0.05em">最快</div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="width:54px;height:54px;border-radius:17px;background:#EEEEFA;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="26" height="26" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="#7B7FD4" stroke-width="2"></rect><circle cx="9" cy="10" r="2" fill="#7B7FD4"></circle><path d="M5 18 L10 13 L14 16 L19 11" fill="none" stroke="#7B7FD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <div style="font-size:17px;font-weight:700;color:#3A3733">用券商庫存截圖匯入</div>
+                <div style="font-size:13px;color:#8A857C;line-height:1.6">打開券商 App 的「庫存」頁截圖,我們幫你認出代號和股數</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <div style="flex:1;height:50px;border-radius:16px;background:#7B7FD4;display:flex;align-items:center;justify-content:center;gap:8px;color:#fff;font-size:15px;font-weight:600;box-shadow:0 8px 20px rgba(123,127,212,0.3)"><svg width="18" height="18" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="#fff" stroke-width="2"></rect><circle cx="9" cy="10" r="2" fill="#fff"></circle><path d="M5 18 L10 13 L14 16 L19 11" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>從相簿選截圖</div>
+              <div style="flex:1;height:50px;border-radius:16px;background:#FFFFFF;border:1.5px solid #E3DFD4;display:flex;align-items:center;justify-content:center;gap:8px;color:#3A3733;font-size:15px;font-weight:600"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M4 8 L7 8 L9 5 L15 5 L17 8 L20 8 A1.5 1.5 0 0 1 21.5 9.5 V18 A1.5 1.5 0 0 1 20 19.5 H4 A1.5 1.5 0 0 1 2.5 18 V9.5 A1.5 1.5 0 0 1 4 8 Z" fill="none" stroke="#5C5850" stroke-width="2" stroke-linejoin="round"></path><circle cx="12" cy="13.5" r="3.2" fill="none" stroke="#5C5850" stroke-width="2"></circle></svg>直接拍照</div>
+            </div>
+          </div>
+          <div style="margin-top:14px;background:#FFFFFF;border-radius:20px;padding:18px 20px;box-shadow:0 6px 18px rgba(120,100,70,0.06);display:flex;align-items:center;gap:14px">
+            <div style="width:46px;height:46px;border-radius:15px;background:#F1EDE3;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6" fill="none" stroke="#8A857C" stroke-width="2"></circle><path d="M15 15 L20 20" stroke="#8A857C" stroke-width="2" stroke-linecap="round"></path></svg></div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="font-size:15px;font-weight:700;color:#3A3733">手動輸入</div>
+              <div style="font-size:12px;color:#A9A49B">輸入代號或名稱,例如 2330</div>
+            </div>
+            <div style="flex:1"></div>
+            <svg width="14" height="14" viewBox="0 0 24 24"><path d="M9 5 L16 12 L9 19" fill="none" stroke="#B4AFA5" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </div>
+          <div style="flex:1"></div>
+          <div style="background:#F1F1FB;border-radius:16px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start">
+            <svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px"><rect x="5" y="10" width="14" height="10" rx="2.5" fill="none" stroke="#7B7FD4" stroke-width="2"></rect><path d="M8 10 V7 A4 4 0 0 1 16 7 V10" fill="none" stroke="#7B7FD4" stroke-width="2"></path></svg>
+            <div style="font-size:12px;color:#4A4770;line-height:1.7">截圖只用來辨識股票代號與股數,辨識完成後即刪除。我們不會取得你的券商帳號或下單權限。</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 7b 辨識中 -->
+    <div id="7b" data-screen-label="7b 辨識中" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px">7b</div><div style="font-size:14px;font-weight:600;color:#8A857C">辨識中 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">掃描線動畫 · 三步驟進度</span></div></div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:100px 32px 48px">
+          <div style="position:relative;width:210px;height:380px;border-radius:22px;overflow:hidden;box-shadow:0 16px 36px rgba(120,100,70,0.16);background:repeating-linear-gradient(45deg,#EFEBE2 0 10px,#E9E4D8 10px 20px);display:flex;align-items:center;justify-content:center">
+            <div style="font-family:monospace;font-size:11px;color:#A9A49B;background:rgba(255,255,255,0.85);padding:5px 10px;border-radius:8px">券商庫存截圖</div>
+            <div style="position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,rgba(123,127,212,0) 0%,#7B7FD4 50%,rgba(123,127,212,0) 100%);box-shadow:0 0 18px rgba(123,127,212,0.6);animation:scanY 3s ease-in-out infinite;top:6%"></div>
+          </div>
+          <div style="margin-top:32px;font-family:'Noto Serif TC',serif;font-size:22px;font-weight:700;color:#3A3733">正在讀取你的庫存畫面</div>
+          <div style="margin-top:8px;font-size:13px;color:#8A857C">通常只要 5–10 秒,馬上就好</div>
+          <div style="margin-top:28px;display:flex;flex-direction:column;gap:14px;width:100%;max-width:250px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:24px;height:24px;border-radius:50%;background:#6E9A7F;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+              <div style="font-size:14px;color:#5C5850">讀取畫面</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:24px;height:24px;border-radius:50%;border:2.5px solid #E3DFD4;border-top-color:#7B7FD4;box-sizing:border-box;animation:spin 0.9s linear infinite;flex-shrink:0"></div>
+              <div style="font-size:14px;font-weight:700;color:#3A3733">辨識股票代號</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:24px;height:24px;border-radius:50%;border:2.5px solid #E3DFD4;box-sizing:border-box;flex-shrink:0"></div>
+              <div style="font-size:14px;color:#A9A49B">對應股名與股數</div>
+            </div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="font-size:12px;color:#B4AFA5">辨識完成後,截圖就會刪除</div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 7c 結果確認 -->
+    <div id="7c" data-screen-label="7c 結果確認" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px">7c</div><div style="font-size:14px;font-weight:600;color:#8A857C">結果確認 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">可直接修改股數 · 低信心列提醒</span></div></div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:88px 24px 40px">
+          <div style="font-size:30px;font-weight:900;color:#3A3733">找到 4 檔持股</div>
+          <div style="margin-top:4px;font-size:14px;color:#8A857C">確認一下,數字認錯了可以直接改</div>
+          <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px">
+            <div style="background:#FFFFFF;border-radius:18px;padding:16px 18px;box-shadow:0 6px 18px rgba(120,100,70,0.06);display:flex;align-items:center;gap:14px">
+              <div style="width:44px;height:44px;border-radius:50%;background:#EEEEFA;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#7B7FD4;flex-shrink:0">台積</div>
+              <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:16px;font-weight:700;color:#3A3733">台積電</div><div style="font-size:12px;color:#A9A49B">2330 · 上市</div></div>
+              <div style="flex:1"></div>
+              <div style="display:flex;align-items:center;gap:8px"><div style="font-size:16px;font-weight:700;color:#3A3733;font-variant-numeric:tabular-nums">3,000 股</div><svg width="14" height="14" viewBox="0 0 24 24"><path d="M4 20 L8 19 L19.5 7.5 A1.8 1.8 0 0 0 17 5 L5.5 16.5 Z" fill="none" stroke="#B4AFA5" stroke-width="2" stroke-linejoin="round"></path></svg></div>
+            </div>
+            <div style="background:#FFFFFF;border-radius:18px;padding:16px 18px;box-shadow:0 6px 18px rgba(120,100,70,0.06);display:flex;align-items:center;gap:14px">
+              <div style="width:44px;height:44px;border-radius:50%;background:#EAF2EC;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#6E9A7F;flex-shrink:0">聯發</div>
+              <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:16px;font-weight:700;color:#3A3733">聯發科</div><div style="font-size:12px;color:#A9A49B">2454 · 上市</div></div>
+              <div style="flex:1"></div>
+              <div style="display:flex;align-items:center;gap:8px"><div style="font-size:16px;font-weight:700;color:#3A3733;font-variant-numeric:tabular-nums">1,000 股</div><svg width="14" height="14" viewBox="0 0 24 24"><path d="M4 20 L8 19 L19.5 7.5 A1.8 1.8 0 0 0 17 5 L5.5 16.5 Z" fill="none" stroke="#B4AFA5" stroke-width="2" stroke-linejoin="round"></path></svg></div>
+            </div>
+            <div style="background:#FDF6E9;border:1.5px solid #ECD9B8;border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;gap:14px">
+                <div style="width:44px;height:44px;border-radius:50%;background:#FBEFDF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#D9A264;flex-shrink:0">玉山</div>
+                <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:16px;font-weight:700;color:#3A3733">玉山金</div><div style="font-size:12px;color:#A9A49B">2884 · 上市</div></div>
+                <div style="flex:1"></div>
+                <div style="display:flex;align-items:center;gap:8px"><div style="font-size:16px;font-weight:700;color:#B0813F;font-variant-numeric:tabular-nums">5,000 股</div><svg width="14" height="14" viewBox="0 0 24 24"><path d="M4 20 L8 19 L19.5 7.5 A1.8 1.8 0 0 0 17 5 L5.5 16.5 Z" fill="none" stroke="#D9A264" stroke-width="2" stroke-linejoin="round"></path></svg></div>
+              </div>
+              <div style="font-size:12px;color:#B0813F;line-height:1.6;display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" style="flex-shrink:0"><circle cx="12" cy="12" r="9" fill="none" stroke="#D9A264" stroke-width="2"></circle><path d="M12 7.5 V13" stroke="#D9A264" stroke-width="2.2" stroke-linecap="round"></path><circle cx="12" cy="16.5" r="1.3" fill="#D9A264"></circle></svg>這筆的股數沒認清楚,幫我確認一下</div>
+            </div>
+            <div style="background:#FFFFFF;border-radius:18px;padding:16px 18px;box-shadow:0 6px 18px rgba(120,100,70,0.06);display:flex;align-items:center;gap:14px">
+              <div style="width:44px;height:44px;border-radius:50%;background:#F5EAEA;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#C48181;flex-shrink:0">長榮</div>
+              <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:16px;font-weight:700;color:#3A3733">長榮</div><div style="font-size:12px;color:#A9A49B">2603 · 上市</div></div>
+              <div style="flex:1"></div>
+              <div style="display:flex;align-items:center;gap:8px"><div style="font-size:16px;font-weight:700;color:#3A3733;font-variant-numeric:tabular-nums">2,000 股</div><svg width="14" height="14" viewBox="0 0 24 24"><path d="M4 20 L8 19 L19.5 7.5 A1.8 1.8 0 0 0 17 5 L5.5 16.5 Z" fill="none" stroke="#B4AFA5" stroke-width="2" stroke-linejoin="round"></path></svg></div>
+            </div>
+          </div>
+          <div style="margin-top:14px;text-align:center;font-size:14px;color:#7B7FD4;font-weight:600"><span style="padding:8px 4px">有漏掉的?手動補上</span></div>
+          <div style="flex:1"></div>
+          <div style="height:54px;border-radius:18px;background:#7B7FD4;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:700;box-shadow:0 10px 26px rgba(123,127,212,0.35)">加入這 4 檔持股</div>
+          <div style="margin-top:12px;text-align:center;font-size:11px;color:#B4AFA5;line-height:1.7">辨識結果僅供輸入輔助,加入前請確認與實際持股一致</div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 7d 切版與動畫規格 -->
+    <div id="7d" data-screen-label="7d 影像匯入 切版與動畫規格" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="background:#3A3733;color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px">7d</div><div style="font-size:14px;font-weight:600;color:#8A857C">切版與動畫規格 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">開發交付 · 單位 pt</span></div></div>
+      <div style="display:flex;flex-direction:column;gap:16px;width:560px">
+
+        <div style="background:#FFFFFF;border-radius:20px;padding:26px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:14px">
+          <div style="font-size:15px;font-weight:800;color:#3A3733">① 切版(7a–7c)</div>
+          <div style="display:flex;flex-direction:column;gap:11px;font-family:monospace;font-size:12px;color:#5C5850">
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>7a 匯入卡</span><span style="font-weight:700;color:#3A3733">R24 · 內距 24/22 · 陰影 y12 b28 10%</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>「最快」badge</span><span style="font-weight:700;color:#3A3733">#E4B384 pill · 11pt Bold · 卡頂 -11</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>icon 方塊 / 手動列 icon</span><span style="font-weight:700;color:#3A3733">54 R17 / 46 R15</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>雙按鈕(相簿/拍照)</span><span style="font-weight:700;color:#3A3733">高 50 R16 · 間距 10 · 等寬</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>隱私盒</span><span style="font-weight:700;color:#3A3733">#F1F1FB R16 · 內距 14/16 · 12pt</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>7b 截圖預覽框</span><span style="font-weight:700;color:#3A3733">210 × 380 R22 · 陰影 y16 b36 16%</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>掃描線</span><span style="font-weight:700;color:#3A3733">高 3 · 紫漸層 · 光暈 b18 60%</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>步驟圈</span><span style="font-weight:700;color:#3A3733">24 · 描邊 2.5 · 間距 14</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>7c 持股列</span><span style="font-weight:700;color:#3A3733">R18 · 內距 16/18 · 頭像圈 44</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>股數字</span><span style="font-weight:700;color:#3A3733">16pt Bold · monospacedDigit</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>低信心列</span><span style="font-weight:700;color:#3A3733">底 #FDF6E9 · 描邊 1.5 #ECD9B8</span></div>
+            <div style="display:flex;justify-content:space-between"><span>CTA「加入持股」</span><span style="font-weight:700;color:#3A3733">高 54 R18 · 陰影 y10 b26 35%</span></div>
+          </div>
+          <div style="background:#F7F4EE;border-radius:12px;padding:12px 14px;font-size:11px;color:#8A857C;line-height:1.7">鉛筆 icon 14pt,整列可點(點擊範圍 ≥ 44 × 44)· 低信心提示字 12pt #B0813F,icon 13pt</div>
+        </div>
+
+        <div style="background:#FFFFFF;border-radius:20px;padding:26px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:14px">
+          <div style="font-size:15px;font-weight:800;color:#3A3733">② 動畫與轉場</div>
+          <div style="display:flex;flex-direction:column;gap:11px;font-family:monospace;font-size:12px;color:#5C5850">
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>7a→7b 截圖框進場</span><span style="font-weight:700;color:#3A3733">scale .94→1 + fade · spring .5s</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>掃描線</span><span style="font-weight:700;color:#3A3733">Y 6%→86% 往返 · easeInOut 3s 循環</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>進行中 spinner</span><span style="font-weight:700;color:#3A3733">rotate 360° · linear .9s</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>步驟完成</span><span style="font-weight:700;color:#3A3733">圈染綠 + 勾 path draw .3s · light haptic</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>7b→7c 轉場</span><span style="font-weight:700;color:#3A3733">全部完成停 .4s 再 push</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>持股列進場</span><span style="font-weight:700;color:#3A3733">fade + up 12pt · stagger 60ms/列</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>低信心提醒</span><span style="font-weight:700;color:#3A3733">列進場後延遲 .6s 淡入金描邊(不搖晃)</span></div>
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>修改股數</span><span style="font-weight:700;color:#3A3733">原生數字鍵盤 · 列展開 spring .4s</span></div>
+            <div style="display:flex;justify-content:space-between"><span>CTA 按下 / 成功</span><span style="font-weight:700;color:#3A3733">scale .97 · 成功勾 + medium haptic</span></div>
+          </div>
+          <div style="background:#F7F4EE;border-radius:12px;padding:12px 14px;font-size:11px;color:#8A857C;line-height:1.7">安撫原則:辨識失敗不用紅色錯誤畫面,改「沒認出來,換張清楚一點的截圖試試」+ 重選按鈕;全程可隨時「改用手動輸入」</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div style="height:1px;background:#DBD7CD;margin:20px 60px"></div>
+
+<section style="padding:40px 60px 20px;display:flex;flex-direction:column;gap:24px;font-family:'Noto Sans TC','PingFang TC',sans-serif">
   <div style="display:flex;align-items:center;gap:14px">
     <div style="font-size:24px;font-weight:900;color:#3A3733">新功能畫面 · 第四輪</div>
     <div style="font-size:14px;color:#8A857C"><a href="#6a" style="color:#7B7FD4">6a 登入</a> · <a href="#6b" style="color:#7B7FD4">6b 成就系統</a> · <a href="#6c" style="color:#7B7FD4">6c 持股 AI 分析(上彈)</a> · <a href="#6d" style="color:#7B7FD4">6d AI 抽卡結果</a> — 方向 A 風格</div>
@@ -1223,9 +1393,10 @@ body{margin:0;background:#EBE9E3;}
     <!-- ═══════════ OPTION 1b 沉靜霧藍 ═══════════ -->
     <div id="1b" style="display:flex;flex-direction:column;gap:28px">
       <div style="display:flex;align-items:center;gap:14px">
-        <div style="background:#6E79C9;color:#fff;font-weight:700;font-size:14px;padding:6px 14px;border-radius:999px">1b</div>
-        <div style="font-size:22px;font-weight:700;color:#33363E">方向 B · 沉靜霧藍</div>
-        <div style="font-size:14px;color:#878C99">更冷靜、留白多 — 霧藍灰底 + 髮絲線 + 輕陰影</div>
+        <div style="background:#B8BBC4;color:#fff;font-weight:700;font-size:14px;padding:6px 14px;border-radius:999px">1b</div>
+        <div style="font-size:22px;font-weight:700;color:#9DA1AC">方向 B · 沉靜霧藍</div>
+        <div style="font-size:12px;font-weight:700;color:#fff;background:#B8BBC4;padding:4px 11px;border-radius:999px;letter-spacing:0.05em">存檔・已淘汰</div>
+        <div style="font-size:14px;color:#B0B4BD">未採用 — 保留存檔,不再更新</div>
       </div>
 
       <div style="display:flex;flex-wrap:wrap;gap:36px;width:1840px">
