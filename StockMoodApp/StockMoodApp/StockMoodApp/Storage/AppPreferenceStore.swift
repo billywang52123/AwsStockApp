@@ -49,6 +49,8 @@ class AppPreferenceStore {
     func signOut() {
         UserDefaults.standard.removeObject(forKey: userIdKey)
         isLoggedIn = false
+        // Drop the API session token so the next account can't reuse it
+        KeychainStore.shared.sessionToken = nil
     }
 
     /// Appends the current user id so each user gets an isolated bucket.

@@ -12,7 +12,7 @@ struct PortfolioListView: View {
                 
                 if viewModel.isLoading {
                     ProgressView("正在取得持股資訊...")
-                } else if viewModel.portfolioItems.isEmpty {
+                } else if viewModel.holdings.isEmpty {
                     EmptyStateView(
                         title: "尚未加入任何持股",
                         message: "添加您的第 1 檔持股，我們將為您呈現今日股價波動以及情緒陪伴分析。",
@@ -23,80 +23,12 @@ struct PortfolioListView: View {
                 } else {
                     VStack(alignment: .leading) {
                         List {
-                            Section(header: Text("我的持股清單 (\(viewModel.portfolioItems.count))")
+                            Section(header: Text("我的持股清單 (\(viewModel.holdings.count))")
                                 .font(.system(.footnote, design: .rounded))
                                 .foregroundColor(AppColor.textSecondary)
                             ) {
-                                ForEach(viewModel.portfolioItems) { item in
-                                    let priceInfo = viewModel.dailyPrices[item.symbol]
-                                    let change = priceInfo?.changePercent ?? 0.0
-                                    let isUp = change >= 0
-                                    
-                                    // Calculate Profit & Loss (P&L)
-                                    let hasPosition = item.shares != nil && item.costPrice != nil
-                                    let shares = Double(item.shares ?? 0)
-                                    let cost = item.costPrice ?? 0.0
-                                    let currentPrice = priceInfo?.closePrice ?? cost
-                                    let pnl = hasPosition ? ((currentPrice - cost) * shares) : 0.0
-                                    let pnlPercent = (hasPosition && cost > 0) ? ((currentPrice - cost) / cost * 100.0) : 0.0
-                                    let isPnlUp = pnl >= 0
-                                    
-                                    NavigationLink(destination: StockDetailView(symbol: item.symbol, name: item.name)) {
-                                        HStack(spacing: 16) {
-                                            // Symbol, Name & Position Details
-                                            VStack(alignment: .leading, spacing: 4) {
-                                                Text(item.name)
-                                                    .font(.system(.body, design: .rounded))
-                                                    .fontWeight(.bold)
-                                                    .foregroundColor(AppColor.textPrimary)
-                                                
-                                                HStack(spacing: 6) {
-                                                    Text(item.symbol)
-                                                        .font(.system(.caption, design: .rounded))
-                                                        .foregroundColor(AppColor.textSecondary)
-                                                    
-                                                    if hasPosition {
-                                                        Text("•")
-                                                            .font(.system(.caption2))
-                                                            .foregroundColor(AppColor.textSecondary.opacity(0.5))
-                                                        Text("\(item.shares ?? 0)股 @ $\(String(format: "%.1f", cost))")
-                                                            .font(.system(.caption, design: .rounded))
-                                                            .foregroundColor(AppColor.textSecondary)
-                                                    }
-                                                }
-                                            }
-                                            
-                                            Spacer()
-                                            
-                                            // Current Price & P&L Info
-                                            VStack(alignment: .trailing, spacing: 4) {
-                                                if let price = priceInfo {
-                                                    // Current Close Price
-                                                    Text(String(format: "$%.2f", price.closePrice))
-                                                        .font(.system(.subheadline, design: .rounded))
-                                                        .fontWeight(.bold)
-                                                        .foregroundColor(AppColor.textPrimary)
-                                                    
-                                                    // Total position P&L or daily stock change
-                                                    if hasPosition {
-                                                        let pnlSign = isPnlUp ? "+" : ""
-                                                        Text(String(format: "損益: %@$%.0f (%@%.2f%%)", pnlSign, pnl, pnlSign, pnlPercent))
-                                                            .font(.system(size: 11, weight: .semibold, design: .rounded))
-                                                            .foregroundColor(isPnlUp ? AppColor.upText : AppColor.downText)
-                                                    } else {
-                                                        Text(String(format: "%@%.2f%%", isUp ? "+" : "", change))
-                                                            .font(.system(.caption, design: .rounded))
-                                                            .fontWeight(.semibold)
-                                                            .foregroundColor(isUp ? AppColor.upText : AppColor.downText)
-                                                    }
-                                                } else {
-                                                    Text("--")
-                                                        .foregroundColor(AppColor.textSecondary)
-                                                }
-                                            }
-                                        }
-                                        .padding(.vertical, 6)
-                                    }
+                                ForEach(viewModel.holdings) { holding in
+                                    holdingRow(holding)
                                 }
                                 .onDelete(perform: deleteItems)
                             }
@@ -137,11 +69,106 @@ struct PortfolioListView: View {
         }
     }
     
+    // MARK: - 持股列(聚合:多券商分帳加總 + 加權均價)
+
+    private func holdingRow(_ holding: Holding) -> some View {
+        let priceInfo = viewModel.dailyPrices[holding.symbol]
+        let change = priceInfo?.changePercent ?? 0.0
+        let isUp = change >= 0
+
+        let hasPosition = holding.totalShares > 0 && holding.avgPrice != nil
+        let shares = Double(holding.totalShares)
+        let cost = holding.avgPrice ?? 0.0
+        let currentPrice = priceInfo?.closePrice ?? cost
+        let pnl = hasPosition ? ((currentPrice - cost) * shares) : 0.0
+        let pnlPercent = (hasPosition && cost > 0) ? ((currentPrice - cost) / cost * 100.0) : 0.0
+        let isPnlUp = pnl >= 0
+
+        return NavigationLink(destination: StockDetailView(symbol: holding.symbol, name: holding.name)) {
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text(holding.name)
+                            .font(.system(.body, design: .rounded))
+                            .fontWeight(.bold)
+                            .foregroundColor(AppColor.textPrimary)
+
+                        if holding.lots.count > 1 {
+                            Text("\(holding.lots.count) 券商")
+                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                                .foregroundColor(AppColor.primary)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color(hex: "EEEEFA"))
+                                .clipShape(Capsule())
+                        }
+                    }
+
+                    HStack(spacing: 6) {
+                        Text(holding.symbol)
+                            .font(.system(.caption, design: .rounded))
+                            .foregroundColor(AppColor.textSecondary)
+
+                        if holding.totalShares > 0 {
+                            Text("•")
+                                .font(.system(.caption2))
+                                .foregroundColor(AppColor.textSecondary.opacity(0.5))
+                            Text(holdingPositionText(holding))
+                                .font(.system(.caption, design: .rounded).monospacedDigit())
+                                .foregroundColor(AppColor.textSecondary)
+                        }
+                    }
+
+                    if holding.avgPriceIncomplete {
+                        Text("有分帳未填買價")
+                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .foregroundColor(AppColor.amberStrong)
+                    }
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    if let price = priceInfo {
+                        Text(String(format: "$%.2f", price.closePrice))
+                            .font(.system(.subheadline, design: .rounded).monospacedDigit())
+                            .fontWeight(.bold)
+                            .foregroundColor(AppColor.textPrimary)
+
+                        if hasPosition {
+                            let pnlSign = isPnlUp ? "+" : ""
+                            Text(String(format: "損益: %@$%.0f (%@%.2f%%)", pnlSign, pnl, pnlSign, pnlPercent))
+                                .font(.system(size: 11, weight: .semibold, design: .rounded).monospacedDigit())
+                                .foregroundColor(isPnlUp ? AppColor.upText : AppColor.downText)
+                        } else {
+                            Text(String(format: "%@%.2f%%", isUp ? "+" : "", change))
+                                .font(.system(.caption, design: .rounded).monospacedDigit())
+                                .fontWeight(.semibold)
+                                .foregroundColor(isUp ? AppColor.upText : AppColor.downText)
+                        }
+                    } else {
+                        Text("--")
+                            .foregroundColor(AppColor.textSecondary)
+                    }
+                }
+            }
+            .padding(.vertical, 6)
+        }
+    }
+
+    private func holdingPositionText(_ holding: Holding) -> String {
+        var text = "\(holding.totalShares.formatted())股"
+        if let avg = holding.avgPrice {
+            text += " @ $\(avg.trimmedString)"
+        }
+        return text
+    }
+
     private func deleteItems(at offsets: IndexSet) {
         for index in offsets {
-            let item = viewModel.portfolioItems[index]
+            let holding = viewModel.holdings[index]
             Task {
-                await viewModel.deleteItem(id: item.id)
+                await viewModel.deleteHolding(holding)
             }
         }
     }

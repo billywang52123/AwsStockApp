@@ -72,12 +72,19 @@ struct PortfolioInputView: View {
             Task { await viewModel.loadPopularStocks() }
         }
         .sheet(isPresented: $showScanSheet) {
-            StockScanSimulatorView { results in
-                for item in results {
-                    viewModel.addScannedStock(item.stock, cost: item.cost, shares: item.shares)
+            StockScanSimulatorView(
+                onImport: { results in
+                    for item in results {
+                        viewModel.addScannedStock(item.stock, cost: item.cost, shares: item.shares)
+                    }
+                    showScanSheet = false
+                },
+                onMergeCompleted: {
+                    // 9d 合併已直接寫入後端 → 關閉輸入頁讓列表刷新
+                    showScanSheet = false
+                    onCompletion([])
                 }
-                showScanSheet = false
-            }
+            )
         }
     }
 

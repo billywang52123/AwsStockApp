@@ -1,0 +1,66 @@
+import Foundation
+import Security
+
+/// Minimal Keychain wrapper for secrets that must not live in UserDefaults
+/// (session tokens etc. — UserDefaults is a plaintext plist).
+final class KeychainStore {
+    static let shared = KeychainStore()
+
+    static let sessionTokenKey = "session_token"
+
+    private let service = "com.stockmoodapp.auth"
+
+    private init() {}
+
+    func set(_ value: String, forKey key: String) {
+        guard let data = value.data(using: .utf8) else { return }
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key
+        ]
+        // Upsert: delete any existing item first, then add
+        SecItemDelete(query as CFDictionary)
+
+        var attributes = query
+        attributes[kSecValueData as String] = data
+        attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        SecItemAdd(attributes as CFDictionary, nil)
+    }
+
+    func get(_ key: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess, let data = result as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    func delete(_ key: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+
+    // MARK: - Session token convenience
+
+    var sessionToken: String? {
+        get { get(Self.sessionTokenKey) }
+        set {
+            if let token = newValue {
+                set(token, forKey: Self.sessionTokenKey)
+            } else {
+                delete(Self.sessionTokenKey)
+            }
+        }
+    }
+}

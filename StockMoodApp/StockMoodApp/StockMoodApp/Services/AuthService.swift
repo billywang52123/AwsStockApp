@@ -85,9 +85,11 @@ final class AuthService: ObservableObject {
                 email: credential.email
             )
 
-            let _: [String: String] = try await APIClient.shared.requestBody("/auth/apple", method: "POST", body: body)
+            let session: [String: String] = try await APIClient.shared.requestBody("/auth/apple", method: "POST", body: body)
+            Self.storeSessionToken(from: session)
         } catch {
-            // Backend /auth/apple endpoint is optional — continue with local session
+            // Offline / legacy backend — continue with local session; requests
+            // fall back to the X-User-Id header until a token is obtained.
             print("AuthService: Apple backend verify skipped: \(error.localizedDescription)")
         }
 
@@ -170,9 +172,11 @@ final class AuthService: ObservableObject {
                 let name: String?
             }
             let body = GoogleAuthRequest(id_token: idToken, email: email, name: name)
-            let _: [String: String] = try await APIClient.shared.requestBody("/auth/google", method: "POST", body: body)
+            let session: [String: String] = try await APIClient.shared.requestBody("/auth/google", method: "POST", body: body)
+            Self.storeSessionToken(from: session)
         } catch {
-            // Backend /auth/google is optional — continue with local session
+            // Offline / legacy backend — continue with local session; requests
+            // fall back to the X-User-Id header until a token is obtained.
             print("AuthService: Google backend token exchange skipped: \(error.localizedDescription)")
         }
 
@@ -182,5 +186,45 @@ final class AuthService: ObservableObject {
         HapticManager.shared.triggerNotification(type: .success)
         isAuthenticating = false
         onSuccess()
+    }
+
+    // MARK: - Guest session
+
+    /// Sign in locally as guest and register the guest id with the backend to
+    /// obtain a session token. Works offline — the token fetch is best-effort.
+    func signInAsGuest() {
+        AppPreferenceStore.shared.signInAsGuest()
+        Task { await self.registerGuestSession() }
+    }
+
+    private func registerGuestSession() async {
+        struct GuestAuthRequest: Encodable {
+            let guest_id: String
+        }
+        do {
+            let body = GuestAuthRequest(guest_id: AppPreferenceStore.shared.currentUserId)
+            let session: [String: String] = try await APIClient.shared.requestBody("/auth/guest", method: "POST", body: body)
+            Self.storeSessionToken(from: session)
+        } catch {
+            print("AuthService: guest session registration skipped: \(error.localizedDescription)")
+        }
+    }
+
+    /// Called on app launch: if we're logged in but have no session token yet
+    /// (upgrade from an older build, or the token expired), try to get one.
+    /// Guests can re-register silently; Apple/Google users keep using the
+    /// legacy header until they sign in again.
+    func ensureSessionToken() async {
+        guard AppPreferenceStore.shared.isLoggedIn,
+              KeychainStore.shared.sessionToken == nil,
+              AppPreferenceStore.shared.currentUserId.hasPrefix("guest-") else { return }
+        await registerGuestSession()
+    }
+
+    // MARK: - Session token storage
+
+    private static func storeSessionToken(from response: [String: String]) {
+        guard let token = response["access_token"], !token.isEmpty else { return }
+        KeychainStore.shared.sessionToken = token
     }
 }

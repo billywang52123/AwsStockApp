@@ -44,6 +44,68 @@ class RemotePortfolioService: PortfolioServiceProtocol {
     }
 }
 
+// MARK: - Remote Holding Service(持股異動與多券商合併 · spec 04)
+class RemoteHoldingService: HoldingServiceProtocol {
+    func getHoldings() async throws -> [Holding] {
+        return try await APIClient.shared.request("/portfolio/holdings", method: "GET")
+    }
+
+    func getHolding(symbol: String) async throws -> Holding? {
+        do {
+            let holding: Holding = try await APIClient.shared.request("/portfolio/holdings/\(symbol)", method: "GET")
+            return holding
+        } catch APIError.invalidResponse {
+            // 404 = 尚未持有這檔 → 以 nil 表示,不是錯誤
+            return nil
+        }
+    }
+
+    func buy(symbol: String, shares: Int, price: Double?, broker: String?) async throws -> TradeResult {
+        return try await APIClient.shared.requestBody(
+            "/portfolio/holdings/\(symbol)/buy",
+            body: TradeRequestBody(shares: shares, price: price, broker: broker)
+        )
+    }
+
+    func sell(symbol: String, shares: Int, price: Double?, broker: String?) async throws -> TradeResult {
+        return try await APIClient.shared.requestBody(
+            "/portfolio/holdings/\(symbol)/sell",
+            body: TradeRequestBody(shares: shares, price: price, broker: broker)
+        )
+    }
+
+    func override(symbol: String, shares: Int, broker: String?) async throws -> TradeResult {
+        return try await APIClient.shared.requestBody(
+            "/portfolio/holdings/\(symbol)/override",
+            body: OverrideRequestBody(shares: shares, broker: broker)
+        )
+    }
+
+    func restore(symbol: String) async throws -> TradeResult {
+        return try await APIClient.shared.request("/portfolio/holdings/\(symbol)/restore", method: "POST")
+    }
+
+    func importMerge(decisions: [MergeDecision]) async throws -> ImportMergeResult {
+        return try await APIClient.shared.requestBody(
+            "/portfolio/import/merge",
+            body: ImportMergeRequestBody(decisions: decisions)
+        )
+    }
+
+    func getActivities(symbol: String) async throws -> [HoldingActivity] {
+        return try await APIClient.shared.request("/portfolio/holdings/\(symbol)/activities", method: "GET")
+    }
+
+    func deleteActivity(id: String) async throws {
+        let _: Bool = try await APIClient.shared.request("/portfolio/activities/\(id)", method: "DELETE")
+    }
+
+    func deleteLot(id: String) async throws {
+        // 分帳就是一筆 PortfolioItem,沿用既有刪除端點
+        let _: Bool = try await APIClient.shared.request("/portfolio/items/\(id)", method: "DELETE")
+    }
+}
+
 // MARK: - Remote Stock Service
 class RemoteStockService: StockServiceProtocol {
     func searchStocks(keyword: String) async throws -> [Stock] {

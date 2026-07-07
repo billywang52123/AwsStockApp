@@ -2,3 +2,6 @@ web
 .next
 backend/.env
 backend/.env.example
+backend/*.db
+backend/*.sqlite3
+.DS_Store

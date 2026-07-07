@@ -7,3 +7,4 @@ from app.models.stock_daily_price import StockDailyPrice
 from app.models.market_index import MarketIndexDaily
 from app.models.reminder import ReminderSettingModel
 from app.models.card_result import CardResultModel
+from app.models.holding_activity import HoldingActivityModel

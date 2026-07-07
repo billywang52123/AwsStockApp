@@ -133,7 +133,7 @@ struct LoginView: View {
                         // ── Guest / Browse Route ──
                         Button(action: {
                             HapticManager.shared.triggerImpact(style: .medium)
-                            AppPreferenceStore.shared.signInAsGuest()
+                            authService.signInAsGuest()
                             onLoginSuccess()
                         }) {
                             Text("先逛逛 (訪客路徑)")
