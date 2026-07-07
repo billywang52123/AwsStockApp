@@ -7,7 +7,31 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite:///./stock_mood.db
+      - DATABASE_URL=postgresql+psycopg2://stockmood:stockmood@db:5432/stockmood
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
     volumes:
       - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: stock-mood-db
+    environment:
+      - POSTGRES_USER=stockmood
+      - POSTGRES_PASSWORD=stockmood
+      - POSTGRES_DB=stockmood
+    ports:
+      # 5436 on the host: 5432-5434 are used by other local projects
+      - "5436:5432"
+    volumes:
+      - stock_mood_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stockmood -d stockmood"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  stock_mood_pgdata:
