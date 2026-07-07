@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&amp;family=Noto+Serif+TC:wght@600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EBE9E3;}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+
+<section style="padding:60px 60px 20px;display:flex;flex-direction:column;gap:28px;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+  <div id="2a" style="display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="background:#3A3733;color:#fff;font-weight:700;font-size:14px;padding:6px 14px;border-radius:999px">2a</div>
+      <div style="font-size:24px;font-weight:900;color:#3A3733">iOS 切版規格卡(開發交付)</div>
+      <div style="font-size:14px;color:#8A857C">單位:pt · 基準機型 iPhone 16 Pro(402 × 874 pt)· @3x 輸出</div>
+    </div>
+
+    <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap">
+
+      <!-- 卡1 佈局網格 -->
+      <div style="width:340px;background:#FFFFFF;border-radius:20px;padding:26px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:16px">
+        <div style="font-size:15px;font-weight:800;color:#3A3733">① 佈局網格與安全區</div>
+        <div style="position:relative;width:100%;height:300px;background:#F7F4EE;border-radius:14px;overflow:hidden">
+          <div style="position:absolute;top:0;left:0;right:0;height:42px;background:rgba(123,127,212,0.14);display:flex;align-items:center;justify-content:center;font-size:10px;font-family:monospace;color:#5B5FA8">Status Bar 54pt(Dynamic Island)</div>
+          <div style="position:absolute;top:42px;left:0;right:0;height:34px;background:rgba(228,179,132,0.18);display:flex;align-items:center;justify-content:center;font-size:10px;font-family:monospace;color:#B07A3E">Nav 區 34–44pt</div>
+          <div style="position:absolute;top:76px;bottom:74px;left:0;width:22px;background:rgba(201,127,127,0.14);display:flex;align-items:center;justify-content:center"><span style="font-size:9px;font-family:monospace;color:#A96363;writing-mode:vertical-rl">24pt</span></div>
+          <div style="position:absolute;top:76px;bottom:74px;right:0;width:22px;background:rgba(201,127,127,0.14);display:flex;align-items:center;justify-content:center"><span style="font-size:9px;font-family:monospace;color:#A96363;writing-mode:vertical-rl">24pt</span></div>
+          <div style="position:absolute;top:76px;bottom:74px;left:22px;right:22px;border:1.5px dashed #B8BBE8;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:monospace;color:#7B7FD4;text-align:center">Content<br>卡片間距 12pt<br>區塊間距 16–22pt</div>
+          <div style="position:absolute;bottom:0;left:0;right:0;height:74px;background:rgba(157,191,170,0.18);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-family:monospace;color:#4E7A5F;line-height:1.5">Tab Bar 50pt + Home Indicator 24pt</div>
+        </div>
+        <div style="font-size:12px;color:#8A857C;line-height:1.8;font-family:monospace">左右邊距 24pt · 卡片間 12pt<br>區塊標題上方 22pt / 下方 10pt<br>底部 CTA 距 Tab Bar ≥ 16pt</div>
+      </div>
+
+      <!-- 卡2 元件尺寸 -->
+      <div style="width:340px;background:#FFFFFF;border-radius:20px;padding:26px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:14px">
+        <div style="font-size:15px;font-weight:800;color:#3A3733">② 元件尺寸</div>
+        <div style="display:flex;flex-direction:column;gap:11px;font-family:monospace;font-size:12px;color:#5C5850">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>PrimaryButton 高</span><span style="font-weight:700;color:#3A3733">54pt · R18</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>SecondaryButton 高</span><span style="font-weight:700;color:#3A3733">50pt · R16</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>StockCard 圓角 / 內距</span><span style="font-weight:700;color:#3A3733">R20 · 18pt</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>AnxietyScoreRing 直徑</span><span style="font-weight:700;color:#3A3733">196pt · 環寬 17pt</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>DrawCard 卡片</span><span style="font-weight:700;color:#3A3733">240 × 364pt · R22</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>股票 icon 方塊</span><span style="font-weight:700;color:#3A3733">44pt · R15</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>EmotionBadge</span><span style="font-weight:700;color:#3A3733">高 28pt · pill / R6</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>輸入框高</span><span style="font-weight:700;color:#3A3733">52pt · R18</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>Toggle(原生)</span><span style="font-weight:700;color:#3A3733">51 × 31pt</span></div>
+          <div style="display:flex;justify-content:space-between"><span>最小點擊範圍</span><span style="font-weight:700;color:#C97F7F">44 × 44pt</span></div>
+        </div>
+        <div style="background:#F7F4EE;border-radius:12px;padding:12px 14px;font-size:11px;color:#8A857C;line-height:1.7">陰影:卡片 <span style="font-family:monospace">y6 blur18 rgba(120,100,70,.06)</span><br>主按鈕 <span style="font-family:monospace">y10 blur24 primary 30%</span>(方向 B 無陰影,改 1px 描邊 #E5E7ED)</div>
+      </div>
+
+      <!-- 卡3 字級 -->
+      <div style="width:340px;background:#FFFFFF;border-radius:20px;padding:26px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:14px">
+        <div style="font-size:15px;font-weight:800;color:#3A3733">③ 字級(SF Pro / PingFang TC)</div>
+        <div style="display:flex;flex-direction:column;gap:11px;font-family:monospace;font-size:12px;color:#5C5850">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>LargeTitle 首頁主標</span><span style="font-weight:700;color:#3A3733">30–34pt Heavy</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>Title1 畫面標題</span><span style="font-weight:700;color:#3A3733">28pt Heavy</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>Title2 卡片主標</span><span style="font-weight:700;color:#3A3733">22pt(A 襯線 / B +字距)</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>Headline 區塊標題</span><span style="font-weight:700;color:#3A3733">17pt Semibold</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>Body 內文</span><span style="font-weight:700;color:#3A3733">15pt · 行高 1.7</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>Footnote 輔助</span><span style="font-weight:700;color:#3A3733">13–14pt</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1EDE3;padding-bottom:8px"><span>Caption 免責/標籤</span><span style="font-weight:700;color:#3A3733">11–12pt</span></div>
+          <div style="display:flex;justify-content:space-between"><span>分數大數字</span><span style="font-weight:700;color:#3A3733">46pt Heavy(B: 52pt Light)</span></div>
+        </div>
+        <div style="background:#F7F4EE;border-radius:12px;padding:12px 14px;font-size:11px;color:#8A857C;line-height:1.7">全部掛 Dynamic Type(textStyle 對映)· 中文行高 ≥1.6 · 儀式標題(A)用 Noto Serif TC,僅限抽卡/Splash</div>
+      </div>
+
+      <!-- 卡4 色彩 -->
+      <div style="width:340px;background:#FFFFFF;border-radius:20px;padding:26px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:14px">
+        <div style="font-size:15px;font-weight:800;color:#3A3733">④ 色彩 Tokens(Asset Catalog)</div>
+        <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px 12px;align-items:center;font-family:monospace;font-size:11px;color:#5C5850">
+          <div></div><div style="font-weight:700;color:#8A857C">方向A 暖陽</div><div style="font-weight:700;color:#8A857C">方向B 霧藍</div>
+          <div>background</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#F7F4EE;border:1px solid #E7E2D6"></div>#F7F4EE</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#F3F4F7;border:1px solid #E5E7ED"></div>#F3F4F7</div>
+          <div>primary</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#7B7FD4"></div>#7B7FD4</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#6E79C9"></div>#6E79C9</div>
+          <div>secondary</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#9DBFAA"></div>#9DBFAA</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#8FB3B8"></div>#8FB3B8</div>
+          <div>warning</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#E4B384"></div>#E4B384</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#D9A968"></div>#D9A968</div>
+          <div>danger</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#C97F7F"></div>#C97F7F</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#B87878"></div>#B87878</div>
+          <div>textPrimary</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#3A3733"></div>#3A3733</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#33363E"></div>#33363E</div>
+          <div>textSecondary</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#8A857C"></div>#8A857C</div><div style="display:flex;align-items:center;gap:6px"><div style="width:16px;height:16px;border-radius:5px;background:#878C99"></div>#878C99</div>
+          <div>cardBg</div><div>#FFFFFF</div><div>#FFFFFF + 1px #E5E7ED</div>
+        </div>
+        <div style="background:#F7F4EE;border-radius:12px;padding:12px 14px;font-size:11px;color:#8A857C;line-height:1.7">漲跌色遵守台股習慣:漲=danger 紅系、跌用於負值文字;情緒三級:安心 綠 / 有點緊張 橘 / 波動較大 紅</div>
+      </div>
+
+      <!-- 卡5 Redline 首頁 -->
+      <div style="width:520px;background:#FFFFFF;border-radius:20px;padding:26px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:16px">
+        <div style="font-size:15px;font-weight:800;color:#3A3733">⑤ Redline · 今日首頁(以方向 A 為例)</div>
+        <div style="display:flex;gap:18px">
+          <div style="position:relative;width:268px;height:520px;background:#F7F4EE;border-radius:24px;border:1px solid #E7E2D6;overflow:hidden;flex-shrink:0;font-family:'Noto Sans TC',sans-serif">
+            <div style="position:absolute;top:38px;left:16px;font-size:8px;color:#A9A49B">7 月 6 日 週一 · 收盤後</div>
+            <div style="position:absolute;top:50px;left:16px;font-size:17px;font-weight:900;color:#3A3733">今天你的持股情緒</div>
+            <div style="position:absolute;top:88px;left:50%;transform:translateX(-50%);width:118px;height:118px;border-radius:50%;background:conic-gradient(#E4B384 0 72%,#EFEAE0 72% 100%);display:flex;align-items:center;justify-content:center"><div style="width:96px;height:96px;border-radius:50%;background:#FDFBF7;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#3A3733">72</div></div>
+            <div style="position:absolute;top:214px;left:50%;transform:translateX(-50%);background:#FBEFDF;color:#B07A3E;font-size:8px;font-weight:700;padding:4px 10px;border-radius:99px">有點緊張</div>
+            <div style="position:absolute;top:238px;left:24px;right:24px;font-size:8px;color:#5C5850;text-align:center;line-height:1.6">今天你的持股波動偏大,主要受到科技股拉回影響。</div>
+            <div style="position:absolute;top:282px;left:16px;right:139px;height:52px;background:#FFFFFF;border-radius:11px"></div>
+            <div style="position:absolute;top:282px;left:139px;right:16px;height:52px;background:#FFFFFF;border-radius:11px"></div>
+            <div style="position:absolute;top:344px;left:16px;right:16px;height:56px;background:#FFFFFF;border-radius:11px"></div>
+            <div style="position:absolute;top:412px;left:16px;right:139px;height:33px;background:#7B7FD4;border-radius:10px"></div>
+            <div style="position:absolute;top:412px;left:139px;right:16px;height:33px;background:#FFFFFF;border:1px solid #E3DFD4;border-radius:10px"></div>
+            <div style="position:absolute;bottom:0;left:0;right:0;height:48px;background:rgba(255,255,255,0.94);border-top:1px solid rgba(120,100,70,0.08)"></div>
+            <!-- redlines -->
+            <div style="position:absolute;top:88px;right:6px;height:118px;border-right:1px solid #C97F7F;width:1px"></div>
+            <div style="position:absolute;top:138px;right:9px;font-size:8px;font-family:monospace;color:#C97F7F;writing-mode:vertical-rl">196pt</div>
+            <div style="position:absolute;top:270px;left:16px;right:16px;border-top:1px dashed #C97F7F"></div>
+            <div style="position:absolute;top:272px;left:20px;font-size:7px;font-family:monospace;color:#C97F7F">↕ 20pt</div>
+            <div style="position:absolute;top:402px;left:20px;font-size:7px;font-family:monospace;color:#C97F7F">↕ 16pt</div>
+            <div style="position:absolute;top:282px;left:130px;width:9px;text-align:center;font-size:7px;font-family:monospace;color:#C97F7F">12</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:9px;font-family:monospace;font-size:11.5px;color:#5C5850;line-height:1.6">
+            <div><span style="color:#C97F7F;font-weight:700">A</span> Nav 日期:distance top safe-area +8pt</div>
+            <div><span style="color:#C97F7F;font-weight:700">B</span> 主標 → 進度環:22pt</div>
+            <div><span style="color:#C97F7F;font-weight:700">C</span> 進度環 196pt,置中,環寬 17pt,起點 12 點鐘順時針</div>
+            <div><span style="color:#C97F7F;font-weight:700">D</span> 環 → 情緒 badge:14pt;badge → 說明文:12pt</div>
+            <div><span style="color:#C97F7F;font-weight:700">E</span> 說明文 → 數據卡:20pt;雙卡等寬,間距 12pt</div>
+            <div><span style="color:#C97F7F;font-weight:700">F</span> 數據卡 → 比較條卡:12pt</div>
+            <div><span style="color:#C97F7F;font-weight:700">G</span> 比較卡 → CTA 列:16pt;CTA 高 50pt,間距 12pt</div>
+            <div><span style="color:#C97F7F;font-weight:700">H</span> Tab Bar:50pt + Home Indicator;icon 24pt,label 10pt</div>
+            <div style="margin-top:6px;background:#F7F4EE;border-radius:10px;padding:10px 12px;font-size:10.5px;color:#8A857C">進度環動畫:0→分數 spring 0.8s;分數變色門檻 40 / 70;數字用 monospacedDigit 避免跳動</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="height:1px;background:#DBD7CD"></div>
+
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="font-size:32px;font-weight:900;color:#3A3733">股感安心卡 · iOS App 設計</div>
+    <div style="font-size:15px;color:#8A857C">13 個畫面 × 2 個視覺方向 · <a href="#1a" style="color:#7B7FD4">1a 暖陽米杏</a> / <a href="#1b" style="color:#6E79C9">1b 沉靜霧藍</a> · Light Mode MVP</div>
+  </div>
+
+  <div style="display:flex;gap:120px;align-items:flex-start">
+
+    <!-- ═══════════ OPTION 1a 暖陽米杏 ═══════════ -->
+    <div id="1a" style="display:flex;flex-direction:column;gap:28px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:14px;padding:6px 14px;border-radius:999px">1a</div>
+        <div style="font-size:22px;font-weight:700;color:#3A3733">方向 A · 暖陽米杏</div>
+        <div style="font-size:14px;color:#8A857C">更溫暖、有儀式感 — 米白底 + 襯線標題 + 柔和光暈</div>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:36px;width:1840px">
+
+        <!-- A01 Splash -->
+        <div data-screen-label="1a-01 Splash" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">01 · Splash <span style="font-family:monospace;font-size:11px;color:#B4AFA5">logo 淡入 1.2s ease-out</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:linear-gradient(180deg,#FAF7F1 0%,#F3EDE1 100%);font-family:'Noto Sans TC','PingFang TC',sans-serif">
+              <div style="width:96px;height:96px;border-radius:28px;background:linear-gradient(160deg,#8B8FDD,#6C70C4);box-shadow:0 16px 40px rgba(123,127,212,0.35);display:flex;align-items:center;justify-content:center;animation:floaty 4s ease-in-out infinite">
+                <div style="width:44px;height:44px;border-radius:50%;background:conic-gradient(#FFFFFF 0 72%,rgba(255,255,255,0.25) 72% 100%);display:flex;align-items:center;justify-content:center">
+                  <div style="width:30px;height:30px;border-radius:50%;background:#767AC9"></div>
+                </div>
+              </div>
+              <div style="margin-top:28px;font-family:'Noto Serif TC',serif;font-size:34px;font-weight:700;color:#3A3733;letter-spacing:2px">股感安心卡</div>
+              <div style="margin-top:14px;font-size:17px;font-weight:500;color:#5C5850">每天看懂你的股票情緒</div>
+              <div style="margin-top:8px;font-size:14px;color:#8A857C">不用懂線圖,也能知道今天為什麼焦慮</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- A02 Onboarding -->
+        <div data-screen-label="1a-02 Onboarding" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">02 · Onboarding <span style="font-family:monospace;font-size:11px;color:#B4AFA5">3 張可滑動 card</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:88px 0 40px">
+              <div style="padding:0 28px;font-size:14px;font-weight:600;color:#A9A49B;text-align:right"><span style="padding:6px 4px">略過</span></div>
+              <div style="flex:1;display:flex;align-items:center;gap:16px;padding-left:32px;overflow:hidden;margin-top:8px">
+                <div style="width:296px;flex-shrink:0;background:#FFFFFF;border-radius:28px;padding:36px 28px;box-shadow:0 12px 36px rgba(120,100,70,0.10);display:flex;flex-direction:column;gap:16px">
+                  <div style="width:56px;height:56px;border-radius:18px;background:#EEEEFA;display:flex;align-items:center;justify-content:center">
+                    <svg width="28" height="28" viewBox="0 0 24 24"><path d="M3 17 L9 10 L13 13 L21 5" fill="none" stroke="#7B7FD4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="21" cy="5" r="2.4" fill="#E4B384"></circle></svg>
+                  </div>
+                  <div style="font-family:'Noto Serif TC',serif;font-size:23px;font-weight:700;color:#3A3733;line-height:1.45">跌了,不一定是<br>你選錯股票</div>
+                  <div style="font-size:15px;color:#8A857C;line-height:1.7">我們會幫你先看懂,是個股問題,還是整個市場都在波動。</div>
+                </div>
+                <div style="width:296px;flex-shrink:0;background:#FFFFFF;border-radius:28px;padding:36px 28px;opacity:0.55;display:flex;flex-direction:column;gap:16px">
+                  <div style="width:56px;height:56px;border-radius:18px;background:#EAF2EC;display:flex;align-items:center;justify-content:center">
+                    <svg width="28" height="28" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="#8FAE9B" stroke-width="2.2"></circle><path d="M16 16 L20.5 20.5" stroke="#8FAE9B" stroke-width="2.2" stroke-linecap="round"></path></svg>
+                  </div>
+                  <div style="font-family:'Noto Serif TC',serif;font-size:23px;font-weight:700;color:#3A3733;line-height:1.45">不用懂線圖,也能看懂今天為什麼波動</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:center;gap:8px;margin:26px 0">
+                <div style="width:20px;height:7px;border-radius:99px;background:#7B7FD4"></div>
+                <div style="width:7px;height:7px;border-radius:99px;background:#D8D3C8"></div>
+                <div style="width:7px;height:7px;border-radius:99px;background:#D8D3C8"></div>
+              </div>
+              <div style="padding:0 24px">
+                <div style="height:54px;border-radius:18px;background:#7B7FD4;box-shadow:0 10px 24px rgba(123,127,212,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:700">開始了解我的持股</div>
+              </div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- A03 情境選擇 -->
+        <div data-screen-label="1a-03 情境選擇" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">03 · 使用者情境選擇 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">選中:柔和描邊 + light haptic</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:96px 24px 40px">
+              <div style="font-size:13px;font-weight:600;color:#A9A49B;letter-spacing:1px">1 / 3</div>
+              <div style="margin-top:10px;font-size:28px;font-weight:900;color:#3A3733;line-height:1.4">你最常遇到<br>哪種情況?</div>
+              <div style="margin-top:6px;font-size:14px;color:#8A857C">可以選一個最像你的,我們會照著調整內容。</div>
+              <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px">
+                <div style="background:#FFFFFF;border:1.5px solid rgba(120,100,70,0.06);border-radius:20px;padding:18px;display:flex;align-items:center;gap:14px">
+                  <div style="width:42px;height:42px;border-radius:14px;background:#F4EFE4;display:flex;align-items:center;justify-content:center;font-size:19px">🤔</div>
+                  <div style="flex:1;font-size:16px;font-weight:500;color:#3A3733;line-height:1.5">我買了股票,但不知道該不該繼續放著</div>
+                </div>
+                <div style="background:#F1F1FB;border:2px solid #7B7FD4;border-radius:20px;padding:18px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 22px rgba(123,127,212,0.18)">
+                  <div style="width:42px;height:42px;border-radius:14px;background:#E3E4F7;display:flex;align-items:center;justify-content:center;font-size:19px">📉</div>
+                  <div style="flex:1;font-size:16px;font-weight:700;color:#3A3733;line-height:1.5">股票一跌,我就開始焦慮</div>
+                  <div style="width:24px;height:24px;border-radius:50%;background:#7B7FD4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <svg width="12" height="10" viewBox="0 0 12 10"><path d="M1.5 5 L4.5 8 L10.5 1.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  </div>
+                </div>
+                <div style="background:#FFFFFF;border:1.5px solid rgba(120,100,70,0.06);border-radius:20px;padding:18px;display:flex;align-items:center;gap:14px">
+                  <div style="width:42px;height:42px;border-radius:14px;background:#F4EFE4;display:flex;align-items:center;justify-content:center;font-size:19px">📰</div>
+                  <div style="flex:1;font-size:16px;font-weight:500;color:#3A3733;line-height:1.5">我看不懂線圖和新聞</div>
+                </div>
+                <div style="background:#FFFFFF;border:1.5px solid rgba(120,100,70,0.06);border-radius:20px;padding:18px;display:flex;align-items:center;gap:14px">
+                  <div style="width:42px;height:42px;border-radius:14px;background:#F4EFE4;display:flex;align-items:center;justify-content:center;font-size:19px">☕️</div>
+                  <div style="flex:1;font-size:16px;font-weight:500;color:#3A3733;line-height:1.5">我只是想每天快速知道發生什麼事</div>
+                </div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="height:54px;border-radius:18px;background:#7B7FD4;box-shadow:0 10px 24px rgba(123,127,212,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:700">下一步</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- A04 持股輸入 -->
+        <div data-screen-label="1a-04 持股輸入" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">04 · 持股輸入 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">新增成功:success haptic</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:96px 24px 40px">
+              <div style="font-size:13px;font-weight:600;color:#A9A49B;letter-spacing:1px">2 / 3</div>
+              <div style="margin-top:10px;font-size:28px;font-weight:900;color:#3A3733;line-height:1.4">先加入你關心的股票</div>
+              <div style="margin-top:6px;font-size:14px;color:#8A857C;line-height:1.7">不用輸入金額也可以先開始,我們會先幫你看懂今天的波動。</div>
+              <div style="margin-top:22px;background:#FFFFFF;border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 6px 18px rgba(120,100,70,0.07)">
+                <svg width="20" height="20" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="#A9A49B" stroke-width="2"></circle><path d="M16 16 L20.5 20.5" stroke="#A9A49B" stroke-width="2" stroke-linecap="round"></path></svg>
+                <div style="font-size:16px;color:#B4AFA5">輸入代號或名稱,例如 2330、台積電</div>
+              </div>
+              <div style="margin-top:12px;display:flex;gap:12px">
+                <div style="flex:1;background:#FFFFFF;border-radius:16px;padding:13px 16px;font-size:14px;color:#B4AFA5">持有成本(選填)</div>
+                <div style="flex:1;background:#FFFFFF;border-radius:16px;padding:13px 16px;font-size:14px;color:#B4AFA5">股數(選填)</div>
+              </div>
+              <div style="margin-top:26px;font-size:14px;font-weight:700;color:#5C5850">已加入 2 檔</div>
+              <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+                <div style="background:#FFFFFF;border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                  <div style="width:42px;height:42px;border-radius:14px;background:#EEEEFA;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#7B7FD4">台</div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                    <div style="font-size:16px;font-weight:700;color:#3A3733">台積電</div>
+                    <div style="font-size:13px;color:#A9A49B">2330 · 半導體</div>
+                  </div>
+                  <div style="width:30px;height:30px;border-radius:50%;background:#F4F1EA;display:flex;align-items:center;justify-content:center">
+                    <svg width="11" height="11" viewBox="0 0 12 12"><path d="M2 2 L10 10 M10 2 L2 10" stroke="#A9A49B" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                  </div>
+                </div>
+                <div style="background:#FFFFFF;border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                  <div style="width:42px;height:42px;border-radius:14px;background:#EAF2EC;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#6E9A7F">中</div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                    <div style="font-size:16px;font-weight:700;color:#3A3733">中信金</div>
+                    <div style="font-size:13px;color:#A9A49B">2891 · 金融</div>
+                  </div>
+                  <div style="width:30px;height:30px;border-radius:50%;background:#F4F1EA;display:flex;align-items:center;justify-content:center">
+                    <svg width="11" height="11" viewBox="0 0 12 12"><path d="M2 2 L10 10 M10 2 L2 10" stroke="#A9A49B" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                  </div>
+                </div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="height:54px;border-radius:18px;background:#7B7FD4;box-shadow:0 10px 24px rgba(123,127,212,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:700">完成,查看今日狀態</div>
+              <div style="margin-top:12px;text-align:center;font-size:13px;color:#A9A49B">之後隨時可以修改,最多 5 檔</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- A05 推薦股票 -->
+        <div data-screen-label="1a-05 推薦股票" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">05 · AI 推薦股票 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">卡片橫向滑動</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:96px 0 40px">
+              <div style="padding:0 24px;font-size:13px;font-weight:600;color:#A9A49B;letter-spacing:1px">3 / 3</div>
+              <div style="margin-top:10px;padding:0 24px;font-size:28px;font-weight:900;color:#3A3733;line-height:1.4">你可能也關心<br>這些股票</div>
+              <div style="margin-top:6px;padding:0 24px;font-size:14px;color:#8A857C;line-height:1.7">根據你剛剛加入的台積電,我們猜你可能也想追蹤這些。</div>
+              <div style="margin-top:26px;display:flex;gap:14px;padding-left:24px;overflow:hidden">
+                <div style="width:168px;flex-shrink:0;background:#FFFFFF;border-radius:22px;padding:20px 18px;box-shadow:0 10px 26px rgba(120,100,70,0.09);display:flex;flex-direction:column;gap:10px">
+                  <div style="width:44px;height:44px;border-radius:15px;background:#EEEEFA;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#7B7FD4">聯</div>
+                  <div style="font-size:17px;font-weight:700;color:#3A3733">聯發科</div>
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <div style="font-size:12px;color:#A9A49B">2454</div>
+                    <div style="font-size:11px;font-weight:600;color:#7B7FD4;background:#EEEEFA;padding:3px 8px;border-radius:99px">半導體</div>
+                  </div>
+                  <div style="margin-top:6px;height:40px;border-radius:14px;background:#7B7FD4;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700">加入</div>
+                  <div style="text-align:center;font-size:13px;color:#A9A49B;padding:2px">略過</div>
+                </div>
+                <div style="width:168px;flex-shrink:0;background:#FFFFFF;border-radius:22px;padding:20px 18px;box-shadow:0 10px 26px rgba(120,100,70,0.09);display:flex;flex-direction:column;gap:10px;border:1.5px solid #9DBFAA">
+                  <div style="width:44px;height:44px;border-radius:15px;background:#EAF2EC;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#6E9A7F">鴻</div>
+                  <div style="font-size:17px;font-weight:700;color:#3A3733">鴻海</div>
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <div style="font-size:12px;color:#A9A49B">2317</div>
+                    <div style="font-size:11px;font-weight:600;color:#6E9A7F;background:#EAF2EC;padding:3px 8px;border-radius:99px">電子代工</div>
+                  </div>
+                  <div style="margin-top:6px;height:40px;border-radius:14px;background:#EAF2EC;display:flex;align-items:center;justify-content:center;gap:6px;color:#4E7A5F;font-size:14px;font-weight:700">
+                    <svg width="12" height="10" viewBox="0 0 12 10"><path d="M1.5 5 L4.5 8 L10.5 1.5" fill="none" stroke="#4E7A5F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    已加入
+                  </div>
+                  <div style="text-align:center;font-size:13px;color:#A9A49B;padding:2px">略過</div>
+                </div>
+                <div style="width:120px;flex-shrink:0;background:#FFFFFF;border-radius:22px;padding:20px 18px;opacity:0.6;display:flex;flex-direction:column;gap:10px">
+                  <div style="width:44px;height:44px;border-radius:15px;background:#F4EFE4;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#B08D5B">日</div>
+                  <div style="font-size:17px;font-weight:700;color:#3A3733">日月光</div>
+                  <div style="font-size:12px;color:#A9A49B">3711</div>
+                </div>
+              </div>
+              <div style="margin-top:16px;padding:0 24px;display:flex;gap:8px">
+                <div style="width:20px;height:6px;border-radius:99px;background:#7B7FD4"></div>
+                <div style="width:6px;height:6px;border-radius:99px;background:#D8D3C8"></div>
+                <div style="width:6px;height:6px;border-radius:99px;background:#D8D3C8"></div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="margin:0 24px;height:54px;border-radius:18px;background:#7B7FD4;box-shadow:0 10px 24px rgba(123,127,212,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:700">完成,查看今日狀態</div>
+              <div style="margin-top:12px;text-align:center;font-size:13px;color:#A9A49B">推薦只是幫你追蹤,不是投資建議</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- A06 今日首頁 -->
+        <div data-screen-label="1a-06 今日焦慮分數首頁" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">06 · 今日焦慮分數首頁 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">主畫面 · Tab「今日」</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+              <div style="flex:1;overflow:hidden;padding:88px 24px 0;display:flex;flex-direction:column">
+                <div style="font-size:13px;font-weight:600;color:#A9A49B">7 月 6 日 週一 · 收盤後</div>
+                <div style="margin-top:6px;font-size:30px;font-weight:900;color:#3A3733">今天你的持股情緒</div>
+                <div style="margin-top:22px;display:flex;flex-direction:column;align-items:center">
+                  <div style="width:196px;height:196px;border-radius:50%;background:conic-gradient(#E4B384 0 72%,#EFEAE0 72% 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 14px 34px rgba(228,179,132,0.25)">
+                    <div style="width:162px;height:162px;border-radius:50%;background:#FDFBF7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+                      <div style="font-size:46px;font-weight:900;color:#3A3733;line-height:1">72<span style="font-size:17px;font-weight:600;color:#B4AFA5"> /100</span></div>
+                      <div style="font-size:12px;color:#A9A49B">今日焦慮分數</div>
+                    </div>
+                  </div>
+                  <div style="margin-top:14px;background:#FBEFDF;color:#B07A3E;font-size:14px;font-weight:700;padding:7px 16px;border-radius:99px">有點緊張</div>
+                  <div style="margin-top:12px;font-size:15px;color:#5C5850;line-height:1.7;text-align:center;padding:0 8px">今天你的持股波動偏大,主要受到科技股拉回影響。先看懂原因,不用急著做決定。</div>
+                </div>
+                <div style="margin-top:20px;display:flex;gap:12px">
+                  <div style="flex:1;background:#FFFFFF;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                    <div style="font-size:12px;color:#A9A49B">我的持股</div>
+                    <div style="font-size:22px;font-weight:800;color:#C97F7F">-1.8%</div>
+                  </div>
+                  <div style="flex:1;background:#FFFFFF;border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                    <div style="font-size:12px;color:#A9A49B">大盤(加權指數)</div>
+                    <div style="font-size:22px;font-weight:800;color:#8A857C">-0.9%</div>
+                  </div>
+                </div>
+                <div style="margin-top:12px;background:#FFFFFF;border-radius:18px;padding:14px 16px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                  <div style="display:flex;justify-content:space-between;font-size:12px;color:#A9A49B"><span>持股 vs 大盤</span><span>今天比大盤弱一些</span></div>
+                  <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+                    <div style="height:8px;border-radius:99px;background:#F1EDE3;overflow:hidden"><div style="width:64%;height:100%;border-radius:99px;background:#B8BBE8"></div></div>
+                    <div style="height:8px;border-radius:99px;background:#F1EDE3;overflow:hidden"><div style="width:38%;height:100%;border-radius:99px;background:#D8D3C8"></div></div>
+                  </div>
+                </div>
+                <div style="margin-top:16px;display:flex;gap:12px">
+                  <div style="flex:1;height:50px;border-radius:16px;background:#7B7FD4;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;box-shadow:0 8px 20px rgba(123,127,212,0.28)">查看今天原因</div>
+                  <div style="flex:1;height:50px;border-radius:16px;background:#FFFFFF;border:1.5px solid #E3DFD4;display:flex;align-items:center;justify-content:center;color:#7B7FD4;font-size:15px;font-weight:700">抽今日持股卡</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:12px 20px 26px;background:rgba(255,255,255,0.94);border-top:1px solid rgba(120,100,70,0.08)">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 11 L12 4 L20 11 V20 H14.5 V15 H9.5 V20 H4 Z" fill="none" stroke="#7B7FD4" stroke-width="1.9" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:700;color:#7B7FD4">今日</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="8.5" y="4.5" width="11" height="15" rx="2.5" fill="none" stroke="#A9A49B" stroke-width="1.9" transform="rotate(7 14 12)"></rect><rect x="4.5" y="5" width="11" height="15" rx="2.5" fill="#F7F4EE" stroke="#A9A49B" stroke-width="1.9"></rect></svg>
+                  <span style="font-size:10px;font-weight:600;color:#A9A49B">抽卡</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14.5" rx="3.5" fill="none" stroke="#A9A49B" stroke-width="1.9"></rect><path d="M4 13 H8.5 C8.5 15 15.5 15 15.5 13 H20" fill="none" stroke="#A9A49B" stroke-width="1.9" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:600;color:#A9A49B">持股</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#A9A49B" stroke-width="1.9" stroke-dasharray="3.6 2.7"></circle><circle cx="12" cy="12" r="3" fill="none" stroke="#A9A49B" stroke-width="1.9"></circle></svg>
+                  <span style="font-size:10px;font-weight:600;color:#A9A49B">設定</span>
+                </div>
+              </div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- A07 每日抽卡 -->
+        <div data-screen-label="1a-07 每日抽卡" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">07 · 每日抽卡 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">塔羅式卡背 · 點擊翻牌</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:linear-gradient(180deg,#F7F4EE 0%,#EFEAF6 100%);font-family:'Noto Sans TC','PingFang TC',sans-serif">
+              <div style="flex:1;overflow:hidden;padding:96px 24px 0;display:flex;flex-direction:column;align-items:center">
+                <div style="font-family:'Noto Serif TC',serif;font-size:27px;font-weight:700;color:#3A3733">抽一張今日持股卡</div>
+                <div style="margin-top:8px;font-size:14px;color:#8A857C">每天一張,陪你冷靜看市場</div>
+                <div style="flex:1;display:flex;align-items:center">
+                  <div style="width:240px;height:364px;border-radius:22px;background:linear-gradient(165deg,#787CD0 0%,#5B5FA8 100%);box-shadow:0 28px 60px rgba(91,95,168,0.4);padding:12px;box-sizing:border-box;animation:floaty 5s ease-in-out infinite">
+                    <div style="height:100%;border-radius:14px;border:1.5px solid rgba(255,255,255,0.4);box-sizing:border-box;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px">
+                      <div style="position:absolute;inset:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.18)"></div>
+                      <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.5);position:absolute;top:20px;left:20px"></div>
+                      <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.5);position:absolute;top:20px;right:20px"></div>
+                      <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.5);position:absolute;bottom:20px;left:20px"></div>
+                      <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.5);position:absolute;bottom:20px;right:20px"></div>
+                      <svg width="64" height="64" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="rgba(255,255,255,0.9)"></path></svg>
+                      <div style="font-family:'Noto Serif TC',serif;font-size:15px;letter-spacing:6px;color:rgba(255,255,255,0.85)">股感安心卡</div>
+                    </div>
+                  </div>
+                </div>
+                <div style="margin-bottom:28px;display:flex;flex-direction:column;align-items:center;gap:8px">
+                  <div style="font-size:15px;font-weight:600;color:#5C5850">輕點卡片,翻開今天的市場心情</div>
+                  <div style="font-size:12px;color:#A9A49B">今天還沒抽 · 每日一次</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:12px 20px 26px;background:rgba(255,255,255,0.94);border-top:1px solid rgba(120,100,70,0.08)">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 11 L12 4 L20 11 V20 H14.5 V15 H9.5 V20 H4 Z" fill="none" stroke="#A9A49B" stroke-width="1.9" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:600;color:#A9A49B">今日</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="8.5" y="4.5" width="11" height="15" rx="2.5" fill="none" stroke="#7B7FD4" stroke-width="1.9" transform="rotate(7 14 12)"></rect><rect x="4.5" y="5" width="11" height="15" rx="2.5" fill="#F7F4EE" stroke="#7B7FD4" stroke-width="1.9"></rect></svg>
+                  <span style="font-size:10px;font-weight:700;color:#7B7FD4">抽卡</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14.5" rx="3.5" fill="none" stroke="#A9A49B" stroke-width="1.9"></rect><path d="M4 13 H8.5 C8.5 15 15.5 15 15.5 13 H20" fill="none" stroke="#A9A49B" stroke-width="1.9" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:600;color:#A9A49B">持股</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#A9A49B" stroke-width="1.9" stroke-dasharray="3.6 2.7"></circle><circle cx="12" cy="12" r="3" fill="none" stroke="#A9A49B" stroke-width="1.9"></circle></svg>
+                  <span style="font-size:10px;font-weight:600;color:#A9A49B">設定</span>
+                </div>
+              </div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- A08 今日原因解釋 -->
+        <div data-screen-label="1a-08 今日原因解釋" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">08 · 今日原因解釋 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">白話翻譯 · 可捲動</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:76px 24px 36px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:36px;height:36px;border-radius:50%;background:#FFFFFF;box-shadow:0 4px 12px rgba(120,100,70,0.1);display:flex;align-items:center;justify-content:center">
+                  <svg width="10" height="16" viewBox="0 0 12 20"><path d="M10 2 L2 10 L10 18" fill="none" stroke="#5C5850" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </div>
+                <div style="font-size:13px;color:#A9A49B">7 月 6 日 · 收盤後</div>
+              </div>
+              <div style="margin-top:14px;font-size:28px;font-weight:900;color:#3A3733">今天為什麼會這樣?</div>
+              <div style="margin-top:18px;background:linear-gradient(150deg,#787CD0,#5B5FA8);border-radius:22px;padding:22px;color:#fff;box-shadow:0 14px 32px rgba(91,95,168,0.3)">
+                <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:1px">今日一句話</div>
+                <div style="margin-top:8px;font-size:18px;font-weight:700;line-height:1.65">今天你的持股下跌,主要是受到整體科技股拉回影響。</div>
+              </div>
+              <div style="margin-top:12px;background:#FFFFFF;border-radius:20px;padding:20px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                <div style="font-size:13px;font-weight:700;color:#7B7FD4">白話解釋</div>
+                <div style="margin-top:8px;font-size:15px;color:#5C5850;line-height:1.8">這不一定代表你選錯股票,而是今天市場對科技股比較保守,相關股票一起受到影響。</div>
+              </div>
+              <div style="margin-top:12px;background:#FFFFFF;border-radius:20px;padding:20px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                <div style="font-size:13px;font-weight:700;color:#7B7FD4">我的持股影響排行</div>
+                <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div style="width:52px;font-size:14px;font-weight:700;color:#3A3733">台積電</div>
+                    <div style="flex:1;height:10px;border-radius:99px;background:#F1EDE3;overflow:hidden"><div style="width:86%;height:100%;border-radius:99px;background:#E4B384"></div></div>
+                    <div style="font-size:12px;font-weight:700;color:#B07A3E;width:52px;text-align:right">影響最大</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div style="width:52px;font-size:14px;font-weight:700;color:#3A3733">鴻海</div>
+                    <div style="flex:1;height:10px;border-radius:99px;background:#F1EDE3;overflow:hidden"><div style="width:52%;height:100%;border-radius:99px;background:#B8BBE8"></div></div>
+                    <div style="font-size:12px;font-weight:600;color:#8A857C;width:52px;text-align:right">中等</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div style="width:52px;font-size:14px;font-weight:700;color:#3A3733">中信金</div>
+                    <div style="flex:1;height:10px;border-radius:99px;background:#F1EDE3;overflow:hidden"><div style="width:22%;height:100%;border-radius:99px;background:#9DBFAA"></div></div>
+                    <div style="font-size:12px;font-weight:600;color:#8A857C;width:52px;text-align:right">較低</div>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:12px;background:#FFFFFF;border-radius:20px;padding:20px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                <div style="font-size:13px;font-weight:700;color:#7B7FD4">和大盤相比</div>
+                <div style="margin-top:12px;display:flex;gap:20px">
+                  <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:12px;color:#A9A49B">我的持股</div><div style="font-size:21px;font-weight:800;color:#C97F7F">-1.8%</div></div>
+                  <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:12px;color:#A9A49B">大盤</div><div style="font-size:21px;font-weight:800;color:#8A857C">-0.9%</div></div>
+                </div>
+                <div style="margin-top:10px;font-size:14px;color:#5C5850;line-height:1.7">今天你的持股比大盤弱一些,主要是科技股比重較高。</div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="margin-top:16px;text-align:center;font-size:12px;color:#B4AFA5">內容僅供資訊參考,不構成投資建議。</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- A09 我的持股 -->
+        <div data-screen-label="1a-09 我的持股" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">09 · 我的持股列表 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">Tab「持股」</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+              <div style="flex:1;overflow:hidden;padding:88px 24px 0;display:flex;flex-direction:column">
+                <div style="font-size:30px;font-weight:900;color:#3A3733">我的持股</div>
+                <div style="margin-top:4px;font-size:14px;color:#8A857C">3 檔 · 每天收盤後更新</div>
+                <div style="margin-top:18px;display:flex;flex-direction:column;gap:12px">
+                  <div style="background:#FFFFFF;border-radius:20px;padding:18px;box-shadow:0 6px 18px rgba(120,100,70,0.06);display:flex;flex-direction:column;gap:12px">
+                    <div style="display:flex;align-items:center;gap:12px">
+                      <div style="width:44px;height:44px;border-radius:15px;background:#EEEEFA;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#7B7FD4">台</div>
+                      <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                        <div style="font-size:17px;font-weight:700;color:#3A3733">台積電</div>
+                        <div style="font-size:12px;color:#A9A49B">2330 · 半導體</div>
+                      </div>
+                      <div style="font-size:19px;font-weight:800;color:#C97F7F">-1.2%</div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center">
+                      <div style="font-size:11px;font-weight:700;color:#B07A3E;background:#FBEFDF;padding:4px 10px;border-radius:99px">焦慮影響 高</div>
+                      <div style="font-size:11px;font-weight:600;color:#7B7FD4;background:#EEEEFA;padding:4px 10px;border-radius:99px">大盤影響</div>
+                      <div style="flex:1"></div>
+                      <div style="font-size:13px;font-weight:700;color:#7B7FD4">查看詳情</div>
+                    </div>
+                  </div>
+                  <div style="background:#FFFFFF;border-radius:20px;padding:18px;box-shadow:0 6px 18px rgba(120,100,70,0.06);display:flex;flex-direction:column;gap:12px">
+                    <div style="display:flex;align-items:center;gap:12px">
+                      <div style="width:44px;height:44px;border-radius:15px;background:#EAF2EC;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#6E9A7F">鴻</div>
+                      <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                        <div style="font-size:17px;font-weight:700;color:#3A3733">鴻海</div>
+                        <div style="font-size:12px;color:#A9A49B">2317 · 電子代工</div>
+                      </div>
+                      <div style="font-size:19px;font-weight:800;color:#C97F7F">-0.8%</div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center">
+                      <div style="font-size:11px;font-weight:700;color:#8A857C;background:#F1EDE3;padding:4px 10px;border-radius:99px">焦慮影響 中</div>
+                      <div style="font-size:11px;font-weight:600;color:#7B7FD4;background:#EEEEFA;padding:4px 10px;border-radius:99px">大盤影響</div>
+                      <div style="flex:1"></div>
+                      <div style="font-size:13px;font-weight:700;color:#7B7FD4">查看詳情</div>
+                    </div>
+                  </div>
+                  <div style="background:#FFFFFF;border-radius:20px;padding:18px;box-shadow:0 6px 18px rgba(120,100,70,0.06);display:flex;flex-direction:column;gap:12px">
+                    <div style="display:flex;align-items:center;gap:12px">
+                      <div style="width:44px;height:44px;border-radius:15px;background:#EAF2EC;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#6E9A7F">中</div>
+                      <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                        <div style="font-size:17px;font-weight:700;color:#3A3733">中信金</div>
+                        <div style="font-size:12px;color:#A9A49B">2891 · 金融</div>
+                      </div>
+                      <div style="font-size:19px;font-weight:800;color:#8FAE9B">+0.3%</div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center">
+                      <div style="font-size:11px;font-weight:700;color:#6E9A7F;background:#EAF2EC;padding:4px 10px;border-radius:99px">焦慮影響 低</div>
+                      <div style="font-size:11px;font-weight:600;color:#8A857C;background:#F1EDE3;padding:4px 10px;border-radius:99px">個股波動</div>
+                      <div style="flex:1"></div>
+                      <div style="font-size:13px;font-weight:700;color:#7B7FD4">查看詳情</div>
+                    </div>
+                  </div>
+                </div>
+                <div style="flex:1"></div>
+                <div style="margin-bottom:16px;height:52px;border-radius:17px;border:1.5px dashed #C9C3B6;display:flex;align-items:center;justify-content:center;gap:8px;color:#8A857C;font-size:15px;font-weight:700">
+                  <span style="font-size:18px;color:#7B7FD4">+</span> 新增股票
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:12px 20px 26px;background:rgba(255,255,255,0.94);border-top:1px solid rgba(120,100,70,0.08)">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 11 L12 4 L20 11 V20 H14.5 V15 H9.5 V20 H4 Z" fill="none" stroke="#A9A49B" stroke-width="1.9" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:600;color:#A9A49B">今日</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="8.5" y="4.5" width="11" height="15" rx="2.5" fill="none" stroke="#A9A49B" stroke-width="1.9" transform="rotate(7 14 12)"></rect><rect x="4.5" y="5" width="11" height="15" rx="2.5" fill="#F7F4EE" stroke="#A9A49B" stroke-width="1.9"></rect></svg>
+                  <span style="font-size:10px;font-weight:600;color:#A9A49B">抽卡</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14.5" rx="3.5" fill="none" stroke="#7B7FD4" stroke-width="1.9"></rect><path d="M4 13 H8.5 C8.5 15 15.5 15 15.5 13 H20" fill="none" stroke="#7B7FD4" stroke-width="1.9" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:700;color:#7B7FD4">持股</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#A9A49B" stroke-width="1.9" stroke-dasharray="3.6 2.7"></circle><circle cx="12" cy="12" r="3" fill="none" stroke="#A9A49B" stroke-width="1.9"></circle></svg>
+                  <span style="font-size:10px;font-weight:600;color:#A9A49B">設定</span>
+                </div>
+              </div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- A10 個股詳情 -->
+        <div data-screen-label="1a-10 個股詳情" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">10 · 個股詳情 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">從持股列表進入</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:76px 24px 36px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:36px;height:36px;border-radius:50%;background:#FFFFFF;box-shadow:0 4px 12px rgba(120,100,70,0.1);display:flex;align-items:center;justify-content:center">
+                  <svg width="10" height="16" viewBox="0 0 12 20"><path d="M10 2 L2 10 L10 18" fill="none" stroke="#5C5850" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </div>
+                <div style="font-size:13px;color:#A9A49B">2330 · 半導體</div>
+              </div>
+              <div style="margin-top:14px;font-size:28px;font-weight:900;color:#3A3733">台積電今天怎麼了?</div>
+              <div style="margin-top:18px;display:flex;gap:12px">
+                <div style="flex:1;background:#FFFFFF;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                  <div style="font-size:12px;color:#A9A49B">今日漲跌</div>
+                  <div style="font-size:24px;font-weight:800;color:#C97F7F">-1.2%</div>
+                </div>
+                <div style="flex:1;background:#FFFFFF;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                  <div style="font-size:12px;color:#A9A49B">與大盤比較</div>
+                  <div style="font-size:24px;font-weight:800;color:#8A857C">稍弱</div>
+                </div>
+              </div>
+              <div style="margin-top:12px;background:#FFFFFF;border-radius:20px;padding:20px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                <div style="font-size:13px;font-weight:700;color:#7B7FD4">可能原因</div>
+                <div style="margin-top:10px;display:flex;flex-direction:column;gap:10px">
+                  <div style="display:flex;gap:10px;align-items:flex-start"><div style="width:6px;height:6px;border-radius:50%;background:#E4B384;margin-top:8px;flex-shrink:0"></div><div style="font-size:15px;color:#5C5850;line-height:1.7">科技股整體拉回,半導體類股同步走弱</div></div>
+                  <div style="display:flex;gap:10px;align-items:flex-start"><div style="width:6px;height:6px;border-radius:50%;background:#B8BBE8;margin-top:8px;flex-shrink:0"></div><div style="font-size:15px;color:#5C5850;line-height:1.7">外資今天在科技類股偏保守</div></div>
+                </div>
+              </div>
+              <div style="margin-top:12px;background:#F1F1FB;border-radius:20px;padding:20px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="#7B7FD4"></path></svg>
+                  <div style="font-size:13px;font-weight:700;color:#7B7FD4">新手翻譯</div>
+                </div>
+                <div style="margin-top:8px;font-size:15px;color:#4A4770;line-height:1.8">台積電今天下跌 1.2%,比大盤稍弱。這比較像是科技股整體拉回,不一定是公司單獨出問題。</div>
+              </div>
+              <div style="margin-top:12px;background:#FFFFFF;border-radius:20px;padding:18px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                <div style="font-size:13px;color:#8A857C;flex:1">對今日焦慮分數的影響</div>
+                <div style="font-size:12px;font-weight:700;color:#B07A3E;background:#FBEFDF;padding:5px 12px;border-radius:99px">高 · +18 分</div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="height:52px;border-radius:17px;background:#FFFFFF;border:1.5px solid #E3DFD4;display:flex;align-items:center;justify-content:center;color:#7B7FD4;font-size:16px;font-weight:700">回到今日總結</div>
+              <div style="margin-top:12px;text-align:center;font-size:12px;color:#B4AFA5">內容僅供資訊參考,不構成投資建議。</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- A11 提醒設定 -->
+        <div data-screen-label="1a-11 每日提醒設定" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">11 · 每日提醒設定 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">Tab「設定」· native list</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+              <div style="flex:1;overflow:hidden;padding:88px 24px 0;display:flex;flex-direction:column">
+                <div style="font-size:30px;font-weight:900;color:#3A3733">設定</div>
+                <div style="margin-top:22px;font-size:14px;font-weight:700;color:#8A857C;padding:0 4px">每天什麼時候提醒你?</div>
+                <div style="margin-top:10px;background:#FFFFFF;border-radius:20px;overflow:hidden;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                  <div style="padding:15px 18px;display:flex;align-items:center;border-bottom:0.5px solid rgba(60,60,67,0.1)"><div style="flex:1;font-size:16px;color:#3A3733">早上開盤前</div><div style="font-size:13px;color:#A9A49B">8:30</div></div>
+                  <div style="padding:15px 18px;display:flex;align-items:center;border-bottom:0.5px solid rgba(60,60,67,0.1)"><div style="flex:1;font-size:16px;color:#3A3733">中午休息</div><div style="font-size:13px;color:#A9A49B">12:30</div></div>
+                  <div style="padding:15px 18px;display:flex;align-items:center;background:#F7F7FD;border-bottom:0.5px solid rgba(60,60,67,0.1)">
+                    <div style="flex:1;font-size:16px;font-weight:700;color:#3A3733">收盤後</div>
+                    <div style="font-size:13px;color:#7B7FD4;font-weight:600;margin-right:10px">14:30</div>
+                    <svg width="14" height="11" viewBox="0 0 12 10"><path d="M1.5 5 L4.5 8 L10.5 1.5" fill="none" stroke="#7B7FD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  </div>
+                  <div style="padding:15px 18px;display:flex;align-items:center"><div style="flex:1;font-size:16px;color:#3A3733">晚上整理時間</div><div style="font-size:13px;color:#A9A49B">21:00</div></div>
+                </div>
+                <div style="margin-top:22px;font-size:14px;font-weight:700;color:#8A857C;padding:0 4px">想收到哪些內容?</div>
+                <div style="margin-top:10px;background:#FFFFFF;border-radius:20px;overflow:hidden;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                  <div style="padding:14px 18px;display:flex;align-items:center;border-bottom:0.5px solid rgba(60,60,67,0.1)">
+                    <div style="flex:1;font-size:16px;color:#3A3733">今日焦慮分數</div>
+                    <div style="width:51px;height:31px;border-radius:99px;background:#9DBFAA;position:relative"><div style="position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.15)"></div></div>
+                  </div>
+                  <div style="padding:14px 18px;display:flex;align-items:center;border-bottom:0.5px solid rgba(60,60,67,0.1)">
+                    <div style="flex:1;font-size:16px;color:#3A3733">今日持股卡</div>
+                    <div style="width:51px;height:31px;border-radius:99px;background:#9DBFAA;position:relative"><div style="position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.15)"></div></div>
+                  </div>
+                  <div style="padding:14px 18px;display:flex;align-items:center">
+                    <div style="flex:1;font-size:16px;color:#3A3733">重大波動提醒</div>
+                    <div style="width:51px;height:31px;border-radius:99px;background:#E3DFD4;position:relative"><div style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.15)"></div></div>
+                  </div>
+                </div>
+                <div style="flex:1"></div>
+                <div style="margin-bottom:16px;height:52px;border-radius:17px;background:#7B7FD4;box-shadow:0 10px 24px rgba(123,127,212,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700">儲存提醒</div>
+              </div>
+              <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:12px 20px 26px;background:rgba(255,255,255,0.94);border-top:1px solid rgba(120,100,70,0.08)">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 11 L12 4 L20 11 V20 H14.5 V15 H9.5 V20 H4 Z" fill="none" stroke="#A9A49B" stroke-width="1.9" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:600;color:#A9A49B">今日</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="8.5" y="4.5" width="11" height="15" rx="2.5" fill="none" stroke="#A9A49B" stroke-width="1.9" transform="rotate(7 14 12)"></rect><rect x="4.5" y="5" width="11" height="15" rx="2.5" fill="#F7F4EE" stroke="#A9A49B" stroke-width="1.9"></rect></svg>
+                  <span style="font-size:10px;font-weight:600;color:#A9A49B">抽卡</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14.5" rx="3.5" fill="none" stroke="#A9A49B" stroke-width="1.9"></rect><path d="M4 13 H8.5 C8.5 15 15.5 15 15.5 13 H20" fill="none" stroke="#A9A49B" stroke-width="1.9" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:600;color:#A9A49B">持股</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#7B7FD4" stroke-width="1.9" stroke-dasharray="3.6 2.7"></circle><circle cx="12" cy="12" r="3" fill="none" stroke="#7B7FD4" stroke-width="1.9"></circle></svg>
+                  <span style="font-size:10px;font-weight:700;color:#7B7FD4">設定</span>
+                </div>
+              </div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- A12 Loading -->
+        <div data-screen-label="1a-12 Loading" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">12 · Loading <span style="font-family:monospace;font-size:11px;color:#B4AFA5">卡片漂浮 + 進度環</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:0 40px">
+              <div style="width:120px;height:170px;border-radius:16px;background:linear-gradient(165deg,#787CD0,#5B5FA8);box-shadow:0 20px 44px rgba(91,95,168,0.3);animation:floaty 3s ease-in-out infinite;display:flex;align-items:center;justify-content:center">
+                <svg width="36" height="36" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="rgba(255,255,255,0.9)"></path></svg>
+              </div>
+              <div style="margin-top:36px;width:36px;height:36px;border-radius:50%;border:3px solid #E9E4D8;border-top-color:#7B7FD4;animation:spin 1s linear infinite"></div>
+              <div style="margin-top:24px;font-size:16px;font-weight:700;color:#5C5850">正在整理今天的市場情緒...</div>
+              <div style="margin-top:8px;font-size:14px;color:#A9A49B">正在翻譯成你看得懂的版本...</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- A13 Empty / Error -->
+        <div data-screen-label="1a-13 Empty Error" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#8A857C">13 · Empty + Error Sheet <span style="font-family:monospace;font-size:11px;color:#B4AFA5">Error 用 native sheet 呈現</span></div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;position:relative">
+              <div style="flex:1;padding:88px 24px 0;display:flex;flex-direction:column;filter:brightness(0.92)">
+                <div style="font-size:30px;font-weight:900;color:#3A3733">我的持股</div>
+                <div style="margin-top:80px;display:flex;flex-direction:column;align-items:center;gap:14px;padding:0 24px">
+                  <div style="width:88px;height:88px;border-radius:28px;background:#FFFFFF;box-shadow:0 10px 26px rgba(120,100,70,0.09);display:flex;align-items:center;justify-content:center">
+                    <svg width="36" height="36" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14.5" rx="3.5" fill="none" stroke="#C9C3B6" stroke-width="1.9"></rect><path d="M4 13 H8.5 C8.5 15 15.5 15 15.5 13 H20" fill="none" stroke="#C9C3B6" stroke-width="1.9" stroke-linejoin="round"></path></svg>
+                  </div>
+                  <div style="font-size:18px;font-weight:700;color:#3A3733">你還沒有加入股票</div>
+                  <div style="font-size:14px;color:#8A857C;line-height:1.7;text-align:center">先加入 1 檔你關心的股票,我們會幫你整理今天的波動原因。</div>
+                  <div style="margin-top:6px;height:48px;padding:0 28px;border-radius:16px;background:#7B7FD4;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;box-shadow:0 8px 20px rgba(123,127,212,0.28)">新增股票</div>
+                </div>
+              </div>
+              <div style="position:absolute;left:0;right:0;bottom:0;background:#FFFFFF;border-radius:28px 28px 0 0;box-shadow:0 -14px 44px rgba(60,50,30,0.16);padding:14px 24px 44px;display:flex;flex-direction:column;align-items:center">
+                <div style="width:40px;height:5px;border-radius:99px;background:#E3DFD4"></div>
+                <div style="margin-top:22px;width:64px;height:64px;border-radius:50%;background:#FBEFDF;display:flex;align-items:center;justify-content:center">
+                  <svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 4 L21 19 H3 Z" fill="none" stroke="#D9A264" stroke-width="1.9" stroke-linejoin="round"></path><path d="M12 10 V14" stroke="#D9A264" stroke-width="1.9" stroke-linecap="round"></path><circle cx="12" cy="16.6" r="1.1" fill="#D9A264"></circle></svg>
+                </div>
+                <div style="margin-top:14px;font-size:17px;font-weight:700;color:#3A3733">今天這檔股票的資料還不完整</div>
+                <div style="margin-top:6px;font-size:14px;color:#8A857C;line-height:1.7;text-align:center">你可以稍後再試,或先查看其他持股。</div>
+                <div style="margin-top:18px;width:100%;height:50px;border-radius:16px;background:#7B7FD4;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700">重新整理</div>
+                <div style="margin-top:10px;width:100%;height:50px;border-radius:16px;background:#F4F1EA;display:flex;align-items:center;justify-content:center;color:#5C5850;font-size:15px;font-weight:700">回首頁</div>
+              </div>
+            </div>
+          </x-import>
+        </div>
+      </div>
+      <!-- Design System A -->
+      <div data-screen-label="1a-DS Design System" style="width:1840px;box-sizing:border-box;background:#FFFFFF;border-radius:28px;padding:40px;box-shadow:0 14px 40px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:32px">
+        <div style="display:flex;align-items:baseline;gap:14px">
+          <div style="font-size:20px;font-weight:900;color:#3A3733">Design System · 方向 A 暖陽米杏</div>
+          <div style="font-size:13px;color:#A9A49B">SF Pro + PingFang TC 內文 · Noto Serif TC 儀式標題 · 圓角 18–28 · 暖色陰影</div>
+        </div>
+        <div style="display:flex;gap:40px;align-items:flex-start">
+          <div style="width:400px;display:flex;flex-direction:column;gap:14px">
+            <div style="font-size:13px;font-weight:700;color:#8A857C;letter-spacing:1px">色彩 TOKENS</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:12px;background:#F7F4EE;border:1px solid #E7E2D6"></div><div><div style="font-size:12px;font-weight:700;color:#3A3733">background</div><div style="font-size:11px;font-family:monospace;color:#A9A49B">#F7F4EE 米白</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:12px;background:#FFFFFF;border:1px solid #E7E2D6"></div><div><div style="font-size:12px;font-weight:700;color:#3A3733">cardBackground</div><div style="font-size:11px;font-family:monospace;color:#A9A49B">#FFFFFF</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:12px;background:#7B7FD4"></div><div><div style="font-size:12px;font-weight:700;color:#3A3733">primary</div><div style="font-size:11px;font-family:monospace;color:#A9A49B">#7B7FD4 藍紫</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:12px;background:#9DBFAA"></div><div><div style="font-size:12px;font-weight:700;color:#3A3733">secondary</div><div style="font-size:11px;font-family:monospace;color:#A9A49B">#9DBFAA 淺綠</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:12px;background:#E4B384"></div><div><div style="font-size:12px;font-weight:700;color:#3A3733">warning</div><div style="font-size:11px;font-family:monospace;color:#A9A49B">#E4B384 淡橘</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:12px;background:#C97F7F"></div><div><div style="font-size:12px;font-weight:700;color:#3A3733">danger</div><div style="font-size:11px;font-family:monospace;color:#A9A49B">#C97F7F 柔和紅</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:12px;background:#3A3733"></div><div><div style="font-size:12px;font-weight:700;color:#3A3733">textPrimary</div><div style="font-size:11px;font-family:monospace;color:#A9A49B">#3A3733 深灰</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:12px;background:#8A857C"></div><div><div style="font-size:12px;font-weight:700;color:#3A3733">textSecondary</div><div style="font-size:11px;font-family:monospace;color:#A9A49B">#8A857C 中灰</div></div></div>
+            </div>
+          </div>
+          <div style="width:360px;display:flex;flex-direction:column;gap:14px">
+            <div style="font-size:13px;font-weight:700;color:#8A857C;letter-spacing:1px">字體層級(支援 DYNAMIC TYPE)</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div><div style="font-size:34px;font-weight:900;color:#3A3733;line-height:1.2">Large Title 34</div><div style="font-size:11px;color:#A9A49B">首頁主標 · Bold</div></div>
+              <div><div style="font-size:28px;font-weight:900;color:#3A3733;line-height:1.2">Title 1 · 28</div><div style="font-size:11px;color:#A9A49B">畫面標題</div></div>
+              <div><div style="font-family:'Noto Serif TC',serif;font-size:22px;font-weight:700;color:#3A3733;line-height:1.2">Title 2 · 22 儀式標題</div><div style="font-size:11px;color:#A9A49B">卡片主標(方向 A 用襯線)</div></div>
+              <div><div style="font-size:17px;font-weight:700;color:#3A3733">Headline 17</div><div style="font-size:11px;color:#A9A49B">區塊標題 · Semibold</div></div>
+              <div><div style="font-size:15px;color:#5C5850">Body 15–17 內文,行高 1.7,白話溫暖。</div></div>
+              <div><div style="font-size:12px;color:#B4AFA5">Caption 12 · 補充說明 / 免責聲明</div></div>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+            <div style="font-size:13px;font-weight:700;color:#8A857C;letter-spacing:1px">共用元件</div>
+            <div style="display:flex;gap:24px;align-items:flex-start">
+              <div style="display:flex;flex-direction:column;gap:12px;width:250px">
+                <div style="height:50px;border-radius:16px;background:#7B7FD4;box-shadow:0 8px 20px rgba(123,127,212,0.28);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700">PrimaryButton</div>
+                <div style="height:50px;border-radius:16px;background:#FFFFFF;border:1.5px solid #E3DFD4;display:flex;align-items:center;justify-content:center;color:#7B7FD4;font-size:15px;font-weight:700">SecondaryButton</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <div style="font-size:12px;font-weight:700;color:#6E9A7F;background:#EAF2EC;padding:6px 12px;border-radius:99px">安心</div>
+                  <div style="font-size:12px;font-weight:700;color:#B07A3E;background:#FBEFDF;padding:6px 12px;border-radius:99px">有點緊張</div>
+                  <div style="font-size:12px;font-weight:700;color:#A96363;background:#F7E7E7;padding:6px 12px;border-radius:99px">波動較大</div>
+                </div>
+                <div style="font-size:11px;color:#B4AFA5;font-family:monospace">EmotionBadge · 三級情緒</div>
+                <div style="background:#F7F4EE;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px">
+                  <div style="width:64px;height:64px;border-radius:50%;background:conic-gradient(#E4B384 0 72%,#EFEAE0 72% 100%);display:flex;align-items:center;justify-content:center"><div style="width:48px;height:48px;border-radius:50%;background:#FDFBF7;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#3A3733">72</div></div>
+                  <div style="font-size:11px;color:#B4AFA5;font-family:monospace;line-height:1.6">AnxietyScoreRing<br>0–40 綠 / 40–70 橘淺 / 70+ 橘</div>
+                </div>
+              </div>
+              <div style="width:230px;background:linear-gradient(165deg,#FDFBF7,#F6F1E6);border:1.5px solid #E9E2D2;border-radius:20px;padding:14px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 14px 34px rgba(120,100,70,0.12)">
+                <div style="width:100%;height:100%;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 8px;box-sizing:border-box">
+                  <svg width="34" height="34" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="#7B7FD4"></path></svg>
+                  <div style="font-family:'Noto Serif TC',serif;font-size:20px;font-weight:700;color:#3A3733;letter-spacing:2px">大盤影響卡</div>
+                  <div style="font-size:13px;color:#5C5850;line-height:1.8;text-align:center">今天不是只有你的持股波動,整體市場也偏弱。先看懂原因,比急著做決定更重要。</div>
+                  <div style="font-size:12px;color:#A9A49B;text-align:center">原因:科技股整體拉回</div>
+                  <div style="margin-top:4px;font-size:13px;font-weight:700;color:#7B7FD4">查看詳細原因 →</div>
+                </div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+                <div style="font-size:11px;color:#B4AFA5;font-family:monospace">DrawCard 結果面(左)· 5 種:冷靜觀察 / 大盤影響 / 小心震盪 / 個股事件 / 信心恢復</div>
+                <div style="background:#F1F1FB;border-radius:16px;padding:14px 16px">
+                  <div style="font-size:12px;font-weight:700;color:#7B7FD4">ExplanationBlock · 新手翻譯</div>
+                  <div style="margin-top:6px;font-size:13px;color:#4A4770;line-height:1.7">這不一定代表你選錯股票,而是今天市場對科技股比較保守。</div>
+                </div>
+                <div style="background:#F7F4EE;border-radius:12px;padding:10px 14px;font-size:12px;color:#B4AFA5;text-align:center">DisclaimerBlock · 內容僅供資訊參考,不構成投資建議。</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <div style="font-size:11px;font-weight:600;color:#7B7FD4;background:#EEEEFA;padding:4px 10px;border-radius:99px">大盤影響</div>
+                  <div style="font-size:11px;font-weight:600;color:#8A857C;background:#F1EDE3;padding:4px 10px;border-radius:99px">個股波動</div>
+                  <div style="font-size:11px;font-weight:600;color:#B4AFA5;background:#F4F1EA;padding:4px 10px;border-radius:99px">資料不足</div>
+                </div>
+                <div style="font-size:11px;color:#B4AFA5;font-family:monospace">StockCard 狀態標籤 · 見畫面 09</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ OPTION 1b 沉靜霧藍 ═══════════ -->
+    <div id="1b" style="display:flex;flex-direction:column;gap:28px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="background:#6E79C9;color:#fff;font-weight:700;font-size:14px;padding:6px 14px;border-radius:999px">1b</div>
+        <div style="font-size:22px;font-weight:700;color:#33363E">方向 B · 沉靜霧藍</div>
+        <div style="font-size:14px;color:#878C99">更冷靜、留白多 — 霧藍灰底 + 髮絲線 + 輕陰影</div>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:36px;width:1840px">
+
+        <!-- B01 Splash -->
+        <div data-screen-label="1b-01 Splash" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">01 · Splash</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+              <div style="width:84px;height:84px;border-radius:24px;background:#FFFFFF;border:1px solid #E5E7ED;box-shadow:0 8px 28px rgba(50,60,90,0.08);display:flex;align-items:center;justify-content:center">
+                <div style="width:40px;height:40px;border-radius:50%;background:conic-gradient(#6E79C9 0 72%,#E5E7ED 72% 100%);display:flex;align-items:center;justify-content:center">
+                  <div style="width:30px;height:30px;border-radius:50%;background:#FFFFFF"></div>
+                </div>
+              </div>
+              <div style="margin-top:30px;font-size:30px;font-weight:700;color:#33363E;letter-spacing:6px">股感安心卡</div>
+              <div style="margin-top:16px;font-size:16px;font-weight:500;color:#5A5F6E">每天看懂你的股票情緒</div>
+              <div style="margin-top:8px;font-size:13px;color:#9AA0AD">不用懂線圖,也能知道今天為什麼焦慮</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- B02 Onboarding -->
+        <div data-screen-label="1b-02 Onboarding" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">02 · Onboarding</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:88px 0 40px">
+              <div style="padding:0 28px;font-size:14px;font-weight:500;color:#9AA0AD;text-align:right"><span style="padding:6px 4px">略過</span></div>
+              <div style="flex:1;display:flex;align-items:center;gap:14px;padding-left:32px;overflow:hidden;margin-top:8px">
+                <div style="width:296px;flex-shrink:0;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:20px;padding:36px 28px;box-shadow:0 6px 24px rgba(50,60,90,0.06);display:flex;flex-direction:column;gap:18px">
+                  <svg width="34" height="34" viewBox="0 0 24 24"><path d="M3 17 L9 10 L13 13 L21 5" fill="none" stroke="#6E79C9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="21" cy="5" r="2.2" fill="none" stroke="#6E79C9" stroke-width="1.6"></circle></svg>
+                  <div style="font-size:24px;font-weight:700;color:#33363E;line-height:1.5">跌了,<br>不一定是你選錯股票</div>
+                  <div style="font-size:14px;color:#878C99;line-height:1.8">我們會幫你先看懂,是個股問題,還是整個市場都在波動。</div>
+                </div>
+                <div style="width:296px;flex-shrink:0;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:20px;padding:36px 28px;opacity:0.5;display:flex;flex-direction:column;gap:18px">
+                  <svg width="34" height="34" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="#8FB3B8" stroke-width="1.8"></circle><path d="M16 16 L20.5 20.5" stroke="#8FB3B8" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                  <div style="font-size:24px;font-weight:700;color:#33363E;line-height:1.5">不用懂線圖,也能看懂今天為什麼波動</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:center;gap:8px;margin:26px 0">
+                <div style="width:20px;height:6px;border-radius:99px;background:#6E79C9"></div>
+                <div style="width:6px;height:6px;border-radius:99px;background:#D4D7E0"></div>
+                <div style="width:6px;height:6px;border-radius:99px;background:#D4D7E0"></div>
+              </div>
+              <div style="padding:0 24px">
+                <div style="height:52px;border-radius:14px;background:#6E79C9;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:600">開始了解我的持股</div>
+              </div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- B03 情境選擇 -->
+        <div data-screen-label="1b-03 情境選擇" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">03 · 使用者情境選擇</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:96px 24px 40px">
+              <div style="font-size:12px;font-weight:600;color:#9AA0AD;letter-spacing:2px">STEP 1 / 3</div>
+              <div style="margin-top:12px;font-size:26px;font-weight:700;color:#33363E;line-height:1.5">你最常遇到哪種情況?</div>
+              <div style="margin-top:6px;font-size:14px;color:#878C99">選一個最像你的。</div>
+              <div style="margin-top:28px;display:flex;flex-direction:column;gap:10px">
+                <div style="background:#FFFFFF;border:1px solid #E5E7ED;border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#D4D7E0;flex-shrink:0"></div>
+                  <div style="flex:1;font-size:15px;color:#33363E;line-height:1.6">我買了股票,但不知道該不該繼續放著</div>
+                </div>
+                <div style="background:#FFFFFF;border:1.5px solid #6E79C9;border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#6E79C9;flex-shrink:0;box-shadow:0 0 0 4px rgba(110,121,201,0.15)"></div>
+                  <div style="flex:1;font-size:15px;font-weight:600;color:#33363E;line-height:1.6">股票一跌,我就開始焦慮</div>
+                  <svg width="14" height="11" viewBox="0 0 12 10"><path d="M1.5 5 L4.5 8 L10.5 1.5" fill="none" stroke="#6E79C9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </div>
+                <div style="background:#FFFFFF;border:1px solid #E5E7ED;border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#D4D7E0;flex-shrink:0"></div>
+                  <div style="flex:1;font-size:15px;color:#33363E;line-height:1.6">我看不懂線圖和新聞</div>
+                </div>
+                <div style="background:#FFFFFF;border:1px solid #E5E7ED;border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#D4D7E0;flex-shrink:0"></div>
+                  <div style="flex:1;font-size:15px;color:#33363E;line-height:1.6">我只是想每天快速知道發生什麼事</div>
+                </div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="height:52px;border-radius:14px;background:#6E79C9;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:600">下一步</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- B04 持股輸入 -->
+        <div data-screen-label="1b-04 持股輸入" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">04 · 持股輸入</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:96px 24px 40px">
+              <div style="font-size:12px;font-weight:600;color:#9AA0AD;letter-spacing:2px">STEP 2 / 3</div>
+              <div style="margin-top:12px;font-size:26px;font-weight:700;color:#33363E;line-height:1.5">先加入你關心的股票</div>
+              <div style="margin-top:6px;font-size:14px;color:#878C99;line-height:1.8">不用輸入金額也可以先開始,我們會先幫你看懂今天的波動。</div>
+              <div style="margin-top:24px;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:14px;padding:15px 18px;display:flex;align-items:center;gap:12px">
+                <svg width="18" height="18" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="#9AA0AD" stroke-width="1.8"></circle><path d="M16 16 L20.5 20.5" stroke="#9AA0AD" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                <div style="font-size:15px;color:#B3B8C2">輸入代號或名稱,例如 2330、台積電</div>
+              </div>
+              <div style="margin-top:10px;display:flex;gap:10px">
+                <div style="flex:1;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:12px;padding:12px 16px;font-size:13px;color:#B3B8C2">持有成本(選填)</div>
+                <div style="flex:1;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:12px;padding:12px 16px;font-size:13px;color:#B3B8C2">股數(選填)</div>
+              </div>
+              <div style="margin-top:28px;display:flex;align-items:baseline;gap:8px"><div style="font-size:13px;font-weight:700;color:#5A5F6E">已加入</div><div style="font-size:12px;color:#9AA0AD">2 / 5</div></div>
+              <div style="margin-top:10px;display:flex;flex-direction:column;gap:1px;background:#E5E7ED;border:1px solid #E5E7ED;border-radius:14px;overflow:hidden">
+                <div style="background:#FFFFFF;padding:15px 18px;display:flex;align-items:center;gap:12px">
+                  <div style="flex:1;display:flex;align-items:baseline;gap:8px"><div style="font-size:15px;font-weight:600;color:#33363E">台積電</div><div style="font-size:12px;color:#9AA0AD">2330 · 半導體</div></div>
+                  <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 2 L10 10 M10 2 L2 10" stroke="#B3B8C2" stroke-width="1.6" stroke-linecap="round"></path></svg>
+                </div>
+                <div style="background:#FFFFFF;padding:15px 18px;display:flex;align-items:center;gap:12px">
+                  <div style="flex:1;display:flex;align-items:baseline;gap:8px"><div style="font-size:15px;font-weight:600;color:#33363E">中信金</div><div style="font-size:12px;color:#9AA0AD">2891 · 金融</div></div>
+                  <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 2 L10 10 M10 2 L2 10" stroke="#B3B8C2" stroke-width="1.6" stroke-linecap="round"></path></svg>
+                </div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="height:52px;border-radius:14px;background:#6E79C9;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:600">完成,查看今日狀態</div>
+              <div style="margin-top:12px;text-align:center;font-size:12px;color:#9AA0AD">之後隨時可以修改,最多 5 檔</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- B05 推薦股票 -->
+        <div data-screen-label="1b-05 推薦股票" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">05 · AI 推薦股票</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:96px 0 40px">
+              <div style="padding:0 24px;font-size:12px;font-weight:600;color:#9AA0AD;letter-spacing:2px">STEP 3 / 3</div>
+              <div style="margin-top:12px;padding:0 24px;font-size:26px;font-weight:700;color:#33363E;line-height:1.5">你可能也關心這些股票</div>
+              <div style="margin-top:6px;padding:0 24px;font-size:14px;color:#878C99;line-height:1.8">根據你剛剛加入的台積電,我們猜你可能也想追蹤這些。</div>
+              <div style="margin-top:28px;display:flex;gap:12px;padding-left:24px;overflow:hidden">
+                <div style="width:166px;flex-shrink:0;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;padding:20px 18px;display:flex;flex-direction:column;gap:8px">
+                  <div style="font-size:16px;font-weight:700;color:#33363E">聯發科</div>
+                  <div style="display:flex;gap:6px;align-items:center"><div style="font-size:12px;color:#9AA0AD">2454</div><div style="font-size:11px;font-weight:600;color:#6E79C9;background:#EEF0FA;padding:3px 8px;border-radius:6px">半導體</div></div>
+                  <div style="margin-top:10px;height:38px;border-radius:11px;background:#6E79C9;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600">加入</div>
+                  <div style="text-align:center;font-size:12px;color:#9AA0AD;padding:2px">略過</div>
+                </div>
+                <div style="width:166px;flex-shrink:0;background:#FFFFFF;border:1px solid #8FB3B8;border-radius:16px;padding:20px 18px;display:flex;flex-direction:column;gap:8px">
+                  <div style="font-size:16px;font-weight:700;color:#33363E">鴻海</div>
+                  <div style="display:flex;gap:6px;align-items:center"><div style="font-size:12px;color:#9AA0AD">2317</div><div style="font-size:11px;font-weight:600;color:#527D82;background:#EBF2F3;padding:3px 8px;border-radius:6px">電子代工</div></div>
+                  <div style="margin-top:10px;height:38px;border-radius:11px;background:#EBF2F3;display:flex;align-items:center;justify-content:center;gap:6px;color:#527D82;font-size:14px;font-weight:600">
+                    <svg width="11" height="9" viewBox="0 0 12 10"><path d="M1.5 5 L4.5 8 L10.5 1.5" fill="none" stroke="#527D82" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    已加入
+                  </div>
+                  <div style="text-align:center;font-size:12px;color:#9AA0AD;padding:2px">略過</div>
+                </div>
+                <div style="width:120px;flex-shrink:0;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;padding:20px 18px;opacity:0.55;display:flex;flex-direction:column;gap:8px">
+                  <div style="font-size:16px;font-weight:700;color:#33363E">日月光</div>
+                  <div style="font-size:12px;color:#9AA0AD">3711</div>
+                </div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="margin:0 24px;height:52px;border-radius:14px;background:#6E79C9;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:600">完成,查看今日狀態</div>
+              <div style="margin-top:12px;text-align:center;font-size:12px;color:#9AA0AD">推薦只是幫你追蹤,不是投資建議</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- B06 今日首頁 -->
+        <div data-screen-label="1b-06 今日焦慮分數首頁" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">06 · 今日焦慮分數首頁</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+              <div style="flex:1;overflow:hidden;padding:88px 24px 0;display:flex;flex-direction:column">
+                <div style="font-size:12px;font-weight:600;color:#9AA0AD;letter-spacing:1px">7 月 6 日 週一 · 收盤後</div>
+                <div style="margin-top:8px;font-size:27px;font-weight:700;color:#33363E">今天你的持股情緒</div>
+                <div style="margin-top:24px;display:flex;flex-direction:column;align-items:center">
+                  <div style="width:190px;height:190px;border-radius:50%;background:conic-gradient(#D9A968 0 72%,#E8EAF0 72% 100%);display:flex;align-items:center;justify-content:center">
+                    <div style="width:166px;height:166px;border-radius:50%;background:#F3F4F7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+                      <div style="font-size:52px;font-weight:300;color:#33363E;line-height:1;letter-spacing:-1px">72</div>
+                      <div style="font-size:12px;color:#9AA0AD;letter-spacing:2px">焦慮分數 / 100</div>
+                      <div style="font-size:13px;font-weight:600;color:#B0854B">有點緊張</div>
+                    </div>
+                  </div>
+                  <div style="margin-top:16px;font-size:14px;color:#5A5F6E;line-height:1.8;text-align:center;padding:0 12px">今天你的持股波動偏大,主要受到科技股拉回影響。<br>先看懂原因,不用急著做決定。</div>
+                </div>
+                <div style="margin-top:22px;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;overflow:hidden">
+                  <div style="display:flex">
+                    <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:4px;border-right:1px solid #EDEFF3"><div style="font-size:12px;color:#9AA0AD">我的持股</div><div style="font-size:21px;font-weight:700;color:#B87878">-1.8%</div></div>
+                    <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:4px"><div style="font-size:12px;color:#9AA0AD">大盤(加權指數)</div><div style="font-size:21px;font-weight:700;color:#878C99">-0.9%</div></div>
+                  </div>
+                  <div style="border-top:1px solid #EDEFF3;padding:12px 16px;display:flex;align-items:center;gap:10px">
+                    <div style="flex:1;height:6px;border-radius:99px;background:#EDEFF3;overflow:hidden"><div style="width:64%;height:100%;background:#A7ADE0"></div></div>
+                    <div style="font-size:12px;color:#9AA0AD">今天比大盤弱一些</div>
+                  </div>
+                </div>
+                <div style="margin-top:14px;display:flex;gap:10px">
+                  <div style="flex:1;height:48px;border-radius:13px;background:#6E79C9;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:600">查看今天原因</div>
+                  <div style="flex:1;height:48px;border-radius:13px;background:#FFFFFF;border:1px solid #D4D7E0;display:flex;align-items:center;justify-content:center;color:#6E79C9;font-size:15px;font-weight:600">抽今日持股卡</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:12px 20px 26px;background:#FBFBFD;border-top:1px solid #E5E7ED">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 11 L12 4 L20 11 V20 H14.5 V15 H9.5 V20 H4 Z" fill="none" stroke="#6E79C9" stroke-width="1.8" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:700;color:#6E79C9">今日</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="8.5" y="4.5" width="11" height="15" rx="2.5" fill="none" stroke="#9AA0AD" stroke-width="1.8" transform="rotate(7 14 12)"></rect><rect x="4.5" y="5" width="11" height="15" rx="2.5" fill="#F3F4F7" stroke="#9AA0AD" stroke-width="1.8"></rect></svg>
+                  <span style="font-size:10px;font-weight:600;color:#9AA0AD">抽卡</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14.5" rx="3.5" fill="none" stroke="#9AA0AD" stroke-width="1.8"></rect><path d="M4 13 H8.5 C8.5 15 15.5 15 15.5 13 H20" fill="none" stroke="#9AA0AD" stroke-width="1.8" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:600;color:#9AA0AD">持股</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#9AA0AD" stroke-width="1.8" stroke-dasharray="3.6 2.7"></circle><circle cx="12" cy="12" r="3" fill="none" stroke="#9AA0AD" stroke-width="1.8"></circle></svg>
+                  <span style="font-size:10px;font-weight:600;color:#9AA0AD">設定</span>
+                </div>
+              </div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- B07 每日抽卡 -->
+        <div data-screen-label="1b-07 每日抽卡" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">07 · 每日抽卡</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+              <div style="flex:1;overflow:hidden;padding:96px 24px 0;display:flex;flex-direction:column;align-items:center">
+                <div style="font-size:24px;font-weight:700;color:#33363E;letter-spacing:1px">抽一張今日持股卡</div>
+                <div style="margin-top:8px;font-size:13px;color:#878C99;letter-spacing:1px">每天一張,陪你冷靜看市場</div>
+                <div style="flex:1;display:flex;align-items:center">
+                  <div style="width:236px;height:356px;border-radius:18px;background:linear-gradient(170deg,#5E668F 0%,#464D74 100%);box-shadow:0 24px 56px rgba(70,77,116,0.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;position:relative">
+                    <div style="position:absolute;inset:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.22)"></div>
+                    <div style="width:52px;height:52px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.55);display:flex;align-items:center;justify-content:center">
+                      <div style="width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.85)"></div>
+                    </div>
+                    <div style="font-size:13px;letter-spacing:8px;color:rgba(255,255,255,0.75);padding-left:8px">股感安心卡</div>
+                  </div>
+                </div>
+                <div style="margin-bottom:28px;display:flex;flex-direction:column;align-items:center;gap:8px">
+                  <div style="font-size:14px;font-weight:600;color:#5A5F6E">輕點卡片,翻開今天的市場心情</div>
+                  <div style="font-size:12px;color:#9AA0AD">今天還沒抽 · 每日一次</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:12px 20px 26px;background:#FBFBFD;border-top:1px solid #E5E7ED">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 11 L12 4 L20 11 V20 H14.5 V15 H9.5 V20 H4 Z" fill="none" stroke="#9AA0AD" stroke-width="1.8" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:600;color:#9AA0AD">今日</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="8.5" y="4.5" width="11" height="15" rx="2.5" fill="none" stroke="#6E79C9" stroke-width="1.8" transform="rotate(7 14 12)"></rect><rect x="4.5" y="5" width="11" height="15" rx="2.5" fill="#F3F4F7" stroke="#6E79C9" stroke-width="1.8"></rect></svg>
+                  <span style="font-size:10px;font-weight:700;color:#6E79C9">抽卡</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14.5" rx="3.5" fill="none" stroke="#9AA0AD" stroke-width="1.8"></rect><path d="M4 13 H8.5 C8.5 15 15.5 15 15.5 13 H20" fill="none" stroke="#9AA0AD" stroke-width="1.8" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:600;color:#9AA0AD">持股</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#9AA0AD" stroke-width="1.8" stroke-dasharray="3.6 2.7"></circle><circle cx="12" cy="12" r="3" fill="none" stroke="#9AA0AD" stroke-width="1.8"></circle></svg>
+                  <span style="font-size:10px;font-weight:600;color:#9AA0AD">設定</span>
+                </div>
+              </div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- B08 今日原因解釋 -->
+        <div data-screen-label="1b-08 今日原因解釋" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">08 · 今日原因解釋</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:76px 24px 36px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:34px;height:34px;border-radius:50%;background:#FFFFFF;border:1px solid #E5E7ED;display:flex;align-items:center;justify-content:center">
+                  <svg width="9" height="15" viewBox="0 0 12 20"><path d="M10 2 L2 10 L10 18" fill="none" stroke="#5A5F6E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </div>
+                <div style="font-size:12px;color:#9AA0AD">7 月 6 日 · 收盤後</div>
+              </div>
+              <div style="margin-top:16px;font-size:26px;font-weight:700;color:#33363E">今天為什麼會這樣?</div>
+              <div style="margin-top:20px;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;padding:22px;border-left:3px solid #6E79C9">
+                <div style="font-size:11px;font-weight:700;color:#6E79C9;letter-spacing:2px">今日一句話</div>
+                <div style="margin-top:8px;font-size:17px;font-weight:600;color:#33363E;line-height:1.7">今天你的持股下跌,主要是受到整體科技股拉回影響。</div>
+              </div>
+              <div style="margin-top:10px;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;padding:20px 22px">
+                <div style="font-size:11px;font-weight:700;color:#9AA0AD;letter-spacing:2px">白話解釋</div>
+                <div style="margin-top:8px;font-size:14px;color:#5A5F6E;line-height:1.9">這不一定代表你選錯股票,而是今天市場對科技股比較保守,相關股票一起受到影響。</div>
+              </div>
+              <div style="margin-top:10px;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;padding:20px 22px">
+                <div style="font-size:11px;font-weight:700;color:#9AA0AD;letter-spacing:2px">我的持股影響排行</div>
+                <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div style="width:52px;font-size:13px;font-weight:600;color:#33363E">台積電</div>
+                    <div style="flex:1;height:6px;border-radius:99px;background:#EDEFF3;overflow:hidden"><div style="width:86%;height:100%;background:#D9A968"></div></div>
+                    <div style="font-size:11px;font-weight:600;color:#B0854B;width:52px;text-align:right">影響最大</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div style="width:52px;font-size:13px;font-weight:600;color:#33363E">鴻海</div>
+                    <div style="flex:1;height:6px;border-radius:99px;background:#EDEFF3;overflow:hidden"><div style="width:52%;height:100%;background:#A7ADE0"></div></div>
+                    <div style="font-size:11px;color:#878C99;width:52px;text-align:right">中等</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div style="width:52px;font-size:13px;font-weight:600;color:#33363E">中信金</div>
+                    <div style="flex:1;height:6px;border-radius:99px;background:#EDEFF3;overflow:hidden"><div style="width:22%;height:100%;background:#8FB3B8"></div></div>
+                    <div style="font-size:11px;color:#878C99;width:52px;text-align:right">較低</div>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:10px;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;padding:20px 22px">
+                <div style="font-size:11px;font-weight:700;color:#9AA0AD;letter-spacing:2px">和大盤相比</div>
+                <div style="margin-top:12px;display:flex;gap:24px">
+                  <div><div style="font-size:12px;color:#9AA0AD">我的持股</div><div style="font-size:20px;font-weight:700;color:#B87878">-1.8%</div></div>
+                  <div><div style="font-size:12px;color:#9AA0AD">大盤</div><div style="font-size:20px;font-weight:700;color:#878C99">-0.9%</div></div>
+                </div>
+                <div style="margin-top:10px;font-size:13px;color:#5A5F6E;line-height:1.8">今天你的持股比大盤弱一些,主要是科技股比重較高。</div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="margin-top:16px;text-align:center;font-size:11px;color:#B3B8C2">內容僅供資訊參考,不構成投資建議。</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- B09 我的持股 -->
+        <div data-screen-label="1b-09 我的持股" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">09 · 我的持股列表</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+              <div style="flex:1;overflow:hidden;padding:88px 24px 0;display:flex;flex-direction:column">
+                <div style="font-size:27px;font-weight:700;color:#33363E">我的持股</div>
+                <div style="margin-top:4px;font-size:13px;color:#878C99">3 檔 · 每天收盤後更新</div>
+                <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
+                  <div style="background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <div style="flex:1;display:flex;flex-direction:column;gap:2px"><div style="font-size:16px;font-weight:700;color:#33363E">台積電</div><div style="font-size:12px;color:#9AA0AD">2330 · 半導體</div></div>
+                      <div style="font-size:18px;font-weight:700;color:#B87878">-1.2%</div>
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:center">
+                      <div style="font-size:11px;font-weight:600;color:#B0854B;background:#F7EEDF;padding:4px 9px;border-radius:6px">焦慮影響 高</div>
+                      <div style="font-size:11px;font-weight:600;color:#6E79C9;background:#EEF0FA;padding:4px 9px;border-radius:6px">大盤影響</div>
+                      <div style="flex:1"></div>
+                      <div style="font-size:12px;font-weight:600;color:#6E79C9">查看詳情 ›</div>
+                    </div>
+                  </div>
+                  <div style="background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <div style="flex:1;display:flex;flex-direction:column;gap:2px"><div style="font-size:16px;font-weight:700;color:#33363E">鴻海</div><div style="font-size:12px;color:#9AA0AD">2317 · 電子代工</div></div>
+                      <div style="font-size:18px;font-weight:700;color:#B87878">-0.8%</div>
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:center">
+                      <div style="font-size:11px;font-weight:600;color:#878C99;background:#EDEFF3;padding:4px 9px;border-radius:6px">焦慮影響 中</div>
+                      <div style="font-size:11px;font-weight:600;color:#6E79C9;background:#EEF0FA;padding:4px 9px;border-radius:6px">大盤影響</div>
+                      <div style="flex:1"></div>
+                      <div style="font-size:12px;font-weight:600;color:#6E79C9">查看詳情 ›</div>
+                    </div>
+                  </div>
+                  <div style="background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <div style="flex:1;display:flex;flex-direction:column;gap:2px"><div style="font-size:16px;font-weight:700;color:#33363E">中信金</div><div style="font-size:12px;color:#9AA0AD">2891 · 金融</div></div>
+                      <div style="font-size:18px;font-weight:700;color:#7D9C87">+0.3%</div>
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:center">
+                      <div style="font-size:11px;font-weight:600;color:#527D82;background:#EBF2F3;padding:4px 9px;border-radius:6px">焦慮影響 低</div>
+                      <div style="font-size:11px;font-weight:600;color:#878C99;background:#EDEFF3;padding:4px 9px;border-radius:6px">個股波動</div>
+                      <div style="flex:1"></div>
+                      <div style="font-size:12px;font-weight:600;color:#6E79C9">查看詳情 ›</div>
+                    </div>
+                  </div>
+                </div>
+                <div style="flex:1"></div>
+                <div style="margin-bottom:16px;height:50px;border-radius:13px;border:1px dashed #C4C8D4;display:flex;align-items:center;justify-content:center;gap:8px;color:#6E79C9;font-size:14px;font-weight:600">+ 新增股票</div>
+              </div>
+              <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:12px 20px 26px;background:#FBFBFD;border-top:1px solid #E5E7ED">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 11 L12 4 L20 11 V20 H14.5 V15 H9.5 V20 H4 Z" fill="none" stroke="#9AA0AD" stroke-width="1.8" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:600;color:#9AA0AD">今日</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="8.5" y="4.5" width="11" height="15" rx="2.5" fill="none" stroke="#9AA0AD" stroke-width="1.8" transform="rotate(7 14 12)"></rect><rect x="4.5" y="5" width="11" height="15" rx="2.5" fill="#F3F4F7" stroke="#9AA0AD" stroke-width="1.8"></rect></svg>
+                  <span style="font-size:10px;font-weight:600;color:#9AA0AD">抽卡</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14.5" rx="3.5" fill="none" stroke="#6E79C9" stroke-width="1.8"></rect><path d="M4 13 H8.5 C8.5 15 15.5 15 15.5 13 H20" fill="none" stroke="#6E79C9" stroke-width="1.8" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:700;color:#6E79C9">持股</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#9AA0AD" stroke-width="1.8" stroke-dasharray="3.6 2.7"></circle><circle cx="12" cy="12" r="3" fill="none" stroke="#9AA0AD" stroke-width="1.8"></circle></svg>
+                  <span style="font-size:10px;font-weight:600;color:#9AA0AD">設定</span>
+                </div>
+              </div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- B10 個股詳情 -->
+        <div data-screen-label="1b-10 個股詳情" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">10 · 個股詳情</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:76px 24px 36px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:34px;height:34px;border-radius:50%;background:#FFFFFF;border:1px solid #E5E7ED;display:flex;align-items:center;justify-content:center">
+                  <svg width="9" height="15" viewBox="0 0 12 20"><path d="M10 2 L2 10 L10 18" fill="none" stroke="#5A5F6E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </div>
+                <div style="font-size:12px;color:#9AA0AD">2330 · 半導體</div>
+              </div>
+              <div style="margin-top:16px;font-size:26px;font-weight:700;color:#33363E">台積電今天怎麼了?</div>
+              <div style="margin-top:20px;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;display:flex;overflow:hidden">
+                <div style="flex:1;padding:16px 20px;display:flex;flex-direction:column;gap:4px;border-right:1px solid #EDEFF3"><div style="font-size:12px;color:#9AA0AD">今日漲跌</div><div style="font-size:22px;font-weight:700;color:#B87878">-1.2%</div></div>
+                <div style="flex:1;padding:16px 20px;display:flex;flex-direction:column;gap:4px"><div style="font-size:12px;color:#9AA0AD">與大盤比較</div><div style="font-size:22px;font-weight:700;color:#878C99">稍弱</div></div>
+              </div>
+              <div style="margin-top:10px;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;padding:20px 22px">
+                <div style="font-size:11px;font-weight:700;color:#9AA0AD;letter-spacing:2px">可能原因</div>
+                <div style="margin-top:10px;display:flex;flex-direction:column;gap:10px">
+                  <div style="display:flex;gap:10px"><div style="width:5px;height:5px;border-radius:50%;background:#D9A968;margin-top:8px;flex-shrink:0"></div><div style="font-size:14px;color:#5A5F6E;line-height:1.8">科技股整體拉回,半導體類股同步走弱</div></div>
+                  <div style="display:flex;gap:10px"><div style="width:5px;height:5px;border-radius:50%;background:#A7ADE0;margin-top:8px;flex-shrink:0"></div><div style="font-size:14px;color:#5A5F6E;line-height:1.8">外資今天在科技類股偏保守</div></div>
+                </div>
+              </div>
+              <div style="margin-top:10px;background:#FFFFFF;border:1px solid #E5E7ED;border-left:3px solid #6E79C9;border-radius:16px;padding:20px 22px">
+                <div style="font-size:11px;font-weight:700;color:#6E79C9;letter-spacing:2px">新手翻譯</div>
+                <div style="margin-top:8px;font-size:14px;color:#5A5F6E;line-height:1.9">台積電今天下跌 1.2%,比大盤稍弱。這比較像是科技股整體拉回,不一定是公司單獨出問題。</div>
+              </div>
+              <div style="margin-top:10px;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;padding:16px 22px;display:flex;align-items:center;gap:12px">
+                <div style="font-size:13px;color:#878C99;flex:1">對今日焦慮分數的影響</div>
+                <div style="font-size:12px;font-weight:600;color:#B0854B;background:#F7EEDF;padding:5px 12px;border-radius:6px">高 · +18 分</div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="height:50px;border-radius:13px;background:#FFFFFF;border:1px solid #D4D7E0;display:flex;align-items:center;justify-content:center;color:#6E79C9;font-size:15px;font-weight:600">回到今日總結</div>
+              <div style="margin-top:12px;text-align:center;font-size:11px;color:#B3B8C2">內容僅供資訊參考,不構成投資建議。</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- B11 提醒設定 -->
+        <div data-screen-label="1b-11 每日提醒設定" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">11 · 每日提醒設定</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+              <div style="flex:1;overflow:hidden;padding:88px 24px 0;display:flex;flex-direction:column">
+                <div style="font-size:27px;font-weight:700;color:#33363E">設定</div>
+                <div style="margin-top:24px;font-size:12px;font-weight:700;color:#9AA0AD;letter-spacing:2px;padding:0 4px">每天什麼時候提醒你?</div>
+                <div style="margin-top:10px;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;overflow:hidden">
+                  <div style="padding:14px 18px;display:flex;align-items:center;border-bottom:1px solid #EDEFF3"><div style="flex:1;font-size:15px;color:#33363E">早上開盤前</div><div style="font-size:13px;color:#9AA0AD">8:30</div></div>
+                  <div style="padding:14px 18px;display:flex;align-items:center;border-bottom:1px solid #EDEFF3"><div style="flex:1;font-size:15px;color:#33363E">中午休息</div><div style="font-size:13px;color:#9AA0AD">12:30</div></div>
+                  <div style="padding:14px 18px;display:flex;align-items:center;background:#F7F8FC;border-bottom:1px solid #EDEFF3">
+                    <div style="flex:1;font-size:15px;font-weight:600;color:#33363E">收盤後</div>
+                    <div style="font-size:13px;color:#6E79C9;font-weight:600;margin-right:10px">14:30</div>
+                    <svg width="13" height="10" viewBox="0 0 12 10"><path d="M1.5 5 L4.5 8 L10.5 1.5" fill="none" stroke="#6E79C9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  </div>
+                  <div style="padding:14px 18px;display:flex;align-items:center"><div style="flex:1;font-size:15px;color:#33363E">晚上整理時間</div><div style="font-size:13px;color:#9AA0AD">21:00</div></div>
+                </div>
+                <div style="margin-top:24px;font-size:12px;font-weight:700;color:#9AA0AD;letter-spacing:2px;padding:0 4px">想收到哪些內容?</div>
+                <div style="margin-top:10px;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;overflow:hidden">
+                  <div style="padding:13px 18px;display:flex;align-items:center;border-bottom:1px solid #EDEFF3">
+                    <div style="flex:1;font-size:15px;color:#33363E">今日焦慮分數</div>
+                    <div style="width:51px;height:31px;border-radius:99px;background:#6E79C9;position:relative"><div style="position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.15)"></div></div>
+                  </div>
+                  <div style="padding:13px 18px;display:flex;align-items:center;border-bottom:1px solid #EDEFF3">
+                    <div style="flex:1;font-size:15px;color:#33363E">今日持股卡</div>
+                    <div style="width:51px;height:31px;border-radius:99px;background:#6E79C9;position:relative"><div style="position:absolute;top:2px;right:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.15)"></div></div>
+                  </div>
+                  <div style="padding:13px 18px;display:flex;align-items:center">
+                    <div style="flex:1;font-size:15px;color:#33363E">重大波動提醒</div>
+                    <div style="width:51px;height:31px;border-radius:99px;background:#D4D7E0;position:relative"><div style="position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.15)"></div></div>
+                  </div>
+                </div>
+                <div style="flex:1"></div>
+                <div style="margin-bottom:16px;height:50px;border-radius:13px;background:#6E79C9;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:600">儲存提醒</div>
+              </div>
+              <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:12px 20px 26px;background:#FBFBFD;border-top:1px solid #E5E7ED">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 11 L12 4 L20 11 V20 H14.5 V15 H9.5 V20 H4 Z" fill="none" stroke="#9AA0AD" stroke-width="1.8" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:600;color:#9AA0AD">今日</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="8.5" y="4.5" width="11" height="15" rx="2.5" fill="none" stroke="#9AA0AD" stroke-width="1.8" transform="rotate(7 14 12)"></rect><rect x="4.5" y="5" width="11" height="15" rx="2.5" fill="#F3F4F7" stroke="#9AA0AD" stroke-width="1.8"></rect></svg>
+                  <span style="font-size:10px;font-weight:600;color:#9AA0AD">抽卡</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14.5" rx="3.5" fill="none" stroke="#9AA0AD" stroke-width="1.8"></rect><path d="M4 13 H8.5 C8.5 15 15.5 15 15.5 13 H20" fill="none" stroke="#9AA0AD" stroke-width="1.8" stroke-linejoin="round"></path></svg>
+                  <span style="font-size:10px;font-weight:600;color:#9AA0AD">持股</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px">
+                  <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#6E79C9" stroke-width="1.8" stroke-dasharray="3.6 2.7"></circle><circle cx="12" cy="12" r="3" fill="none" stroke="#6E79C9" stroke-width="1.8"></circle></svg>
+                  <span style="font-size:10px;font-weight:700;color:#6E79C9">設定</span>
+                </div>
+              </div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- B12 Loading -->
+        <div data-screen-label="1b-12 Loading" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">12 · Loading</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:0 40px">
+              <div style="width:110px;height:164px;border-radius:14px;background:linear-gradient(170deg,#5E668F,#464D74);box-shadow:0 16px 40px rgba(70,77,116,0.28);animation:floaty 3s ease-in-out infinite;display:flex;align-items:center;justify-content:center">
+                <div style="width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.55);display:flex;align-items:center;justify-content:center"><div style="width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.85)"></div></div>
+              </div>
+              <div style="margin-top:36px;width:32px;height:32px;border-radius:50%;border:2.5px solid #E5E7ED;border-top-color:#6E79C9;animation:spin 1s linear infinite"></div>
+              <div style="margin-top:24px;font-size:15px;font-weight:600;color:#5A5F6E">正在整理今天的市場情緒...</div>
+              <div style="margin-top:8px;font-size:13px;color:#9AA0AD">正在翻譯成你看得懂的版本...</div>
+            </div>
+          </x-import>
+        </div>
+
+        <!-- B13 Empty / Error -->
+        <div data-screen-label="1b-13 Empty Error" style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:600;color:#878C99">13 · Empty + Error Sheet</div>
+          <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+            <div style="height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F3F4F7;font-family:'Noto Sans TC','PingFang TC',sans-serif;position:relative">
+              <div style="flex:1;padding:88px 24px 0;display:flex;flex-direction:column;filter:brightness(0.94)">
+                <div style="font-size:27px;font-weight:700;color:#33363E">我的持股</div>
+                <div style="margin-top:80px;display:flex;flex-direction:column;align-items:center;gap:14px;padding:0 24px">
+                  <div style="width:80px;height:80px;border-radius:24px;background:#FFFFFF;border:1px solid #E5E7ED;display:flex;align-items:center;justify-content:center">
+                    <svg width="34" height="34" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14.5" rx="3.5" fill="none" stroke="#C4C8D4" stroke-width="1.8"></rect><path d="M4 13 H8.5 C8.5 15 15.5 15 15.5 13 H20" fill="none" stroke="#C4C8D4" stroke-width="1.8" stroke-linejoin="round"></path></svg>
+                  </div>
+                  <div style="font-size:17px;font-weight:700;color:#33363E">你還沒有加入股票</div>
+                  <div style="font-size:13px;color:#878C99;line-height:1.8;text-align:center">先加入 1 檔你關心的股票,我們會幫你整理今天的波動原因。</div>
+                  <div style="margin-top:6px;height:46px;padding:0 30px;border-radius:12px;background:#6E79C9;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600">新增股票</div>
+                </div>
+              </div>
+              <div style="position:absolute;left:0;right:0;bottom:0;background:#FFFFFF;border-radius:22px 22px 0 0;box-shadow:0 -12px 40px rgba(50,60,90,0.14);padding:14px 24px 44px;display:flex;flex-direction:column;align-items:center">
+                <div style="width:38px;height:5px;border-radius:99px;background:#E5E7ED"></div>
+                <div style="margin-top:22px;width:58px;height:58px;border-radius:50%;background:#F7EEDF;display:flex;align-items:center;justify-content:center">
+                  <svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 4 L21 19 H3 Z" fill="none" stroke="#C99A5B" stroke-width="1.8" stroke-linejoin="round"></path><path d="M12 10 V14" stroke="#C99A5B" stroke-width="1.8" stroke-linecap="round"></path><circle cx="12" cy="16.6" r="1" fill="#C99A5B"></circle></svg>
+                </div>
+                <div style="margin-top:14px;font-size:16px;font-weight:700;color:#33363E">今天這檔股票的資料還不完整</div>
+                <div style="margin-top:6px;font-size:13px;color:#878C99;line-height:1.8;text-align:center">你可以稍後再試,或先查看其他持股。</div>
+                <div style="margin-top:18px;width:100%;height:48px;border-radius:12px;background:#6E79C9;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600">重新整理</div>
+                <div style="margin-top:10px;width:100%;height:48px;border-radius:12px;background:#F3F4F7;display:flex;align-items:center;justify-content:center;color:#5A5F6E;font-size:14px;font-weight:600">回首頁</div>
+              </div>
+            </div>
+          </x-import>
+        </div>
+      </div>
+      <!-- Design System B -->
+      <div data-screen-label="1b-DS Design System" style="width:1840px;box-sizing:border-box;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:20px;padding:40px;display:flex;flex-direction:column;gap:32px">
+        <div style="display:flex;align-items:baseline;gap:14px">
+          <div style="font-size:20px;font-weight:700;color:#33363E">Design System · 方向 B 沉靜霧藍</div>
+          <div style="font-size:13px;color:#9AA0AD">SF Pro + PingFang TC 全 sans · 圓角 12–18 · 髮絲線分隔 · 陰影極輕</div>
+        </div>
+        <div style="display:flex;gap:40px;align-items:flex-start">
+          <div style="width:400px;display:flex;flex-direction:column;gap:14px">
+            <div style="font-size:13px;font-weight:700;color:#878C99;letter-spacing:1px">色彩 TOKENS</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:10px;background:#F3F4F7;border:1px solid #E5E7ED"></div><div><div style="font-size:12px;font-weight:700;color:#33363E">background</div><div style="font-size:11px;font-family:monospace;color:#9AA0AD">#F3F4F7 霧灰</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:10px;background:#FFFFFF;border:1px solid #E5E7ED"></div><div><div style="font-size:12px;font-weight:700;color:#33363E">cardBackground</div><div style="font-size:11px;font-family:monospace;color:#9AA0AD">#FFFFFF</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:10px;background:#6E79C9"></div><div><div style="font-size:12px;font-weight:700;color:#33363E">primary</div><div style="font-size:11px;font-family:monospace;color:#9AA0AD">#6E79C9 靛藍</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:10px;background:#8FB3B8"></div><div><div style="font-size:12px;font-weight:700;color:#33363E">secondary</div><div style="font-size:11px;font-family:monospace;color:#9AA0AD">#8FB3B8 霧青</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:10px;background:#D9A968"></div><div><div style="font-size:12px;font-weight:700;color:#33363E">warning</div><div style="font-size:11px;font-family:monospace;color:#9AA0AD">#D9A968 沙橘</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:10px;background:#B87878"></div><div><div style="font-size:12px;font-weight:700;color:#33363E">danger</div><div style="font-size:11px;font-family:monospace;color:#9AA0AD">#B87878 柔和紅</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:10px;background:#33363E"></div><div><div style="font-size:12px;font-weight:700;color:#33363E">textPrimary</div><div style="font-size:11px;font-family:monospace;color:#9AA0AD">#33363E</div></div></div>
+              <div style="display:flex;align-items:center;gap:10px"><div style="width:38px;height:38px;border-radius:10px;background:#878C99"></div><div><div style="font-size:12px;font-weight:700;color:#33363E">textSecondary</div><div style="font-size:11px;font-family:monospace;color:#9AA0AD">#878C99</div></div></div>
+            </div>
+          </div>
+          <div style="width:360px;display:flex;flex-direction:column;gap:14px">
+            <div style="font-size:13px;font-weight:700;color:#878C99;letter-spacing:1px">字體層級(支援 DYNAMIC TYPE)</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div><div style="font-size:34px;font-weight:700;color:#33363E;line-height:1.2">Large Title 34</div><div style="font-size:11px;color:#9AA0AD">首頁主標 · Bold(不用 Heavy)</div></div>
+              <div><div style="font-size:27px;font-weight:700;color:#33363E;line-height:1.2">Title 1 · 27</div><div style="font-size:11px;color:#9AA0AD">畫面標題</div></div>
+              <div><div style="font-size:22px;font-weight:600;color:#33363E;line-height:1.2;letter-spacing:1px">Title 2 · 22 加字距</div><div style="font-size:11px;color:#9AA0AD">卡片主標(B 用字距營造儀式感)</div></div>
+              <div><div style="font-size:17px;font-weight:600;color:#33363E">Headline 17</div><div style="font-size:11px;color:#9AA0AD">區塊標題 · Semibold</div></div>
+              <div><div style="font-size:14px;color:#5A5F6E">Body 14–17 內文,行高 1.8–1.9,更多留白。</div></div>
+              <div><div style="font-size:11px;color:#B3B8C2;letter-spacing:2px">CAPTION 11 · 區塊 EYEBROW 全大寫加字距</div></div>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+            <div style="font-size:13px;font-weight:700;color:#878C99;letter-spacing:1px">共用元件</div>
+            <div style="display:flex;gap:24px;align-items:flex-start">
+              <div style="display:flex;flex-direction:column;gap:12px;width:250px">
+                <div style="height:48px;border-radius:13px;background:#6E79C9;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:600">PrimaryButton</div>
+                <div style="height:48px;border-radius:13px;background:#FFFFFF;border:1px solid #D4D7E0;display:flex;align-items:center;justify-content:center;color:#6E79C9;font-size:15px;font-weight:600">SecondaryButton</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <div style="font-size:12px;font-weight:600;color:#527D82;background:#EBF2F3;padding:5px 11px;border-radius:6px">安心</div>
+                  <div style="font-size:12px;font-weight:600;color:#B0854B;background:#F7EEDF;padding:5px 11px;border-radius:6px">有點緊張</div>
+                  <div style="font-size:12px;font-weight:600;color:#A26A6A;background:#F5E9E9;padding:5px 11px;border-radius:6px">波動較大</div>
+                </div>
+                <div style="font-size:11px;color:#B3B8C2;font-family:monospace">EmotionBadge · 方角 6px,無 pill</div>
+                <div style="background:#F3F4F7;border-radius:13px;padding:14px;display:flex;align-items:center;gap:12px">
+                  <div style="width:64px;height:64px;border-radius:50%;background:conic-gradient(#D9A968 0 72%,#E8EAF0 72% 100%);display:flex;align-items:center;justify-content:center"><div style="width:52px;height:52px;border-radius:50%;background:#F3F4F7;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:300;color:#33363E">72</div></div>
+                  <div style="font-size:11px;color:#B3B8C2;font-family:monospace;line-height:1.6">AnxietyScoreRing<br>細環 + Light 數字</div>
+                </div>
+              </div>
+              <div style="width:230px;background:#FFFFFF;border:1px solid #E5E7ED;border-radius:16px;padding:24px 18px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:12px">
+                <div style="width:44px;height:44px;border-radius:50%;border:1.5px solid #6E79C9;display:flex;align-items:center;justify-content:center"><div style="width:9px;height:9px;border-radius:50%;background:#6E79C9"></div></div>
+                <div style="font-size:18px;font-weight:600;color:#33363E;letter-spacing:3px">大盤影響卡</div>
+                <div style="font-size:13px;color:#5A5F6E;line-height:1.9;text-align:center">今天不是只有你的持股波動,整體市場也偏弱。先看懂原因,比急著做決定更重要。</div>
+                <div style="font-size:12px;color:#9AA0AD">原因:科技股整體拉回</div>
+                <div style="font-size:13px;font-weight:600;color:#6E79C9">查看詳細原因 →</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+                <div style="font-size:11px;color:#B3B8C2;font-family:monospace">DrawCard 結果面(左)· 同 5 種卡型</div>
+                <div style="background:#FFFFFF;border:1px solid #E5E7ED;border-left:3px solid #6E79C9;border-radius:12px;padding:14px 16px">
+                  <div style="font-size:11px;font-weight:700;color:#6E79C9;letter-spacing:2px">新手翻譯</div>
+                  <div style="margin-top:6px;font-size:13px;color:#5A5F6E;line-height:1.8">這不一定代表你選錯股票,而是今天市場對科技股比較保守。</div>
+                </div>
+                <div style="background:#F3F4F7;border-radius:10px;padding:10px 14px;font-size:11px;color:#B3B8C2;text-align:center">DisclaimerBlock · 內容僅供資訊參考,不構成投資建議。</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <div style="font-size:11px;font-weight:600;color:#6E79C9;background:#EEF0FA;padding:4px 10px;border-radius:6px">大盤影響</div>
+                  <div style="font-size:11px;font-weight:600;color:#878C99;background:#EDEFF3;padding:4px 10px;border-radius:6px">個股波動</div>
+                  <div style="font-size:11px;font-weight:600;color:#B3B8C2;background:#F3F4F7;padding:4px 10px;border-radius:6px">資料不足</div>
+                </div>
+                <div style="font-size:11px;color:#B3B8C2;font-family:monospace">StockCard 狀態標籤 · 見畫面 09</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+</body>
+</html>

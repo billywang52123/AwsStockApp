@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&amp;family=Noto+Serif+TC:wght@600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#EBE9E3;}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flipIn{from{transform:rotateY(90deg) scale(0.92);opacity:0}to{transform:rotateY(0) scale(1);opacity:1}}
+@keyframes fadeUp{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px;box-sizing:border-box;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+<div style="height:100%;box-sizing:border-box;position:relative;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;overflow:hidden">
+
+  <!-- SPLASH -->
+  <sc-if value="{{ isSplash }}" hint-placeholder-val="{{ true }}">
+    <div onClick="{{ start }}" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#FAF7F1 0%,#F3EDE1 100%);cursor:pointer">
+      <div style="width:96px;height:96px;border-radius:28px;background:linear-gradient(160deg,#8B8FDD,#6C70C4);box-shadow:0 16px 40px rgba(123,127,212,0.35);display:flex;align-items:center;justify-content:center;animation:floaty 4s ease-in-out infinite">
+        <div style="width:44px;height:44px;border-radius:50%;background:conic-gradient(#FFFFFF 0 72%,rgba(255,255,255,0.25) 72% 100%);display:flex;align-items:center;justify-content:center"><div style="width:30px;height:30px;border-radius:50%;background:#767AC9"></div></div>
+      </div>
+      <div style="margin-top:28px;font-family:'Noto Serif TC',serif;font-size:34px;font-weight:700;color:#3A3733;letter-spacing:2px">股感安心卡</div>
+      <div style="margin-top:14px;font-size:17px;font-weight:500;color:#5C5850">每天看懂你的股票情緒</div>
+      <div style="margin-top:8px;font-size:14px;color:#8A857C">不用懂線圖,也能知道今天為什麼焦慮</div>
+    </div>
+  </sc-if>
+
+  <!-- ONBOARDING -->
+  <sc-if value="{{ isOnb }}" hint-placeholder-val="{{ false }}">
+    <div style="height:100%;display:flex;flex-direction:column;padding:88px 0 40px;box-sizing:border-box">
+      <div style="padding:0 28px;text-align:right"><span onClick="{{ finishOnb }}" style="font-size:14px;font-weight:600;color:#A9A49B;padding:8px;cursor:pointer">略過</span></div>
+      <div style="flex:1;overflow:hidden;display:flex;align-items:center">
+        <div style="display:flex;gap:16px;padding-left:53px;transform:translateX({{ onbShift }}px);transition:transform 0.45s cubic-bezier(0.22,1,0.36,1)">
+          <sc-for list="{{ onbCards }}" as="c" hint-placeholder-count="3">
+            <div style="width:296px;flex-shrink:0;background:#FFFFFF;border-radius:28px;padding:36px 28px;box-sizing:border-box;box-shadow:0 12px 36px rgba(120,100,70,0.10);display:flex;flex-direction:column;gap:16px;opacity:{{ c.opacity }};transition:opacity 0.4s">
+              <div style="width:56px;height:56px;border-radius:18px;background:{{ c.iconBg }};display:flex;align-items:center;justify-content:center;font-size:24px">{{ c.icon }}</div>
+              <div style="font-family:'Noto Serif TC',serif;font-size:23px;font-weight:700;color:#3A3733;line-height:1.45">{{ c.title }}</div>
+              <div style="font-size:15px;color:#8A857C;line-height:1.7">{{ c.body }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:8px;margin:26px 0">
+        <sc-for list="{{ onbDots }}" as="d" hint-placeholder-count="3">
+          <div style="width:{{ d.w }}px;height:7px;border-radius:99px;background:{{ d.bg }};transition:all 0.3s"></div>
+        </sc-for>
+      </div>
+      <div style="padding:0 24px">
+        <div onClick="{{ onbNext }}" style="height:54px;border-radius:18px;background:#7B7FD4;box-shadow:0 10px 24px rgba(123,127,212,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:700;cursor:pointer" style-active="transform:scale(0.97)">{{ onbBtnLabel }}</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- SCENARIO -->
+  <sc-if value="{{ isScenario }}" hint-placeholder-val="{{ false }}">
+    <div style="height:100%;display:flex;flex-direction:column;padding:96px 24px 40px;box-sizing:border-box;animation:fadeUp 0.4s ease-out">
+      <div style="font-size:13px;font-weight:600;color:#A9A49B;letter-spacing:1px">1 / 3</div>
+      <div style="margin-top:10px;font-size:28px;font-weight:900;color:#3A3733;line-height:1.4">你最常遇到<br>哪種情況?</div>
+      <div style="margin-top:6px;font-size:14px;color:#8A857C">可以選一個最像你的,我們會照著調整內容。</div>
+      <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ scenarios }}" as="s" hint-placeholder-count="4">
+          <div onClick="{{ s.pick }}" style="background:{{ s.bg }};border:{{ s.border }};border-radius:20px;padding:17px;display:flex;align-items:center;gap:14px;box-shadow:{{ s.shadow }};cursor:pointer;transition:all 0.2s">
+            <div style="width:42px;height:42px;border-radius:14px;background:{{ s.iconBg }};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">{{ s.icon }}</div>
+            <div style="flex:1;font-size:16px;font-weight:{{ s.weight }};color:#3A3733;line-height:1.5">{{ s.label }}</div>
+            <sc-if value="{{ s.selected }}" hint-placeholder-val="{{ false }}">
+              <div style="width:24px;height:24px;border-radius:50%;background:#7B7FD4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg width="12" height="10" viewBox="0 0 12 10"><path d="M1.5 5 L4.5 8 L10.5 1.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex:1"></div>
+      <div onClick="{{ toInput }}" style="height:54px;border-radius:18px;background:#7B7FD4;box-shadow:0 10px 24px rgba(123,127,212,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:700;cursor:pointer" style-active="transform:scale(0.97)">下一步</div>
+    </div>
+  </sc-if>
+
+  <!-- INPUT -->
+  <sc-if value="{{ isInput }}" hint-placeholder-val="{{ false }}">
+    <div style="height:100%;display:flex;flex-direction:column;padding:96px 24px 40px;box-sizing:border-box;animation:fadeUp 0.4s ease-out">
+      <div style="font-size:13px;font-weight:600;color:#A9A49B;letter-spacing:1px">2 / 3</div>
+      <div style="margin-top:10px;font-size:28px;font-weight:900;color:#3A3733;line-height:1.4">先加入你關心的股票</div>
+      <div style="margin-top:6px;font-size:14px;color:#8A857C;line-height:1.7">不用輸入金額也可以先開始,我們會先幫你看懂今天的波動。</div>
+      <div style="margin-top:22px;background:#FFFFFF;border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 6px 18px rgba(120,100,70,0.07)">
+        <svg width="20" height="20" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="#A9A49B" stroke-width="2"></circle><path d="M16 16 L20.5 20.5" stroke="#A9A49B" stroke-width="2" stroke-linecap="round"></path></svg>
+        <div style="font-size:16px;color:#B4AFA5">輸入代號或名稱,例如 2330、台積電</div>
+      </div>
+      <div style="margin-top:26px;font-size:14px;font-weight:700;color:#5C5850">已加入 {{ stockCount }} 檔</div>
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ myStocks }}" as="st" hint-placeholder-count="3">
+          <div style="background:#FFFFFF;border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+            <div style="width:42px;height:42px;border-radius:14px;background:{{ st.iconBg }};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:{{ st.iconColor }}">{{ st.short }}</div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+              <div style="font-size:16px;font-weight:700;color:#3A3733">{{ st.name }}</div>
+              <div style="font-size:13px;color:#A9A49B">{{ st.meta }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex:1"></div>
+      <div onClick="{{ toRecommend }}" style="height:54px;border-radius:18px;background:#7B7FD4;box-shadow:0 10px 24px rgba(123,127,212,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:700;cursor:pointer" style-active="transform:scale(0.97)">下一步</div>
+      <div style="margin-top:12px;text-align:center;font-size:13px;color:#A9A49B">之後隨時可以修改,最多 5 檔</div>
+    </div>
+  </sc-if>
+
+  <!-- RECOMMEND -->
+  <sc-if value="{{ isRecommend }}" hint-placeholder-val="{{ false }}">
+    <div style="height:100%;display:flex;flex-direction:column;padding:96px 0 40px;box-sizing:border-box;animation:fadeUp 0.4s ease-out">
+      <div style="padding:0 24px;font-size:13px;font-weight:600;color:#A9A49B;letter-spacing:1px">3 / 3</div>
+      <div style="margin-top:10px;padding:0 24px;font-size:28px;font-weight:900;color:#3A3733;line-height:1.4">你可能也關心<br>這些股票</div>
+      <div style="margin-top:6px;padding:0 24px;font-size:14px;color:#8A857C;line-height:1.7">根據你剛剛加入的台積電,我們猜你可能也想追蹤這些。</div>
+      <div style="margin-top:26px;display:flex;gap:14px;padding:0 24px;overflow:hidden">
+        <sc-for list="{{ recs }}" as="r" hint-placeholder-count="2">
+          <div style="width:168px;flex-shrink:0;background:#FFFFFF;border-radius:22px;padding:20px 18px;box-sizing:border-box;box-shadow:0 10px 26px rgba(120,100,70,0.09);display:flex;flex-direction:column;gap:10px;border:{{ r.border }}">
+            <div style="width:44px;height:44px;border-radius:15px;background:{{ r.iconBg }};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:{{ r.iconColor }}">{{ r.short }}</div>
+            <div style="font-size:17px;font-weight:700;color:#3A3733">{{ r.name }}</div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <div style="font-size:12px;color:#A9A49B">{{ r.code }}</div>
+              <div style="font-size:11px;font-weight:600;color:{{ r.iconColor }};background:{{ r.iconBg }};padding:3px 8px;border-radius:99px">{{ r.sector }}</div>
+            </div>
+            <div onClick="{{ r.toggle }}" style="margin-top:6px;height:40px;border-radius:14px;background:{{ r.btnBg }};display:flex;align-items:center;justify-content:center;gap:6px;color:{{ r.btnColor }};font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s">{{ r.btnLabel }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex:1"></div>
+      <div style="padding:0 24px">
+        <div onClick="{{ toMain }}" style="height:54px;border-radius:18px;background:#7B7FD4;box-shadow:0 10px 24px rgba(123,127,212,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:700;cursor:pointer" style-active="transform:scale(0.97)">完成,查看今日狀態</div>
+      </div>
+      <div style="margin-top:12px;text-align:center;font-size:13px;color:#A9A49B">推薦只是幫你追蹤,不是投資建議</div>
+    </div>
+  </sc-if>
+
+  <!-- MAIN (tabs) -->
+  <sc-if value="{{ isMain }}" hint-placeholder-val="{{ false }}">
+    <div style="height:100%;display:flex;flex-direction:column">
+      <div style="flex:1;overflow:hidden;position:relative">
+
+        <!-- TAB 今日 -->
+        <sc-if value="{{ tabToday }}" hint-placeholder-val="{{ false }}">
+          <div style="height:100%;padding:88px 24px 0;box-sizing:border-box;display:flex;flex-direction:column;animation:fadeUp 0.35s ease-out">
+            <div style="font-size:13px;font-weight:600;color:#A9A49B">7 月 6 日 週一 · 收盤後</div>
+            <div style="margin-top:6px;font-size:30px;font-weight:900;color:#3A3733">今天你的持股情緒</div>
+            <div style="margin-top:20px;display:flex;flex-direction:column;align-items:center">
+              <div style="width:190px;height:190px;border-radius:50%;background:{{ ringGradient }};display:flex;align-items:center;justify-content:center;box-shadow:0 14px 34px rgba(228,179,132,0.25);transition:background 0.5s">
+                <div style="width:156px;height:156px;border-radius:50%;background:#FDFBF7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+                  <div style="font-size:44px;font-weight:900;color:#3A3733;line-height:1">{{ score }}<span style="font-size:16px;font-weight:600;color:#B4AFA5"> /100</span></div>
+                  <div style="font-size:12px;color:#A9A49B">今日焦慮分數</div>
+                </div>
+              </div>
+              <div style="margin-top:13px;background:{{ emotionBg }};color:{{ emotionColor }};font-size:14px;font-weight:700;padding:7px 16px;border-radius:99px">{{ emotionLabel }}</div>
+              <div style="margin-top:10px;font-size:14px;color:#5C5850;line-height:1.7;text-align:center;padding:0 8px">{{ emotionDesc }}</div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:12px">
+              <div style="flex:1;background:#FFFFFF;border-radius:18px;padding:13px 16px;display:flex;flex-direction:column;gap:3px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                <div style="font-size:12px;color:#A9A49B">我的持股</div>
+                <div style="font-size:21px;font-weight:800;color:#C97F7F">-1.8%</div>
+              </div>
+              <div style="flex:1;background:#FFFFFF;border-radius:18px;padding:13px 16px;display:flex;flex-direction:column;gap:3px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+                <div style="font-size:12px;color:#A9A49B">大盤(加權指數)</div>
+                <div style="font-size:21px;font-weight:800;color:#8A857C">-0.9%</div>
+              </div>
+            </div>
+            <div style="flex:1"></div>
+            <div style="margin-bottom:16px;display:flex;gap:12px">
+              <div onClick="{{ toReason }}" style="flex:1;height:50px;border-radius:16px;background:#7B7FD4;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;box-shadow:0 8px 20px rgba(123,127,212,0.28);cursor:pointer" style-active="transform:scale(0.97)">查看今天原因</div>
+              <div onClick="{{ goDrawTab }}" style="flex:1;height:50px;border-radius:16px;background:#FFFFFF;border:1.5px solid #E3DFD4;display:flex;align-items:center;justify-content:center;color:#7B7FD4;font-size:15px;font-weight:700;cursor:pointer" style-active="transform:scale(0.97)">抽今日持股卡</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- TAB 抽卡 -->
+        <sc-if value="{{ tabDraw }}" hint-placeholder-val="{{ false }}">
+          <div style="height:100%;padding:96px 24px 0;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;background:linear-gradient(180deg,#F7F4EE 0%,#EFEAF6 100%);animation:fadeUp 0.35s ease-out">
+            <div style="font-family:'Noto Serif TC',serif;font-size:27px;font-weight:700;color:#3A3733">{{ drawTitle }}</div>
+            <div style="margin-top:8px;font-size:14px;color:#8A857C">每天一張,陪你冷靜看市場</div>
+            <div style="flex:1;display:flex;align-items:center">
+              <sc-if value="{{ notFlipped }}" hint-placeholder-val="{{ true }}">
+                <div onClick="{{ flip }}" style="width:236px;height:358px;border-radius:22px;background:linear-gradient(165deg,#787CD0 0%,#5B5FA8 100%);box-shadow:0 28px 60px rgba(91,95,168,0.4);padding:12px;box-sizing:border-box;animation:floaty 5s ease-in-out infinite;cursor:pointer" style-active="transform:scale(0.97)">
+                  <div style="height:100%;border-radius:14px;border:1.5px solid rgba(255,255,255,0.4);box-sizing:border-box;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px">
+                    <div style="position:absolute;inset:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.18)"></div>
+                    <svg width="64" height="64" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="rgba(255,255,255,0.9)"></path></svg>
+                    <div style="font-family:'Noto Serif TC',serif;font-size:15px;letter-spacing:6px;color:rgba(255,255,255,0.85)">股感安心卡</div>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ flipped }}" hint-placeholder-val="{{ false }}">
+                <div style="width:236px;height:358px;border-radius:22px;background:linear-gradient(165deg,#FDFBF7,#F6F1E6);border:1.5px solid #E9E2D2;box-shadow:0 28px 60px rgba(120,100,70,0.22);padding:12px;box-sizing:border-box;animation:flipIn 0.6s cubic-bezier(0.22,1,0.36,1)">
+                  <div style="height:100%;border-radius:14px;border:1px solid rgba(176,141,91,0.25);box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:0 16px;text-align:center">
+                    <svg width="40" height="40" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="#7B7FD4"></path></svg>
+                    <div style="font-family:'Noto Serif TC',serif;font-size:22px;font-weight:700;color:#3A3733;letter-spacing:3px">{{ cardName }}</div>
+                    <div style="font-size:13.5px;color:#5C5850;line-height:1.85">{{ cardBody }}</div>
+                    <div style="font-size:12px;color:#A9A49B">{{ cardReason }}</div>
+                    <div onClick="{{ toReason }}" style="margin-top:4px;font-size:13px;font-weight:700;color:#7B7FD4;cursor:pointer;padding:6px">查看詳細原因 →</div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+            <div style="margin-bottom:24px;display:flex;flex-direction:column;align-items:center;gap:8px">
+              <div style="font-size:15px;font-weight:600;color:#5C5850">{{ drawHint }}</div>
+              <sc-if value="{{ flipped }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ resetCard }}" style="font-size:12px;color:#A9A49B;cursor:pointer;padding:4px">(原型示範:再抽一次)</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- TAB 持股 -->
+        <sc-if value="{{ tabHoldings }}" hint-placeholder-val="{{ false }}">
+          <div style="height:100%;padding:88px 24px 0;box-sizing:border-box;display:flex;flex-direction:column;animation:fadeUp 0.35s ease-out">
+            <div style="font-size:30px;font-weight:900;color:#3A3733">我的持股</div>
+            <div style="margin-top:4px;font-size:14px;color:#8A857C">{{ holdingsCount }} · 每天收盤後更新</div>
+            <div style="margin-top:18px;display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ holdings }}" as="h" hint-placeholder-count="3">
+                <div onClick="{{ h.open }}" style="background:#FFFFFF;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 6px 18px rgba(120,100,70,0.06);cursor:pointer" style-active="transform:scale(0.98)">
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div style="width:44px;height:44px;border-radius:15px;background:{{ h.iconBg }};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:{{ h.iconColor }}">{{ h.short }}</div>
+                    <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+                      <div style="font-size:17px;font-weight:700;color:#3A3733">{{ h.name }}</div>
+                      <div style="font-size:12px;color:#A9A49B">{{ h.meta }}</div>
+                    </div>
+                    <div style="font-size:19px;font-weight:800;color:{{ h.changeColor }}">{{ h.change }}</div>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <div style="font-size:11px;font-weight:700;color:{{ h.impactColor }};background:{{ h.impactBg }};padding:4px 10px;border-radius:99px">{{ h.impact }}</div>
+                    <div style="font-size:11px;font-weight:600;color:#7B7FD4;background:#EEEEFA;padding:4px 10px;border-radius:99px">{{ h.cause }}</div>
+                    <div style="flex:1"></div>
+                    <div style="font-size:13px;font-weight:700;color:#7B7FD4">查看詳情</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="flex:1"></div>
+            <div style="margin-bottom:16px;height:52px;border-radius:17px;border:1.5px dashed #C9C3B6;display:flex;align-items:center;justify-content:center;gap:8px;color:#8A857C;font-size:15px;font-weight:700"><span style="font-size:18px;color:#7B7FD4">+</span> 新增股票</div>
+          </div>
+        </sc-if>
+
+        <!-- TAB 設定 -->
+        <sc-if value="{{ tabSettings }}" hint-placeholder-val="{{ false }}">
+          <div style="height:100%;padding:88px 24px 0;box-sizing:border-box;display:flex;flex-direction:column;animation:fadeUp 0.35s ease-out">
+            <div style="font-size:30px;font-weight:900;color:#3A3733">設定</div>
+            <div style="margin-top:22px;font-size:14px;font-weight:700;color:#8A857C;padding:0 4px">每天什麼時候提醒你?</div>
+            <div style="margin-top:10px;background:#FFFFFF;border-radius:20px;overflow:hidden;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+              <sc-for list="{{ times }}" as="t" hint-placeholder-count="4">
+                <div onClick="{{ t.pick }}" style="padding:15px 18px;display:flex;align-items:center;border-bottom:0.5px solid rgba(60,60,67,0.1);background:{{ t.bg }};cursor:pointer">
+                  <div style="flex:1;font-size:16px;font-weight:{{ t.weight }};color:#3A3733">{{ t.label }}</div>
+                  <div style="font-size:13px;color:{{ t.timeColor }};font-weight:{{ t.weight }};margin-right:10px">{{ t.time }}</div>
+                  <sc-if value="{{ t.selected }}" hint-placeholder-val="{{ false }}">
+                    <svg width="14" height="11" viewBox="0 0 12 10"><path d="M1.5 5 L4.5 8 L10.5 1.5" fill="none" stroke="#7B7FD4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:22px;font-size:14px;font-weight:700;color:#8A857C;padding:0 4px">想收到哪些內容?</div>
+            <div style="margin-top:10px;background:#FFFFFF;border-radius:20px;overflow:hidden;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+              <sc-for list="{{ toggles }}" as="g" hint-placeholder-count="3">
+                <div style="padding:14px 18px;display:flex;align-items:center;border-bottom:0.5px solid rgba(60,60,67,0.1)">
+                  <div style="flex:1;font-size:16px;color:#3A3733">{{ g.label }}</div>
+                  <div onClick="{{ g.toggle }}" style="width:51px;height:31px;border-radius:99px;background:{{ g.bg }};position:relative;cursor:pointer;transition:background 0.25s">
+                    <div style="position:absolute;top:2px;left:{{ g.knobLeft }}px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.15);transition:left 0.25s"></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="flex:1"></div>
+            <div style="margin-bottom:16px;height:52px;border-radius:17px;background:#7B7FD4;box-shadow:0 10px 24px rgba(123,127,212,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;cursor:pointer" style-active="transform:scale(0.97)">儲存提醒</div>
+          </div>
+        </sc-if>
+      </div>
+
+      <!-- TAB BAR -->
+      <div style="display:flex;justify-content:space-around;align-items:flex-start;padding:12px 20px 26px;background:rgba(255,255,255,0.94);border-top:1px solid rgba(120,100,70,0.08)">
+        <div onClick="{{ goTodayTab }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px;cursor:pointer;padding:2px 0">
+          <svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 11 L12 4 L20 11 V20 H14.5 V15 H9.5 V20 H4 Z" fill="none" stroke="{{ colToday }}" stroke-width="1.9" stroke-linejoin="round"></path></svg>
+          <span style="font-size:10px;font-weight:700;color:{{ colToday }}">今日</span>
+        </div>
+        <div onClick="{{ goDrawTab }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px;cursor:pointer;padding:2px 0">
+          <svg width="24" height="24" viewBox="0 0 24 24"><rect x="8.5" y="4.5" width="11" height="15" rx="2.5" fill="none" stroke="{{ colDraw }}" stroke-width="1.9" transform="rotate(7 14 12)"></rect><rect x="4.5" y="5" width="11" height="15" rx="2.5" fill="#F7F4EE" stroke="{{ colDraw }}" stroke-width="1.9"></rect></svg>
+          <span style="font-size:10px;font-weight:700;color:{{ colDraw }}">抽卡</span>
+        </div>
+        <div onClick="{{ goHoldingsTab }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px;cursor:pointer;padding:2px 0">
+          <svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14.5" rx="3.5" fill="none" stroke="{{ colHoldings }}" stroke-width="1.9"></rect><path d="M4 13 H8.5 C8.5 15 15.5 15 15.5 13 H20" fill="none" stroke="{{ colHoldings }}" stroke-width="1.9" stroke-linejoin="round"></path></svg>
+          <span style="font-size:10px;font-weight:700;color:{{ colHoldings }}">持股</span>
+        </div>
+        <div onClick="{{ goSettingsTab }}" style="display:flex;flex-direction:column;align-items:center;gap:3px;width:64px;cursor:pointer;padding:2px 0">
+          <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="none" stroke="{{ colSettings }}" stroke-width="1.9" stroke-dasharray="3.6 2.7"></circle><circle cx="12" cy="12" r="3" fill="none" stroke="{{ colSettings }}" stroke-width="1.9"></circle></svg>
+          <span style="font-size:10px;font-weight:700;color:{{ colSettings }}">設定</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- REASON -->
+  <sc-if value="{{ isReason }}" hint-placeholder-val="{{ false }}">
+    <div style="height:100%;overflow:auto;padding:76px 24px 36px;box-sizing:border-box;animation:fadeUp 0.35s ease-out">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div onClick="{{ backMain }}" style="width:36px;height:36px;border-radius:50%;background:#FFFFFF;box-shadow:0 4px 12px rgba(120,100,70,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer" style-active="transform:scale(0.92)">
+          <svg width="10" height="16" viewBox="0 0 12 20"><path d="M10 2 L2 10 L10 18" fill="none" stroke="#5C5850" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </div>
+        <div style="font-size:13px;color:#A9A49B">7 月 6 日 · 收盤後</div>
+      </div>
+      <div style="margin-top:14px;font-size:28px;font-weight:900;color:#3A3733">今天為什麼會這樣?</div>
+      <div style="margin-top:18px;background:linear-gradient(150deg,#787CD0,#5B5FA8);border-radius:22px;padding:22px;color:#fff;box-shadow:0 14px 32px rgba(91,95,168,0.3)">
+        <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.7);letter-spacing:1px">今日一句話</div>
+        <div style="margin-top:8px;font-size:18px;font-weight:700;line-height:1.65">今天你的持股下跌,主要是受到整體科技股拉回影響。</div>
+      </div>
+      <div style="margin-top:12px;background:#FFFFFF;border-radius:20px;padding:20px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+        <div style="font-size:13px;font-weight:700;color:#7B7FD4">白話解釋</div>
+        <div style="margin-top:8px;font-size:15px;color:#5C5850;line-height:1.8">這不一定代表你選錯股票,而是今天市場對科技股比較保守,相關股票一起受到影響。</div>
+      </div>
+      <div style="margin-top:12px;background:#FFFFFF;border-radius:20px;padding:20px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+        <div style="font-size:13px;font-weight:700;color:#7B7FD4">我的持股影響排行</div>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ impacts }}" as="im" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:52px;font-size:14px;font-weight:700;color:#3A3733">{{ im.name }}</div>
+              <div style="flex:1;height:10px;border-radius:99px;background:#F1EDE3;overflow:hidden"><div style="width:{{ im.pct }}%;height:100%;border-radius:99px;background:{{ im.color }}"></div></div>
+              <div style="font-size:12px;font-weight:700;color:{{ im.labelColor }};width:52px;text-align:right">{{ im.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="margin-top:12px;background:#FFFFFF;border-radius:20px;padding:20px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+        <div style="font-size:13px;font-weight:700;color:#7B7FD4">和大盤相比</div>
+        <div style="margin-top:12px;display:flex;gap:20px">
+          <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:12px;color:#A9A49B">我的持股</div><div style="font-size:21px;font-weight:800;color:#C97F7F">-1.8%</div></div>
+          <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:12px;color:#A9A49B">大盤</div><div style="font-size:21px;font-weight:800;color:#8A857C">-0.9%</div></div>
+        </div>
+        <div style="margin-top:10px;font-size:14px;color:#5C5850;line-height:1.7">今天你的持股比大盤弱一些,主要是科技股比重較高。</div>
+      </div>
+      <div style="margin-top:16px;text-align:center;font-size:12px;color:#B4AFA5">內容僅供資訊參考,不構成投資建議。</div>
+    </div>
+  </sc-if>
+
+  <!-- STOCK DETAIL -->
+  <sc-if value="{{ isStock }}" hint-placeholder-val="{{ false }}">
+    <div style="height:100%;overflow:auto;padding:76px 24px 36px;box-sizing:border-box;animation:fadeUp 0.35s ease-out">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div onClick="{{ backHoldings }}" style="width:36px;height:36px;border-radius:50%;background:#FFFFFF;box-shadow:0 4px 12px rgba(120,100,70,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer" style-active="transform:scale(0.92)">
+          <svg width="10" height="16" viewBox="0 0 12 20"><path d="M10 2 L2 10 L10 18" fill="none" stroke="#5C5850" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </div>
+        <div style="font-size:13px;color:#A9A49B">{{ detailMeta }}</div>
+      </div>
+      <div style="margin-top:14px;font-size:28px;font-weight:900;color:#3A3733">{{ detailTitle }}</div>
+      <div style="margin-top:18px;display:flex;gap:12px">
+        <div style="flex:1;background:#FFFFFF;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+          <div style="font-size:12px;color:#A9A49B">今日漲跌</div>
+          <div style="font-size:24px;font-weight:800;color:{{ detailChangeColor }}">{{ detailChange }}</div>
+        </div>
+        <div style="flex:1;background:#FFFFFF;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+          <div style="font-size:12px;color:#A9A49B">與大盤比較</div>
+          <div style="font-size:24px;font-weight:800;color:#8A857C">{{ detailVsMarket }}</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;background:#FFFFFF;border-radius:20px;padding:20px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+        <div style="font-size:13px;font-weight:700;color:#7B7FD4">可能原因</div>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ detailReasons }}" as="dr" hint-placeholder-count="2">
+            <div style="display:flex;gap:10px;align-items:flex-start"><div style="width:6px;height:6px;border-radius:50%;background:{{ dr.dot }};margin-top:8px;flex-shrink:0"></div><div style="font-size:15px;color:#5C5850;line-height:1.7">{{ dr.text }}</div></div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="margin-top:12px;background:#F1F1FB;border-radius:20px;padding:20px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="#7B7FD4"></path></svg>
+          <div style="font-size:13px;font-weight:700;color:#7B7FD4">新手翻譯</div>
+        </div>
+        <div style="margin-top:8px;font-size:15px;color:#4A4770;line-height:1.8">{{ detailTranslation }}</div>
+      </div>
+      <div style="margin-top:12px;background:#FFFFFF;border-radius:20px;padding:18px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+        <div style="font-size:13px;color:#8A857C;flex:1">對今日焦慮分數的影響</div>
+        <div style="font-size:12px;font-weight:700;color:{{ detailImpactColor }};background:{{ detailImpactBg }};padding:5px 12px;border-radius:99px">{{ detailImpact }}</div>
+      </div>
+      <div onClick="{{ backMainToday }}" style="margin-top:20px;height:52px;border-radius:17px;background:#FFFFFF;border:1.5px solid #E3DFD4;display:flex;align-items:center;justify-content:center;color:#7B7FD4;font-size:16px;font-weight:700;cursor:pointer" style-active="transform:scale(0.97)">回到今日總結</div>
+      <div style="margin-top:12px;text-align:center;font-size:12px;color:#B4AFA5">內容僅供資訊參考,不構成投資建議。</div>
+    </div>
+  </sc-if>
+
+</div>
+</x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:520,&quot;height&quot;:960},&quot;anxietyScore&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:72,&quot;min&quot;:0,&quot;max&quot;:100,&quot;step&quot;:1,&quot;unit&quot;:&quot;分&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;今日數據&quot;},&quot;drawCardType&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;大盤影響&quot;,&quot;options&quot;:[&quot;大盤影響&quot;,&quot;冷靜觀察&quot;,&quot;小心震盪&quot;,&quot;個股事件&quot;,&quot;信心恢復&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;抽卡&quot;},&quot;startAtHome&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;流程&quot;}}">
+class Component extends DCLogic {
+  state = {
+    screen: 'splash', onb: 0, scenario: 1, tab: 'today', flipped: false,
+    recAdded: { '2454': false, '2317': true },
+    time: '收盤後', stock: '2330',
+    notify: { score: true, card: true, alert: false }
+  };
+
+  componentDidMount() {
+    if (this.props.startAtHome) { this.setState({ screen: 'main' }); return; }
+    this._t = setTimeout(() => {
+      this.setState(s => s.screen === 'splash' ? { screen: 'onb' } : null);
+    }, 2200);
+  }
+  componentWillUnmount() { clearTimeout(this._t); }
+
+  go(screen) { this.setState({ screen }); }
+
+  renderVals() {
+    const S = this.state;
+    const score = Math.round(this.props.anxietyScore ?? 72);
+    const pct = Math.max(2, Math.min(100, score));
+
+    // emotion tiers
+    let emo;
+    if (score < 40) emo = { label: '安心', color: '#4E7A5F', bg: '#EAF2EC', ring: '#9DBFAA', desc: '今天你的持股波動不大,可以安心過日子。' };
+    else if (score <= 75) emo = { label: '有點緊張', color: '#B07A3E', bg: '#FBEFDF', ring: '#E4B384', desc: '今天你的持股波動偏大,主要受到科技股拉回影響。先看懂原因,不用急著做決定。' };
+    else emo = { label: '波動較大', color: '#A96363', bg: '#F7E7E7', ring: '#D98B8B', desc: '今天市場震盪明顯。深呼吸,先看懂發生什麼事,再想下一步。' };
+
+    // draw card content
+    const cards = {
+      '大盤影響': { body: '今天不是只有你的持股波動,整體市場也偏弱。先看懂原因,比急著做決定更重要。', reason: '原因:科技股整體拉回' },
+      '冷靜觀察': { body: '今天市場沒有太大的事,你的持股也很安靜。適合安靜觀察,什麼都不做也是一種選擇。', reason: '原因:市場波動低於平均' },
+      '小心震盪': { body: '市場今天比較敏感,波動可能會加大。看懂原因就好,不用急著反應。', reason: '原因:國際市場消息面偏多' },
+      '個股事件': { body: '你的持股今天有自己的新聞,波動主要來自個股本身,而不是整個市場。', reason: '原因:個股法說會 / 新聞事件' },
+      '信心恢復': { body: '市場情緒回穩,你的持股也跟著回升。昨天的焦慮,今天輕一點了。', reason: '原因:大盤反彈,買氣回流' }
+    };
+    const cardName = this.props.drawCardType ?? '大盤影響';
+    const card = cards[cardName] || cards['大盤影響'];
+
+    const scenarioData = [
+      { icon: '🤔', label: '我買了股票,但不知道該不該繼續放著' },
+      { icon: '📉', label: '股票一跌,我就開始焦慮' },
+      { icon: '📰', label: '我看不懂線圖和新聞' },
+      { icon: '☕️', label: '我只是想每天快速知道發生什麼事' }
+    ];
+
+    const stocksData = [
+      { code: '2330', name: '台積電', short: '台', meta: '2330 · 半導體', iconBg: '#EEEEFA', iconColor: '#7B7FD4', change: '-1.2%', changeColor: '#C97F7F', impact: '焦慮影響 高', impactColor: '#B07A3E', impactBg: '#FBEFDF', cause: '大盤影響' },
+      { code: '2317', name: '鴻海', short: '鴻', meta: '2317 · 電子代工', iconBg: '#EAF2EC', iconColor: '#6E9A7F', change: '-0.8%', changeColor: '#C97F7F', impact: '焦慮影響 中', impactColor: '#8A857C', impactBg: '#F1EDE3', cause: '大盤影響' },
+      { code: '2891', name: '中信金', short: '中', meta: '2891 · 金融', iconBg: '#EAF2EC', iconColor: '#6E9A7F', change: '+0.3%', changeColor: '#8FAE9B', impact: '焦慮影響 低', impactColor: '#6E9A7F', impactBg: '#EAF2EC', cause: '個股波動' }
+    ];
+
+    const details = {
+      '2330': { meta: '2330 · 半導體', title: '台積電今天怎麼了?', change: '-1.2%', changeColor: '#C97F7F', vs: '稍弱',
+        reasons: [{ dot: '#E4B384', text: '科技股整體拉回,半導體類股同步走弱' }, { dot: '#B8BBE8', text: '外資今天在科技類股偏保守' }],
+        trans: '台積電今天下跌 1.2%,比大盤稍弱。這比較像是科技股整體拉回,不一定是公司單獨出問題。',
+        impact: '高 · +18 分', impactColor: '#B07A3E', impactBg: '#FBEFDF' },
+      '2317': { meta: '2317 · 電子代工', title: '鴻海今天怎麼了?', change: '-0.8%', changeColor: '#C97F7F', vs: '接近',
+        reasons: [{ dot: '#E4B384', text: '電子類股跟隨大盤走弱' }, { dot: '#B8BBE8', text: '沒有明顯的個股新聞' }],
+        trans: '鴻海今天跌 0.8%,和大盤差不多。屬於正常的市場波動,不用特別擔心。',
+        impact: '中 · +8 分', impactColor: '#8A857C', impactBg: '#F1EDE3' },
+      '2891': { meta: '2891 · 金融', title: '中信金今天怎麼了?', change: '+0.3%', changeColor: '#8FAE9B', vs: '較強',
+        reasons: [{ dot: '#9DBFAA', text: '金融股今天相對抗跌' }, { dot: '#B8BBE8', text: '市場資金轉向防禦型類股' }],
+        trans: '中信金今天小漲 0.3%,比大盤強。金融股今天比較穩,幫你的組合擋了一些波動。',
+        impact: '低 · -4 分', impactColor: '#6E9A7F', impactBg: '#EAF2EC' }
+    };
+    const det = details[S.stock] || details['2330'];
+
+    const recsData = [
+      { code: '2454', name: '聯發科', short: '聯', sector: '半導體', iconBg: '#EEEEFA', iconColor: '#7B7FD4' },
+      { code: '2317', name: '鴻海', short: '鴻', sector: '電子代工', iconBg: '#EAF2EC', iconColor: '#6E9A7F' }
+    ];
+
+    const timesData = [['早上開盤前', '8:30'], ['中午休息', '12:30'], ['收盤後', '14:30'], ['晚上整理時間', '21:00']];
+    const notifyData = [['score', '今日焦慮分數'], ['card', '今日持股卡'], ['alert', '重大波動提醒']];
+    const onbData = [
+      { icon: '📉', iconBg: '#EEEEFA', title: '跌了,不一定是你選錯股票', body: '我們會幫你先看懂,是個股問題,還是整個市場都在波動。' },
+      { icon: '🔍', iconBg: '#EAF2EC', title: '不用懂線圖,也能看懂今天為什麼波動', body: '每個數字旁邊,都有一句你看得懂的白話翻譯。' },
+      { icon: '🃏', iconBg: '#FBEFDF', title: '每天收盤後,抽一張今日持股卡', body: '一張卡告訴你今天的市場心情,陪你冷靜收尾。' }
+    ];
+
+    const tabCol = t => (S.tab === t ? '#7B7FD4' : '#A9A49B');
+
+    return {
+      isSplash: S.screen === 'splash', isOnb: S.screen === 'onb', isScenario: S.screen === 'scenario',
+      isInput: S.screen === 'input', isRecommend: S.screen === 'recommend', isMain: S.screen === 'main',
+      isReason: S.screen === 'reason', isStock: S.screen === 'stockDetail',
+      tabToday: S.tab === 'today', tabDraw: S.tab === 'draw', tabHoldings: S.tab === 'holdings', tabSettings: S.tab === 'settings',
+
+      start: () => this.go('onb'),
+      onbShift: -(S.onb * 312),
+      onbCards: onbData.map((c, i) => ({ ...c, opacity: i === S.onb ? 1 : 0.55 })),
+      onbDots: onbData.map((c, i) => ({ w: i === S.onb ? 20 : 7, bg: i === S.onb ? '#7B7FD4' : '#D8D3C8' })),
+      onbBtnLabel: S.onb < 2 ? '下一張' : '開始了解我的持股',
+      onbNext: () => S.onb < 2 ? this.setState({ onb: S.onb + 1 }) : this.go('scenario'),
+      finishOnb: () => this.go('scenario'),
+
+      scenarios: scenarioData.map((sc, i) => {
+        const sel = i === S.scenario;
+        return { ...sc, selected: sel, pick: () => this.setState({ scenario: i }),
+          bg: sel ? '#F1F1FB' : '#FFFFFF',
+          border: sel ? '2px solid #7B7FD4' : '1.5px solid rgba(120,100,70,0.06)',
+          shadow: sel ? '0 8px 22px rgba(123,127,212,0.18)' : 'none',
+          iconBg: sel ? '#E3E4F7' : '#F4EFE4', weight: sel ? 700 : 500 };
+      }),
+      toInput: () => this.go('input'),
+
+      myStocks: stocksData.slice(0, 2), stockCount: 2,
+      toRecommend: () => this.go('recommend'),
+
+      recs: recsData.map(r => {
+        const added = S.recAdded[r.code];
+        return { ...r,
+          border: added ? '1.5px solid #9DBFAA' : '1.5px solid transparent',
+          btnBg: added ? '#EAF2EC' : '#7B7FD4', btnColor: added ? '#4E7A5F' : '#FFFFFF',
+          btnLabel: added ? '✓ 已加入' : '加入',
+          toggle: () => this.setState(s => ({ recAdded: { ...s.recAdded, [r.code]: !s.recAdded[r.code] } })) };
+      }),
+      toMain: () => this.setState({ screen: 'main', tab: 'today' }),
+
+      score, ringGradient: 'conic-gradient(' + emo.ring + ' 0 ' + pct + '%, #EFEAE0 ' + pct + '% 100%)',
+      emotionLabel: emo.label, emotionColor: emo.color, emotionBg: emo.bg, emotionDesc: emo.desc,
+      toReason: () => this.go('reason'),
+      backMain: () => this.setState({ screen: 'main' }),
+      backMainToday: () => this.setState({ screen: 'main', tab: 'today' }),
+
+      goTodayTab: () => this.setState({ tab: 'today' }),
+      goDrawTab: () => this.setState({ screen: 'main', tab: 'draw' }),
+      goHoldingsTab: () => this.setState({ tab: 'holdings' }),
+      goSettingsTab: () => this.setState({ tab: 'settings' }),
+      colToday: tabCol('today'), colDraw: tabCol('draw'), colHoldings: tabCol('holdings'), colSettings: tabCol('settings'),
+
+      flipped: S.flipped, notFlipped: !S.flipped,
+      flip: () => this.setState({ flipped: true }),
+      resetCard: () => this.setState({ flipped: false }),
+      drawTitle: S.flipped ? '今天的持股卡' : '抽一張今日持股卡',
+      drawHint: S.flipped ? '看懂原因,不用急著做決定' : '輕點卡片,翻開今天的市場心情',
+      cardName, cardBody: card.body, cardReason: card.reason,
+
+      holdings: stocksData.map(h => ({ ...h, open: () => this.setState({ screen: 'stockDetail', stock: h.code }) })),
+      holdingsCount: stocksData.length + ' 檔',
+
+      impacts: [
+        { name: '台積電', pct: 86, color: '#E4B384', label: '影響最大', labelColor: '#B07A3E' },
+        { name: '鴻海', pct: 52, color: '#B8BBE8', label: '中等', labelColor: '#8A857C' },
+        { name: '中信金', pct: 22, color: '#9DBFAA', label: '較低', labelColor: '#8A857C' }
+      ],
+
+      detailMeta: det.meta, detailTitle: det.title, detailChange: det.change, detailChangeColor: det.changeColor,
+      detailVsMarket: det.vs, detailReasons: det.reasons, detailTranslation: det.trans,
+      detailImpact: det.impact, detailImpactColor: det.impactColor, detailImpactBg: det.impactBg,
+      backHoldings: () => this.setState({ screen: 'main', tab: 'holdings' }),
+
+      times: timesData.map(([label, time]) => {
+        const sel = S.time === label;
+        return { label, time, selected: sel, pick: () => this.setState({ time: label }),
+          bg: sel ? '#F7F7FD' : '#FFFFFF', weight: sel ? 700 : 400, timeColor: sel ? '#7B7FD4' : '#A9A49B' };
+      }),
+      toggles: notifyData.map(([key, label]) => {
+        const on = S.notify[key];
+        return { label, bg: on ? '#9DBFAA' : '#E3DFD4', knobLeft: on ? 22 : 2,
+          toggle: () => this.setState(s => ({ notify: { ...s.notify, [key]: !s.notify[key] } })) };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>
