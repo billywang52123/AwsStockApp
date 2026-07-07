@@ -14,7 +14,7 @@ from app.models.achievement import AchievementModel
 
 # Routes
 from app.api.routes import (
-    portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan
+    portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis
 )
 
 Base.metadata.create_all(bind=engine)
@@ -46,6 +46,7 @@ app.include_router(reminders.router, prefix=settings.API_V1_STR)
 app.include_router(admin_import.router, prefix=settings.API_V1_STR)
 app.include_router(achievements.router, prefix=settings.API_V1_STR)
 app.include_router(scan.router, prefix=settings.API_V1_STR)
+app.include_router(analysis.router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["Health"])
 def health_check():

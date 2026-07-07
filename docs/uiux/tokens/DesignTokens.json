@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "app": "股感安心卡",
+    "direction": "A 暖陽米杏",
+    "baseDevice": "iPhone 16 Pro (402x874pt)",
+    "unit": "pt"
+  },
+  "color": {
+    "bg": {
+      "canvas": "#F7F4EE",
+      "card": "#FFFFFF",
+      "inset": "#FAF8F3",
+      "track": "#F1EDE3"
+    },
+    "ink": {
+      "primary": "#3A3733",
+      "secondary": "#5C5850",
+      "tertiary": "#8A857C",
+      "quaternary": "#A9A49B",
+      "faint": "#B4AFA5"
+    },
+    "accent": {
+      "primary": "#7B7FD4",
+      "primaryBgTint": "#EEEEFA",
+      "primaryBlock": "#F1F1FB",
+      "gradientCard": ["#787CD0", "#5B5FA8"]
+    },
+    "updown": {
+      "upText": "#C97F7F",
+      "upStrong": "#B0605C",
+      "upBgTint": "#F5E3E3",
+      "upOnGradient": "#FFCFC5",
+      "downText": "#6E9A7F",
+      "downStrong": "#5F8A70",
+      "downBgTint": "#E4EEE7",
+      "neutralText": "#8A857C",
+      "neutralBgTint": "#F1EDE3"
+    },
+    "warn": {
+      "roseBg": "#FAF0F0",
+      "roseBorder": "#E8CFCF",
+      "roseIconBg": "#F5E3E3",
+      "roseText": "#8A6A6A",
+      "roseBadge": "#C97F7F",
+      "amberBg": "#FDF6E9",
+      "amberBorder": "#ECD9B8",
+      "amberIconBg": "#FBEFDF",
+      "amberText": "#96794F",
+      "amberStrong": "#B0813F",
+      "amberBadge": "#E4B384",
+      "amberNumber": "#D9A264"
+    },
+    "sector": {
+      "semiconductor": "#7B7FD4",
+      "etf": "#6E9A7F",
+      "icDesign": "#A493D9",
+      "ems": "#E4B384",
+      "finance": "#C48181"
+    },
+    "sectorAvatarTint": {
+      "semiconductor": "#EEEEFA",
+      "etf": "#EAF2EC",
+      "icDesign": "#F0EBF8",
+      "finance": "#F5EAEA"
+    },
+    "sentimentMeter": {
+      "bearish": "#8FB49C",
+      "neutral": "#E3DFD4",
+      "bullish": "#D89B96"
+    }
+  },
+  "radius": {
+    "heroCard": 22,
+    "card": 20,
+    "row": 18,
+    "insetBox": 12,
+    "iconBlock": 11,
+    "pill": 999
+  },
+  "shadow": {
+    "card": { "y": 10, "blur": 26, "color": "rgba(120,100,70,0.08)" },
+    "gradientCard": { "y": 14, "blur": 32, "color": "rgba(91,95,168,0.30)" },
+    "row": { "y": 6, "blur": 18, "color": "rgba(120,100,70,0.06)" },
+    "primaryButton": { "y": 10, "blur": 26, "color": "rgba(123,127,212,0.35)" }
+  },
+  "typography": {
+    "pageTitle": { "size": 30, "weight": 900 },
+    "detailTitle": { "size": 20, "weight": 900 },
+    "heroNumber": { "size": 38, "weight": 800, "monospacedDigit": true },
+    "scoreNumber": { "size": 28, "weight": 800, "monospacedDigit": true },
+    "plNumber": { "size": 20, "weight": 800, "monospacedDigit": true },
+    "cardTitle": { "size": 15, "weight": 800 },
+    "rowTitle": { "size": 15, "weight": 700 },
+    "body": { "size": 13, "weight": 400, "lineHeight": 1.75 },
+    "caption": { "size": 12, "weight": 400 },
+    "footnote": { "size": 11, "weight": 400 },
+    "badge": { "size": 12, "weight": 700 },
+    "miniPill": { "size": 10, "weight": 700 }
+  },
+  "layout": {
+    "pageMarginH": 24,
+    "pageTop": 88,
+    "pageTopWithBackBar": 80,
+    "pageBottom": 40,
+    "cardGap": 12,
+    "rowGap": 11,
+    "minHitTarget": 44,
+    "ctaHeight": 54,
+    "exposureBarHeight": 14,
+    "weightBarHeight": 6,
+    "meterTrackHeight": 10,
+    "meterKnobSize": 18,
+    "avatarSize": 40
+  }
+}

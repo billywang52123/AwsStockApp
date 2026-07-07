@@ -19,6 +19,10 @@ def add_portfolio_item(item: PortfolioItemCreate, db: Session = Depends(get_db),
     service = PortfolioService(db)
     saved = service.add_item(item.symbol, item.cost_price, item.shares, user_id=user_id)
     db.commit()
+
+    from app.services.services import AchievementService
+    AchievementService(db).trigger_unlock("IMPORT_MANUAL", user_id)
+
     return ApiResponse(success=True, data=saved)
 
 @router.delete("/items/{item_id}", response_model=ApiResponse[bool])
