@@ -41,3 +41,38 @@ def get_stock_summary(symbol: str, db: Session = Depends(get_db)):
     else:
         msg = f"今天上漲 {change}%，走勢強勁，為持股情緒提供良好支撐。"
     return ApiResponse(success=True, data=msg)
+
+@router.get("/{symbol}/ai-analysis", response_model=ApiResponse[str])
+def get_stock_ai_analysis(symbol: str, db: Session = Depends(get_db)):
+    service = StockService(db)
+    stock = service.repo.get_stock(symbol)
+    price = service.get_daily_price(symbol)
+    
+    if not price:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Stock data not found for {symbol}"
+        )
+        
+    name = stock.name if stock else symbol
+    close = float(price.close_price)
+    change = float(price.change_percent)
+    
+    from app.services.openai_service import OpenAIService
+    from app.services.services import run_async
+    
+    analysis_text = run_async(
+        OpenAIService.fetch_stock_analysis(
+            symbol=symbol,
+            name=name,
+            close_price=close,
+            change_percent=change
+        )
+    )
+    
+    # Trigger first-time read achievement
+    from app.services.services import AchievementService
+    ach_service = AchievementService(db)
+    ach_service.trigger_unlock("CALM_BEGINNER")
+    
+    return ApiResponse(success=True, data=analysis_text)

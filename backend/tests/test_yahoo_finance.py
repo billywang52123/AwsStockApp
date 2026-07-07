@@ -20,3 +20,13 @@ def test_fetch_live_price_market_index():
     assert "change_percent" in data
     assert data["close_price"] > 0
     assert isinstance(data["change_percent"], (int, float))
+
+def test_fetch_live_price_us_stock():
+    # Apple (AAPL) is a US stock
+    data = YahooFinanceService.fetch_live_price("AAPL")
+    assert data is not None
+    assert "close_price" in data
+    assert "change_percent" in data
+    assert data["close_price"] > 0
+    assert isinstance(data["change_percent"], (int, float))
+

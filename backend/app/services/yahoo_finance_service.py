@@ -12,9 +12,12 @@ class YahooFinanceService:
         Fetches live/daily closing price and daily percentage change for a given symbol from Yahoo Finance.
         Handles both TWSE (.TW) and OTC (.TWO) tickers, as well as TAIEX (^TWII).
         """
-        ticker_symbol = f"{symbol}.TW"
-        if symbol == "TAIEX":
+        if symbol.isdigit():
+            ticker_symbol = f"{symbol}.TW"
+        elif symbol == "TAIEX":
             ticker_symbol = "^TWII"
+        else:
+            ticker_symbol = symbol
             
         try:
             logger.info(f"Querying Yahoo Finance for: {ticker_symbol}")
@@ -22,7 +25,7 @@ class YahooFinanceService:
             # Query history for 5 days to reliably handle weekends, holidays, and previous-close calculations
             hist = ticker.history(period="5d")
             
-            if hist.empty and symbol != "TAIEX":
+            if hist.empty and symbol.isdigit():
                 logger.info(f"Empty result for {ticker_symbol}, trying OTC suffix (.TWO)...")
                 ticker_symbol = f"{symbol}.TWO"
                 ticker = yf.Ticker(ticker_symbol)
