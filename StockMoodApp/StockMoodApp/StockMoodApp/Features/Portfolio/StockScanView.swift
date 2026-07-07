@@ -45,6 +45,8 @@ struct StockScanSimulatorView: View {
     @State private var scanProgress = 0.0
     @State private var scannedStocks: [ScanAPIStock] = []
     @State private var scannedBroker: String? = nil
+    /// true = 裝置端 Vision 辨識成功,圖片沒離開手機(spec 05)
+    @State private var recognizedOnDevice = false
     @State private var mergeViewModel: ImportMergeViewModel? = nil
     @State private var errorMessage: String? = nil
     @State private var recognizedCount = 0
@@ -173,11 +175,15 @@ struct StockScanSimulatorView: View {
                     Image(systemName: "sparkles")
                         .font(.caption)
                         .foregroundColor(AppColor.primary)
-                    Text("由 GPT-4o-mini Vision 驅動")
+                    Text("優先在你的手機上辨識,必要時才交給雲端 AI")
                         .font(.system(.caption2, design: .rounded))
                         .foregroundColor(AppColor.textSecondary)
                 }
                 .padding(.top, 4)
+
+                // 10d 就地說明:在按下匯入前講清楚,不藏在條款裡
+                TrustNote(text: "只辨識代號與股數,辨識完即刪除;不取得帳號或下單權限")
+                    .padding(.top, 2)
             }
             .padding(24)
             .background(AppColor.cardBackground)
@@ -246,6 +252,22 @@ struct StockScanSimulatorView: View {
                      : "成功識別 \(scannedStocks.count) 筆持股！")
                     .font(.system(.headline, design: .rounded))
                     .foregroundColor(AppColor.textPrimary)
+            }
+
+            // spec 05:裝置端辨識成功 → 圖片沒離開手機;結果不對可改走雲端
+            if recognizedOnDevice {
+                VStack(alignment: .leading, spacing: 8) {
+                    TrustNote(text: "在你的手機上辨識完成,圖片沒有上傳")
+
+                    Button {
+                        uploadAndScan(forceCloud: true)
+                    } label: {
+                        Text("結果不對?改用雲端 AI 重新辨識")
+                            .font(.system(.caption, design: .rounded))
+                            .fontWeight(.semibold)
+                            .foregroundColor(AppColor.primary)
+                    }
+                }
             }
             
             if !scannedStocks.isEmpty {
@@ -351,13 +373,34 @@ struct StockScanSimulatorView: View {
         .padding(.horizontal, 24)
     }
     
-    // MARK: - Upload & Scan via GPT-4o-mini
-    private func uploadAndScan() {
+    // MARK: - Scan(裝置端 Vision 優先,fallback 雲端 GPT · spec 05)
+    private func uploadAndScan(forceCloud: Bool = false) {
         guard let image = selectedImage else { return }
         HapticManager.shared.triggerImpact(style: .medium)
         scanStep = 1
-        
+
         Task {
+            // 1) 先在手機上辨識 —— 成功就不上傳圖片
+            if !forceCloud, let onDevice = await ReceiptTextScanner.scan(image),
+               !onDevice.holdings.isEmpty {
+                await MainActor.run {
+                    scannedStocks = onDevice.holdings.map {
+                        ScanAPIStock(symbol: $0.symbol, name: $0.name, shares: $0.shares, cost: $0.cost)
+                    }
+                    scannedBroker = onDevice.broker
+                    recognizedOnDevice = true
+                    HapticManager.shared.triggerNotification(type: .success)
+                    scanStep = 2
+                }
+                return
+            }
+
+            // 2) 裝置端辨識不到 → 上傳雲端(TLS,後端即用即刪、不落地 log)
+            await uploadToCloud(image)
+        }
+    }
+
+    private func uploadToCloud(_ image: UIImage) async {
             do {
                 // Compress image for faster upload (max 1024px, 85% quality)
                 let compressed = compressImage(image, maxDimension: 1024, quality: 0.85)
@@ -401,10 +444,11 @@ struct StockScanSimulatorView: View {
                 await MainActor.run {
                     scannedStocks = scanResponse.stocks
                     scannedBroker = scanResponse.broker
+                    recognizedOnDevice = false
                     HapticManager.shared.triggerNotification(type: .success)
                     scanStep = 2
                 }
-                
+
             } catch {
                 await MainActor.run {
                     errorMessage = error.localizedDescription
@@ -412,9 +456,8 @@ struct StockScanSimulatorView: View {
                     scanStep = 3
                 }
             }
-        }
     }
-    
+
     private func importResults() {
         Task {
             // 先比對現有持股:有紀錄就走 9d 合併決策(分帳加總/取代/略過),

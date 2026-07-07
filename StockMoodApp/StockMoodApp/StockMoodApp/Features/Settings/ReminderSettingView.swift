@@ -2,7 +2,8 @@ import SwiftUI
 
 struct ReminderSettingView: View {
     @StateObject private var viewModel = ReminderSettingViewModel()
-    
+    @ObservedObject private var privacy = PrivacyManager.shared
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -21,6 +22,53 @@ struct ReminderSettingView: View {
                         }
                     }
                     
+                    // 10a–10c 隱私與安心(spec 05)
+                    Section(
+                        header: Text("隱私與安心").font(.system(.footnote, design: .rounded)),
+                        footer: Text("我們有什麼、沒有什麼,3 秒看完。").font(.system(.caption2, design: .rounded))
+                    ) {
+                        NavigationLink(destination: PrivacyDashboardView()) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "lock.shield.fill")
+                                    .foregroundColor(AppColor.downText)
+                                Text("隱私儀表板")
+                                    .foregroundColor(AppColor.textPrimary)
+                            }
+                        }
+
+                        NavigationLink(destination: DataMapView()) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "map.fill")
+                                    .foregroundColor(AppColor.primary)
+                                Text("你的資料存在哪裡")
+                                    .foregroundColor(AppColor.textPrimary)
+                            }
+                        }
+
+                        Toggle("開啟 App 時金額預設模糊", isOn: Binding(
+                            get: { privacy.blurAmountsByDefault },
+                            set: { privacy.blurAmountsByDefault = $0 }
+                        ))
+                        .tint(AppColor.primary)
+
+                        if privacy.biometricsAvailable {
+                            Toggle("進入持股頁需要 Face ID", isOn: Binding(
+                                get: { privacy.faceIDLockEnabled },
+                                set: { privacy.faceIDLockEnabled = $0 }
+                            ))
+                            .tint(AppColor.primary)
+                        } else {
+                            HStack {
+                                Text("Face ID 鎖")
+                                    .foregroundColor(AppColor.textSecondary)
+                                Spacer()
+                                Text("此裝置未設定生物辨識")
+                                    .font(.system(.caption, design: .rounded))
+                                    .foregroundColor(AppColor.textSecondary.opacity(0.7))
+                            }
+                        }
+                    }
+
                     Section(header: Text("推播提醒設定").font(.system(.footnote, design: .rounded))) {
                         Toggle("啟用每日提醒", isOn: Binding(
                             get: { viewModel.enabled },

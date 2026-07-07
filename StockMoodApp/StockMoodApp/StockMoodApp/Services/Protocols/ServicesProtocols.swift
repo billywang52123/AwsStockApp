@@ -20,6 +20,12 @@ protocol HoldingServiceProtocol {
     func deleteLot(id: String) async throws
 }
 
+/// 隱私儀表板(spec 05 · 10a)
+protocol PrivacyServiceProtocol {
+    func getSummary() async throws -> PrivacySummary
+    func deleteAllData() async throws -> PrivacySummary
+}
+
 protocol StockServiceProtocol {
     func searchStocks(keyword: String) async throws -> [Stock]
     func getDailyPrice(symbol: String) async throws -> StockDailyPrice

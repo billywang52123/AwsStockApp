@@ -2,15 +2,19 @@ import SwiftUI
 
 struct PortfolioListView: View {
     @StateObject private var viewModel = PortfolioListViewModel()
+    @ObservedObject private var privacy = PrivacyManager.shared
     @State private var showInputSheet = false
-    
+
     var body: some View {
         NavigationView {
             ZStack {
                 AppColor.background
                     .edgesIgnoringSafeArea(.all)
-                
-                if viewModel.isLoading {
+
+                if privacy.faceIDLockEnabled && !privacy.holdingsUnlocked {
+                    // 10c Face ID 鎖:未解鎖前整頁遮罩
+                    HoldingsLockView()
+                } else if viewModel.isLoading {
                     ProgressView("正在取得持股資訊...")
                 } else if viewModel.holdings.isEmpty {
                     EmptyStateView(
@@ -45,10 +49,15 @@ struct PortfolioListView: View {
             .navigationTitle("持股管理")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showInputSheet = true }) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title3)
-                            .foregroundColor(AppColor.primary)
+                    HStack(spacing: 0) {
+                        // 10c 金額模糊眼睛鈕(全 App 同步)
+                        AmountBlurToggle()
+
+                        Button(action: { showInputSheet = true }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title3)
+                                .foregroundColor(AppColor.primary)
+                        }
                     }
                 }
             }
@@ -116,6 +125,7 @@ struct PortfolioListView: View {
                             Text(holdingPositionText(holding))
                                 .font(.system(.caption, design: .rounded).monospacedDigit())
                                 .foregroundColor(AppColor.textSecondary)
+                                .sensitiveAmount()
                         }
                     }
 
@@ -140,6 +150,7 @@ struct PortfolioListView: View {
                             Text(String(format: "損益: %@$%.0f (%@%.2f%%)", pnlSign, pnl, pnlSign, pnlPercent))
                                 .font(.system(size: 11, weight: .semibold, design: .rounded).monospacedDigit())
                                 .foregroundColor(isPnlUp ? AppColor.upText : AppColor.downText)
+                                .sensitiveAmount()
                         } else {
                             Text(String(format: "%@%.2f%%", isUp ? "+" : "", change))
                                 .font(.system(.caption, design: .rounded).monospacedDigit())

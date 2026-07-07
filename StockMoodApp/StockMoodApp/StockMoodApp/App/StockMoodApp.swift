@@ -3,20 +3,37 @@ import GoogleSignIn
 
 @main
 struct StockMoodApp: App {
-    
+
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some Scene {
         WindowGroup {
-            AppRouterView()
-                // Light Mode MVP：色票皆為固定淺色（見 docs/uiux/README.md），
-                // 系統深色模式會把原生元件轉黑底造成混色不可讀，故全域鎖定淺色。
-                // Dark Mode 需等設計稿的深色 tokens 出來後再開放。
-                .preferredColorScheme(.light)
-                .onOpenURL { url in
-                    // Handle Google Sign-In OAuth callback URL
-                    GIDSignIn.sharedInstance.handle(url)
+            ZStack {
+                AppRouterView()
+
+                // 10c 背景遮罩:進 App Switcher / 背景時蓋住內容,快照不外洩(永遠開啟)
+                if scenePhase != .active {
+                    SnapshotShield()
+                        .transition(.opacity)
+                        .zIndex(1)
                 }
+            }
+            .animation(.easeOut(duration: 0.2), value: scenePhase == .active)
+            // Light Mode MVP：色票皆為固定淺色（見 docs/uiux/README.md），
+            // 系統深色模式會把原生元件轉黑底造成混色不可讀，故全域鎖定淺色。
+            // Dark Mode 需等設計稿的深色 tokens 出來後再開放。
+            .preferredColorScheme(.light)
+            .onOpenURL { url in
+                // Handle Google Sign-In OAuth callback URL
+                GIDSignIn.sharedInstance.handle(url)
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background {
+                // 回背景重新上鎖持股頁(Face ID 鎖開啟時)
+                PrivacyManager.shared.handleEnterBackground()
+            }
         }
     }
 }

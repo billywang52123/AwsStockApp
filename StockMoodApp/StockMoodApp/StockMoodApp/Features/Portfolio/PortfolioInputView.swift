@@ -41,6 +41,11 @@ struct PortfolioInputView: View {
 
             // Pinned CTA
             if !viewModel.selectedStocks.isEmpty {
+                // 10d 就地說明:第一次交出持股資料的當下講清楚
+                TrustNote(text: "只需要代號和股數,均價可以之後再補;不會要你連券商帳號")
+                    .padding(.horizontal, 24)
+                    .padding(.top, 6)
+
                 AppButton(title: "確認持股", icon: "checkmark") {
                     focusedField = nil
                     Task {

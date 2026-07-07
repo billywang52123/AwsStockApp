@@ -15,7 +15,7 @@ from app.models.holding_activity import HoldingActivityModel
 
 # Routes
 from app.api.routes import (
-    auth, portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis, holdings
+    auth, portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis, holdings, privacy
 )
 from app.db.migrations import run_light_migrations
 
@@ -52,6 +52,7 @@ app.include_router(achievements.router, prefix=settings.API_V1_STR)
 app.include_router(scan.router, prefix=settings.API_V1_STR)
 app.include_router(analysis.router, prefix=settings.API_V1_STR)
 app.include_router(holdings.router, prefix=settings.API_V1_STR)
+app.include_router(privacy.router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["Health"])
 def health_check():

@@ -184,6 +184,7 @@ struct BrokerLotsView: View {
                     .font(.system(size: 22, weight: .heavy, design: .rounded).monospacedDigit())
                     .foregroundColor(.white)
             }
+            .sensitiveAmount()
 
             // 分帳占比 bar
             GeometryReader { geo in
@@ -250,6 +251,7 @@ struct BrokerLotsView: View {
                         .font(.system(size: 11, design: .rounded).monospacedDigit())
                         .foregroundColor(lot.avgPrice == nil ? AppColor.amberStrong : AppColor.inkQuaternary)
                 }
+                .sensitiveAmount()
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
