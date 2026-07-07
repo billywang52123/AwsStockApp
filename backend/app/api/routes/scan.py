@@ -1,8 +1,11 @@
 import base64
 import json
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from openai import AsyncOpenAI
+from sqlalchemy.orm import Session
+from app.core.auth import get_current_user_id
 from app.core.config import settings
+from app.db.database import get_db
 from pydantic import BaseModel
 from typing import Optional
 
@@ -49,7 +52,12 @@ SYSTEM_PROMPT = """你是一個專業的台灣股票對帳單 OCR 助理。
 """
 
 @router.post("/scan/receipt", response_model=ScanReceiptResponse)
-async def scan_stock_receipt(file: UploadFile = File(...)):
+async def scan_stock_receipt(
+    file: UploadFile = File(...),
+    source: Optional[str] = None,  # "camera"（拍攝對帳單）或 "photo"（相簿截圖）
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+):
     """
     Use GPT-4o-mini Vision to OCR a brokerage statement image and extract stock holdings.
     """
@@ -141,6 +149,20 @@ async def scan_stock_receipt(file: UploadFile = File(...)):
                 for s in stocks_data
                 if s.get("symbol")
             ]
+
+            # OCR import achievements
+            if stocks:
+                from app.services.services import AchievementService
+                ach = AchievementService(db)
+                ach.trigger_unlock("IMPORT_FIRST_OCR", user_id)
+                if source == "photo":
+                    ach.trigger_unlock("IMPORT_SCREENSHOT", user_id)
+                elif source == "camera":
+                    ach.trigger_unlock("IMPORT_RECEIPT", user_id)
+                if len(stocks) >= 10:
+                    ach.trigger_unlock("IMPORT_CLEAN_10", user_id)
+                if len(stocks) >= 30:
+                    ach.trigger_unlock("IMPORT_FAMILY_BUCKET", user_id)
 
             return ScanReceiptResponse(
                 success=True,

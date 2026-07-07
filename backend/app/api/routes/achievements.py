@@ -12,3 +12,11 @@ def get_achievements(db: Session = Depends(get_db), user_id: str = Depends(get_c
     service = AchievementService(db)
     data = service.get_achievements(user_id)
     return ApiResponse(success=True, data=data)
+
+@router.post("/evaluate", response_model=ApiResponse[list])
+def evaluate_achievements(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
+    """Re-evaluates all conditions against the current portfolio snapshot;
+    returns achievements that were newly unlocked so the app can pop them up."""
+    service = AchievementService(db)
+    newly = service.evaluate(user_id)
+    return ApiResponse(success=True, data=newly)

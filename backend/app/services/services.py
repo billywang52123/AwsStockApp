@@ -459,61 +459,94 @@ class ReminderService:
         }
 
 class AchievementService:
+    """Catalog-driven achievements: definitions live in achievements_catalog,
+    the DB only stores unlock records per user."""
+
     def __init__(self, db: Session):
         self.db = db
-        
+
     def get_achievements(self, user_id: str = "demo-user") -> List[dict]:
         from app.models.achievement import AchievementModel
+        from app.services.achievements_catalog import ACHIEVEMENTS, CATEGORY_NAMES
         from sqlalchemy import select
-        stmt = select(AchievementModel).where(AchievementModel.user_id == user_id)
-        results = self.db.scalars(stmt).all()
-        
-        if not results:
-            # Seed default achievements
-            defaults = [
-                ("CALM_BEGINNER", "冷靜初學者", "完成第一天的持股情緒白話分析閱讀", "leaf.fill"),
-                ("HABIT_BUILDER", "冷靜記錄者", "連續 3 天打開 App 閱讀持股分析與心法", "calendar.badge.clock"),
-                ("STORM_WITNESS", "風浪見證者", "在庫存個股大跌超過 3% 的日子，冷靜讀完分析不慌張", "wind"),
-                ("MARKET_RESISTER", "大盤對抗者", "在大盤指數大跌超過 1.5% 的日子，依然上線閱讀陪伴內容", "shield.fill")
-            ]
-            results = []
-            for key, title, desc, icon in defaults:
-                model = AchievementModel(
-                    user_id=user_id,
-                    achievement_key=key,
-                    title=title,
-                    description=desc,
-                    icon_name=icon,
-                    is_unlocked=False,
-                    unlocked_at=None
-                )
-                self.db.add(model)
-                results.append(model)
-            self.db.commit()
-            
+
+        stmt = select(AchievementModel).where(
+            AchievementModel.user_id == user_id,
+            AchievementModel.is_unlocked == True  # noqa: E712
+        )
+        unlocked = {r.achievement_key: r for r in self.db.scalars(stmt).all()}
+
+        result = []
+        for definition in ACHIEVEMENTS:
+            record = unlocked.get(definition["key"])
+            is_unlocked = record is not None
+            masked = definition["hidden"] and not is_unlocked
+            result.append({
+                "achievement_key": definition["key"],
+                "title": "？？？" if masked else definition["title"],
+                "description": "隱藏成就：達成後揭曉" if masked else definition["description"],
+                "icon_name": "questionmark" if masked else definition["icon"],
+                "category": definition["category"],
+                "category_name": CATEGORY_NAMES[definition["category"]],
+                "rarity": definition["rarity"],
+                "is_hidden": definition["hidden"],
+                "is_unlocked": is_unlocked,
+                "unlocked_at": record.unlocked_at.strftime("%Y-%m-%d") if record and record.unlocked_at else None
+            })
+        return result
+
+    def evaluate(self, user_id: str = "demo-user") -> List[dict]:
+        """Runs the evaluation engine and returns newly unlocked achievements."""
+        from app.services.achievement_evaluator import AchievementEvaluator
+        from app.services.achievements_catalog import CATEGORY_NAMES
+
+        newly = AchievementEvaluator(self.db, user_id).evaluate()
         return [
             {
-                "achievement_key": r.achievement_key,
-                "title": r.title,
-                "description": r.description,
-                "icon_name": r.icon_name,
-                "is_unlocked": r.is_unlocked,
-                "unlocked_at": r.unlocked_at.strftime("%Y-%m-%d") if r.unlocked_at else None
+                "achievement_key": d["key"],
+                "title": d["title"],
+                "description": d["description"],
+                "icon_name": d["icon"],
+                "category": d["category"],
+                "category_name": CATEGORY_NAMES[d["category"]],
+                "rarity": d["rarity"],
+                "is_hidden": d["hidden"],
+                "is_unlocked": True,
+                "unlocked_at": date.today().strftime("%Y-%m-%d")
             }
-            for r in results
+            for d in newly
         ]
-        
+
     def trigger_unlock(self, achievement_key: str, user_id: str = "demo-user") -> bool:
+        """Unlocks a single catalog achievement (used by event hooks like OCR import)."""
         from app.models.achievement import AchievementModel
+        from app.services.achievements_catalog import get_definition
         from sqlalchemy import select, and_
-        from datetime import date
+        from datetime import date as date_type
+
+        definition = get_definition(achievement_key)
+        if not definition:
+            return False
+
         stmt = select(AchievementModel).where(
             and_(AchievementModel.user_id == user_id, AchievementModel.achievement_key == achievement_key)
         )
         achievement = self.db.scalars(stmt).first()
-        if achievement and not achievement.is_unlocked:
+        if achievement is None:
+            self.db.add(AchievementModel(
+                user_id=user_id,
+                achievement_key=achievement_key,
+                title=definition["title"],
+                description=definition["description"],
+                icon_name=definition["icon"],
+                is_unlocked=True,
+                unlocked_at=date_type.today()
+            ))
+            self.db.commit()
+            return True
+        if not achievement.is_unlocked:
             achievement.is_unlocked = True
-            achievement.unlocked_at = date.today()
+            achievement.unlocked_at = date_type.today()
             self.db.commit()
             return True
         return False
