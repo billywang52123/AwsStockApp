@@ -35,7 +35,7 @@ def get_stock_summary(symbol: str, db: Session = Depends(get_db)):
         )
     change = float(price.change_percent)
     if change < -2.0:
-        msg = f"今天下跌 {abs(change)}%，主要受板塊震盪影響，非個股營運惡化。建議觀察，免焦慮。"
+        msg = f"今天下跌 {abs(change)}%，主要受板塊震盪影響，非個股營運惡化。先觀察就好，不用焦慮。"
     elif change < 0:
         msg = f"今天小幅調整 {abs(change)}%，屬於正常震盪，不用擔心。"
     else:

@@ -187,8 +187,8 @@ class PortfolioAnalysisService:
                 ),
                 "highlight": pct_text,
                 "plain_talk": (
-                    f"白話說:雞蛋大多放在同一個籃子裡。不代表要馬上賣出,"
-                    f"但之後加碼時,可以優先考慮 {top_holding.name} 以外的標的。"
+                    f"白話說:雞蛋大多放在同一個籃子裡。這不是要你馬上改變什麼,"
+                    f"只是先知道:整體資產會跟著 {top_holding.name} 一起呼吸。"
                 ),
             })
 
@@ -348,7 +348,7 @@ class StockInsightService:
         if h.change <= -0.5:
             return "今天走勢比大盤弱,短線可能還會震盪;先觀察產業消息,不用急著反應。"
         if h.change >= 0.5:
-            return "今天走勢穩健偏多,市場資金仍在流入;維持既有計畫,不需要追高。"
+            return "今天走勢穩健偏多,市場資金仍在流入;維持既有計畫,平常心看待就好。"
         return "今天波動不大,市場在等待新的方向;對長期持有者來說是平常的一天。"
 
     def _signals(self, h: _Holding, market_change: float) -> List[dict]:
@@ -401,7 +401,7 @@ class StockInsightService:
         elif long == "bearish":
             text = f"目前未實現損益約 {h.pnl_percent:+.1f}%,長線偏保守;先確認產業基本面再決定。"
         elif h.has_pnl:
-            text = f"未實現損益約 {h.pnl_percent:+.1f}%,接近成本區;不需要急著加減碼。"
+            text = f"未實現損益約 {h.pnl_percent:+.1f}%,接近成本區;不需要急著做任何動作。"
         else:
             text = "尚未填寫成本與股數,補上後可以看到專屬於你的長線視角。"
         long_label = "→ 長線偏多" if long == "bullish" else ("→ 長線保守" if long == "bearish" else "→ 中性觀望")
@@ -423,7 +423,7 @@ class StockInsightService:
         if outlook == "bullish":
             return (
                 f"{h.name} 目前狀態不錯,趨勢還在你這邊。"
-                "不需要因為漲了就急著加碼,照原本的計畫走就好。"
+                "不需要因為漲了就改變節奏,照原本的計畫走就好。"
             )
         return (
             f"{h.name} 今天沒什麼大事,多空都在觀望。"
