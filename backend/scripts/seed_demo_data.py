@@ -14,6 +14,10 @@ def seed():
     # Make sure tables are created
     Base.metadata.create_all(bind=engine)
     
+    # Run migrations to add any missing columns before seeding
+    from app.db.migrations import run_light_migrations
+    run_light_migrations(engine)
+    
     db = SessionLocal()
     try:
         print("Seeding stock metadata...")
