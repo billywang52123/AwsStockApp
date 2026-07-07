@@ -67,6 +67,29 @@ class AppPreferenceStore {
         }
     }
 
+    // MARK: - 隱私與安心偏好(spec 05 · 10c,per-user)
+
+    private let blurAmountsKey = "com.stockmoodapp.blurAmountsByDefault"
+    private let faceIDLockKey = "com.stockmoodapp.faceIDLockEnabled"
+
+    /// 開 App 時金額預設模糊(眼睛 toggle 的初始狀態)
+    var blurAmountsByDefault: Bool {
+        get { UserDefaults.standard.bool(forKey: userScopedKey(blurAmountsKey)) }
+        set { UserDefaults.standard.set(newValue, forKey: userScopedKey(blurAmountsKey)) }
+    }
+
+    /// 進入持股頁需要 Face ID
+    var faceIDLockEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: userScopedKey(faceIDLockKey)) }
+        set { UserDefaults.standard.set(newValue, forKey: userScopedKey(faceIDLockKey)) }
+    }
+
+    /// 一鍵全部刪除後,連本機顯示偏好一起清空(10a)
+    func resetPrivacyPreferences() {
+        UserDefaults.standard.removeObject(forKey: userScopedKey(blurAmountsKey))
+        UserDefaults.standard.removeObject(forKey: userScopedKey(faceIDLockKey))
+    }
+
     // Per-user: a different account signing in on this device goes through
     // onboarding (scenario + portfolio input) with its own data
     var isOnboardingCompleted: Bool {

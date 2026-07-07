@@ -104,7 +104,9 @@ async def scan_stock_receipt(
             detail="請上傳圖片檔案（JPG、PNG 等）"
         )
 
-    # Read and encode image
+    # Read and encode image.
+    # 隱私保證(spec 05):圖片只存在這個 request 的記憶體裡 —— 不寫入磁碟、
+    # 不寫入 log、不進資料庫;request 結束即釋放。錯誤時只記例外堆疊,不含圖片內容。
     image_data = await file.read()
     if len(image_data) > 10 * 1024 * 1024:  # 10MB limit
         raise HTTPException(status_code=400, detail="圖片大小不能超過 10MB")

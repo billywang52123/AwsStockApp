@@ -8,6 +8,7 @@ class DependencyContainer: ObservableObject {
     // reflects real data from the API
     let portfolioService: PortfolioServiceProtocol = RemotePortfolioService()
     let holdingService: HoldingServiceProtocol = RemoteHoldingService()
+    let privacyService: PrivacyServiceProtocol = RemotePrivacyService()
     let stockService: StockServiceProtocol = RemoteStockService()
     let anxietyService: AnxietyServiceProtocol = RemoteAnxietyService()
     let dailySummaryService: DailySummaryServiceProtocol = RemoteDailySummaryService()

@@ -34,6 +34,10 @@ struct PortfolioAnalysisView: View {
                 } else if let analysis = viewModel.analysis {
                     ScrollView(showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 0) {
+                            // 10d 就地說明:分析用到什麼資料,開頁就講
+                            TrustNote(text: "分析只用你的持股組合(代號+權重),不含任何身分資料")
+                                .padding(.bottom, 10)
+
                             modePicker
                                 .padding(.bottom, 16)
 

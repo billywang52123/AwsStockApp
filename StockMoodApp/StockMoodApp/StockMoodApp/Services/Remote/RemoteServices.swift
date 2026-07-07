@@ -106,6 +106,18 @@ class RemoteHoldingService: HoldingServiceProtocol {
     }
 }
 
+// MARK: - Remote Privacy Service(隱私儀表板 · spec 05)
+class RemotePrivacyService: PrivacyServiceProtocol {
+    func getSummary() async throws -> PrivacySummary {
+        return try await APIClient.shared.request("/privacy/summary", method: "GET")
+    }
+
+    func deleteAllData() async throws -> PrivacySummary {
+        let result: DeleteAllResult = try await APIClient.shared.request("/privacy/all", method: "DELETE")
+        return result.deleted
+    }
+}
+
 // MARK: - Remote Stock Service
 class RemoteStockService: StockServiceProtocol {
     func searchStocks(keyword: String) async throws -> [Stock] {

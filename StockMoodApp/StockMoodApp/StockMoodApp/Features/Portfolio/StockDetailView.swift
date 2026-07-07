@@ -251,6 +251,7 @@ struct StockDetailView: View {
                                     .foregroundColor(AppColor.textSecondary)
                             }
                         }
+                        .sensitiveAmount()
                     }
 
                     Spacer()

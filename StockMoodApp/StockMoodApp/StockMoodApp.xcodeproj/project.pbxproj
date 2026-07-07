@@ -426,6 +426,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = StockMoodApp/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "需要相機權限，以拍攝持股對帳單進行自動識別。";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "用 Face ID 解鎖你的持股頁，避免他人翻看。";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要相簿權限，以選取持股對帳單截圖進行自動識別。";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -474,6 +475,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = StockMoodApp/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "需要相機權限，以拍攝持股對帳單進行自動識別。";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "用 Face ID 解鎖你的持股頁，避免他人翻看。";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "需要相簿權限，以選取持股對帳單截圖進行自動識別。";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
