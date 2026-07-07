@@ -18,7 +18,417 @@ body{margin:0;background:#EBE9E3;}
 </style>
 </helmet>
 
-<section style="padding:60px 60px 20px;display:flex;flex-direction:column;gap:28px;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+<section style="padding:60px 60px 20px;display:flex;flex-direction:column;gap:24px;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="font-size:24px;font-weight:900;color:#3A3733">新功能畫面 · 第四輪</div>
+    <div style="font-size:14px;color:#8A857C"><a href="#6a" style="color:#7B7FD4">6a 登入</a> · <a href="#6b" style="color:#7B7FD4">6b 成就系統</a> · <a href="#6c" style="color:#7B7FD4">6c 持股 AI 分析(上彈)</a> · <a href="#6d" style="color:#7B7FD4">6d AI 抽卡結果</a> — 方向 A 風格</div>
+  </div>
+  <div style="display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start;width:1840px">
+
+    <!-- 6a 登入 -->
+    <div id="6a" data-screen-label="6a 登入" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px">6a</div><div style="font-size:14px;font-weight:600;color:#8A857C">登入 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">Sign in with Apple / Google</span></div></div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:linear-gradient(180deg,#FAF7F1 0%,#F3EDE1 100%);font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:120px 32px 48px">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <div style="width:76px;height:76px;border-radius:23px;background:linear-gradient(160deg,#8B8FDD,#6C70C4);box-shadow:0 14px 34px rgba(123,127,212,0.32);display:flex;align-items:center;justify-content:center">
+              <div style="width:36px;height:48px;border-radius:7px;background:#FEFCF8;transform:rotate(-6deg);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="#7B7FD4"></path></svg></div>
+            </div>
+            <div style="margin-top:24px;font-family:'Noto Serif TC',serif;font-size:30px;font-weight:700;color:#3A3733;letter-spacing:2px">股感安心卡</div>
+            <div style="margin-top:10px;font-size:15px;color:#8A857C;text-align:center;line-height:1.7">登入後,你的持股與抽卡紀錄<br>會在換手機時自動跟著你</div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="height:54px;border-radius:18px;background:#1D1D1F;display:flex;align-items:center;justify-content:center;gap:10px;color:#fff;font-size:16px;font-weight:600">
+              <svg width="18" height="21" viewBox="0 0 17 20"><path d="M14.1 10.6 C14.1 7.9 16.3 6.7 16.4 6.6 C15.2 4.8 13.3 4.6 12.6 4.5 C11 4.4 9.5 5.5 8.7 5.5 C7.9 5.5 6.6 4.6 5.3 4.6 C3.6 4.6 2 5.6 1.1 7.2 C-0.7 10.3 0.6 15 2.4 17.6 C3.2 18.9 4.2 20.3 5.5 20.2 C6.8 20.2 7.3 19.4 8.8 19.4 C10.3 19.4 10.7 20.2 12 20.2 C13.4 20.2 14.3 18.9 15.1 17.7 C16.1 16.2 16.5 14.8 16.5 14.7 C16.5 14.7 14.1 13.8 14.1 10.6 Z M11.5 2.9 C12.2 2 12.7 0.9 12.6 -0.2 C11.6 -0.1 10.4 0.5 9.7 1.3 C9 2.1 8.5 3.3 8.6 4.4 C9.7 4.4 10.8 3.8 11.5 2.9 Z" fill="#fff" transform="translate(0,0.5)"></path></svg>
+              使用 Apple 登入
+            </div>
+            <div style="height:54px;border-radius:18px;background:#FFFFFF;border:1.5px solid #E3DFD4;display:flex;align-items:center;justify-content:center;gap:10px;color:#3A3733;font-size:16px;font-weight:600">
+              <svg width="19" height="19" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.5 17.7 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.4-4.6 7.1l7.5 5.8c4.4-4.1 6.8-10.1 6.8-17.4z"></path><path fill="#FBBC05" d="M10.4 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.8-6.1z"></path><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.6l-7.5-5.8c-2.1 1.4-4.8 2.2-7.7 2.2-6.3 0-11.7-4-13.6-9.7l-7.8 6.1C6.5 42.6 14.6 48 24 48z"></path></svg>
+              使用 Google 登入
+            </div>
+            <div style="margin-top:6px;text-align:center;font-size:14px;color:#8A857C"><span style="padding:8px 4px">先逛逛,之後再說</span></div>
+          </div>
+          <div style="margin-top:18px;text-align:center;font-size:11px;color:#B4AFA5;line-height:1.7">繼續即代表同意<span style="color:#8A857C">服務條款</span>與<span style="color:#8A857C">隱私權政策</span><br>我們不會取得你的券商帳號或下單權限</div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 6b 成就系統 -->
+    <div id="6b" data-screen-label="6b 成就系統" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px">6b</div><div style="font-size:14px;font-weight:600;color:#8A857C">成就系統 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">獎勵「冷靜的習慣」而非報酬率</span></div></div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:88px 24px 40px">
+          <div style="font-size:30px;font-weight:900;color:#3A3733">我的安心成就</div>
+          <div style="margin-top:4px;font-size:14px;color:#8A857C">累積的不是報酬率,是穩定的心</div>
+          <div style="margin-top:18px;background:linear-gradient(150deg,#787CD0,#5B5FA8);border-radius:22px;padding:20px 22px;color:#fff;box-shadow:0 14px 32px rgba(91,95,168,0.3);display:flex;align-items:center;gap:16px">
+            <div style="width:62px;height:62px;border-radius:50%;background:conic-gradient(#E4B384 0 60%,rgba(255,255,255,0.2) 60% 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="width:48px;height:48px;border-radius:50%;background:#6266B4;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:17px;font-weight:900;line-height:1">12</div><div style="font-size:9px;opacity:0.75">連續天數</div></div></div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <div style="font-size:17px;font-weight:700">連續 12 天,先看懂再反應</div>
+              <div style="font-size:13px;opacity:0.8;line-height:1.6">再 3 天解鎖「沉著兩週」徽章</div>
+            </div>
+          </div>
+          <div style="margin-top:20px;display:flex;align-items:baseline;gap:8px"><div style="font-size:15px;font-weight:700;color:#5C5850">已解鎖 4</div><div style="font-size:12px;color:#A9A49B">/ 12</div></div>
+          <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div style="background:#FFFFFF;border-radius:18px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+              <div style="width:52px;height:52px;border-radius:50%;background:#EEEEFA;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="#7B7FD4"></path></svg></div>
+              <div style="font-size:12px;font-weight:700;color:#3A3733;text-align:center">第一張卡</div>
+              <div style="font-size:10px;color:#A9A49B;text-align:center">完成首次抽卡</div>
+            </div>
+            <div style="background:#FFFFFF;border-radius:18px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+              <div style="width:52px;height:52px;border-radius:50%;background:#EAF2EC;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M4 15 C7 15 7 9 12 9 C17 9 17 15 20 15" fill="none" stroke="#6E9A7F" stroke-width="2.2" stroke-linecap="round"></path><circle cx="12" cy="16.5" r="1.4" fill="#6E9A7F"></circle></svg></div>
+              <div style="font-size:12px;font-weight:700;color:#3A3733;text-align:center">深呼吸</div>
+              <div style="font-size:10px;color:#A9A49B;text-align:center">大跌日仍完成閱讀</div>
+            </div>
+            <div style="background:#FFFFFF;border-radius:18px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+              <div style="width:52px;height:52px;border-radius:50%;background:#FBEFDF;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="#D9A264" stroke-width="2.2"></circle><path d="M12 8 V12 L15 14" fill="none" stroke="#D9A264" stroke-width="2.2" stroke-linecap="round"></path></svg></div>
+              <div style="font-size:12px;font-weight:700;color:#3A3733;text-align:center">沉著一週</div>
+              <div style="font-size:10px;color:#A9A49B;text-align:center">連續 7 天看懂原因</div>
+            </div>
+            <div style="background:#FFFFFF;border-radius:18px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
+              <div style="width:52px;height:52px;border-radius:50%;background:#EEEEFA;display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M3 17 L9 10 L13 13 L21 5" fill="none" stroke="#7B7FD4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+              <div style="font-size:12px;font-weight:700;color:#3A3733;text-align:center">看懂大盤</div>
+              <div style="font-size:10px;color:#A9A49B;text-align:center">讀完 10 次原因解釋</div>
+            </div>
+            <div style="background:#F1EDE3;border-radius:18px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0.75">
+              <div style="width:52px;height:52px;border-radius:50%;background:#E7E2D6;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2.5" fill="none" stroke="#A9A49B" stroke-width="2"></rect><path d="M8 10 V7 A4 4 0 0 1 16 7 V10" fill="none" stroke="#A9A49B" stroke-width="2"></path></svg></div>
+              <div style="font-size:12px;font-weight:700;color:#8A857C;text-align:center">沉著兩週</div>
+              <div style="font-size:10px;color:#B4AFA5;text-align:center">12 / 14 天</div>
+            </div>
+            <div style="background:#F1EDE3;border-radius:18px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0.75">
+              <div style="width:52px;height:52px;border-radius:50%;background:#E7E2D6;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2.5" fill="none" stroke="#A9A49B" stroke-width="2"></rect><path d="M8 10 V7 A4 4 0 0 1 16 7 V10" fill="none" stroke="#A9A49B" stroke-width="2"></path></svg></div>
+              <div style="font-size:12px;font-weight:700;color:#8A857C;text-align:center">集滿 30 卡</div>
+              <div style="font-size:10px;color:#B4AFA5;text-align:center">8 / 30 張</div>
+            </div>
+          </div>
+          <div style="margin-top:16px;background:#F1F1FB;border-radius:16px;padding:14px 16px;font-size:12px;color:#4A4770;line-height:1.7">成就只跟「行為」有關(有沒有看懂、有沒有穩住),不跟賺賠掛鉤 — 避免變成績效壓力。</div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 6c 持股 AI 分析上彈 -->
+    <div id="6c" data-screen-label="6c 持股 AI 分析" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px">6c</div><div style="font-size:14px;font-weight:600;color:#8A857C">持股 AI 分析 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">點持股卡 → sheet 上彈 · GPT 生成</span></div></div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:#F7F4EE;font-family:'Noto Sans TC','PingFang TC',sans-serif;position:relative">
+          <div style="flex:1;padding:88px 24px 0;filter:brightness(0.88)">
+            <div style="font-size:30px;font-weight:900;color:#3A3733">我的持股</div>
+            <div style="margin-top:18px;background:#FFFFFF;border-radius:20px;padding:18px;display:flex;align-items:center;gap:12px">
+              <div style="width:44px;height:44px;border-radius:15px;background:#EEEEFA;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#7B7FD4">台</div>
+              <div style="flex:1"><div style="font-size:17px;font-weight:700;color:#3A3733">台積電</div><div style="font-size:12px;color:#A9A49B">2330 · 半導體</div></div>
+              <div style="font-size:19px;font-weight:800;color:#C97F7F">-1.2%</div>
+            </div>
+          </div>
+          <div style="position:absolute;left:0;right:0;bottom:0;top:172px;background:#FFFFFF;border-radius:28px 28px 0 0;box-shadow:0 -14px 44px rgba(60,50,30,0.18);padding:14px 24px 40px;display:flex;flex-direction:column;overflow:hidden">
+            <div style="width:40px;height:5px;border-radius:99px;background:#E3DFD4;margin:0 auto"></div>
+            <div style="margin-top:18px;display:flex;align-items:center;gap:12px">
+              <div style="width:44px;height:44px;border-radius:15px;background:#EEEEFA;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#7B7FD4">台</div>
+              <div style="flex:1"><div style="font-size:19px;font-weight:800;color:#3A3733">台積電 AI 解讀</div><div style="font-size:12px;color:#A9A49B">2330 · 7 月 6 日收盤資料</div></div>
+              <div style="display:flex;align-items:center;gap:5px;background:#F1F1FB;padding:6px 11px;border-radius:99px"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="#7B7FD4"></path></svg><span style="font-size:11px;font-weight:700;color:#7B7FD4">AI 生成</span></div>
+            </div>
+            <div style="margin-top:16px;background:#F1F1FB;border-radius:18px;padding:18px">
+              <div style="font-size:12px;font-weight:700;color:#7B7FD4">一句話總結</div>
+              <div style="margin-top:6px;font-size:16px;font-weight:700;color:#3A3733;line-height:1.65">今天的下跌是「大家一起跌」,不是台積電自己出事。</div>
+            </div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+              <div style="background:#FAF8F3;border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start">
+                <div style="width:26px;height:26px;border-radius:9px;background:#EEEEFA;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:800;color:#7B7FD4">1</div>
+                <div style="font-size:14px;color:#5C5850;line-height:1.7"><span style="font-weight:700;color:#3A3733">發生什麼:</span>費半指數昨夜下跌,今天台股半導體同步走弱,台積電 -1.2%。</div>
+              </div>
+              <div style="background:#FAF8F3;border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start">
+                <div style="width:26px;height:26px;border-radius:9px;background:#EEEEFA;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:800;color:#7B7FD4">2</div>
+                <div style="font-size:14px;color:#5C5850;line-height:1.7"><span style="font-weight:700;color:#3A3733">跟你有關的部分:</span>你的持股裡它佔比最高,所以今天焦慮分數 +18 主要來自它。</div>
+              </div>
+              <div style="background:#FAF8F3;border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start">
+                <div style="width:26px;height:26px;border-radius:9px;background:#EEEEFA;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:800;color:#7B7FD4">3</div>
+                <div style="font-size:14px;color:#5C5850;line-height:1.7"><span style="font-weight:700;color:#3A3733">可以留意:</span>本週四法說會,波動可能變大 — 到時我們會再幫你翻譯。</div>
+              </div>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:10px">
+              <div style="flex:1;height:48px;border-radius:15px;background:#7B7FD4;display:flex;align-items:center;justify-content:center;gap:7px;color:#fff;font-size:14px;font-weight:700;box-shadow:0 8px 20px rgba(123,127,212,0.28)"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 5 V19 M5 12 L12 5 L19 12" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" transform="rotate(45 12 12)"></path></svg>繼續追問 AI</div>
+              <div style="flex:1;height:48px;border-radius:15px;background:#FFFFFF;border:1.5px solid #E3DFD4;display:flex;align-items:center;justify-content:center;color:#5C5850;font-size:14px;font-weight:700">收合</div>
+            </div>
+            <div style="margin-top:12px;text-align:center;font-size:11px;color:#B4AFA5">AI 內容由 GPT 生成,僅供資訊參考,不構成投資建議。</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 6d AI 抽卡結果 -->
+    <div id="6d" data-screen-label="6d AI 抽卡結果" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px">6d</div><div style="font-size:14px;font-weight:600;color:#8A857C">AI 抽卡結果 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">翻牌後 · 持股丟 GPT → 生成今日卡</span></div></div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;background:linear-gradient(180deg,#F7F4EE 0%,#EFEAF6 100%);font-family:'Noto Sans TC','PingFang TC',sans-serif;padding:88px 24px 40px;align-items:center">
+          <div style="font-size:13px;font-weight:600;color:#A9A49B">7 月 6 日 · 今日持股卡</div>
+          <div style="margin-top:16px;width:264px;border-radius:24px;background:linear-gradient(172deg,#FEFCF8,#F4EEE2);box-shadow:0 24px 56px rgba(91,95,168,0.28);padding:12px;box-sizing:border-box">
+            <div style="border-radius:17px;border:1.5px solid rgba(123,127,212,0.4);padding:22px 18px;display:flex;flex-direction:column;align-items:center;gap:12px;position:relative">
+              <div style="position:absolute;top:10px;left:10px;width:5px;height:5px;border-radius:50%;background:#C9CBEE"></div>
+              <div style="position:absolute;top:10px;right:10px;width:5px;height:5px;border-radius:50%;background:#C9CBEE"></div>
+              <div style="width:56px;height:56px;border-radius:50%;background:#EEEEFA;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M4 15 C7 15 7 9 12 9 C17 9 17 15 20 15" fill="none" stroke="#7B7FD4" stroke-width="2.2" stroke-linecap="round"></path><circle cx="12" cy="16.5" r="1.4" fill="#7B7FD4"></circle></svg></div>
+              <div style="font-family:'Noto Serif TC',serif;font-size:24px;font-weight:700;color:#3A3733;letter-spacing:3px">大盤影響卡</div>
+              <div style="display:flex;align-items:center;gap:5px;background:#F1F1FB;padding:5px 11px;border-radius:99px"><svg width="11" height="11" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="#7B7FD4"></path></svg><span style="font-size:11px;font-weight:700;color:#7B7FD4">依你的持股生成</span></div>
+              <div style="font-size:14px;color:#5C5850;line-height:1.9;text-align:center">今天你的三檔持股一起下跌,<br>但跌幅都跟著大盤走 —<br>這是「市場的天氣」,<br>不是你的選股出了問題。</div>
+              <div style="width:44px;height:1.5px;background:#E4B384"></div>
+              <div style="font-size:12px;color:#8A857C;line-height:1.8;text-align:center">今日心法:天氣不好時,<br>先收傘觀察,不急著換路線。</div>
+            </div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:10px;width:100%">
+            <div style="flex:1;height:50px;border-radius:16px;background:#7B7FD4;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;box-shadow:0 8px 20px rgba(123,127,212,0.28)">看完整原因</div>
+            <div style="width:50px;height:50px;border-radius:16px;background:#FFFFFF;border:1.5px solid #E3DFD4;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 15 V4 M8 8 L12 4 L16 8" fill="none" stroke="#5C5850" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 14 V19 H19 V14" fill="none" stroke="#5C5850" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+          </div>
+          <div style="margin-top:12px;text-align:center;font-size:11px;color:#B4AFA5">卡面文字由 GPT 依你的持股當日表現生成 · 僅供參考</div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+  <div style="height:1px;background:#DBD7CD"></div>
+
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="font-size:24px;font-weight:900;color:#3A3733">App Icon · 第三輪 <a href="#4a" style="color:#7B7FD4;font-size:15px;font-weight:700">4a</a> 精修比對</div>
+    <div style="font-size:14px;color:#8A857C"><a href="#5a" style="color:#7B7FD4">5a 儀式牌面</a> vs <a href="#5b" style="color:#7B7FD4">5b 極簡單卡</a></div>
+  </div>
+  <div style="display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start;width:1840px">
+
+    <!-- 5a 儀式牌面 -->
+    <div id="5a" style="width:480px;background:#FFFFFF;border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px">5a</div>
+        <div style="font-size:17px;font-weight:800;color:#3A3733">儀式牌面</div>
+        <div style="font-size:12px;color:#A9A49B">塔羅框 + 星角 · 更有「抽卡」故事</div>
+      </div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:28px">
+        <div style="width:220px;height:220px;border-radius:49px;background:linear-gradient(150deg,#9094E2 0%,#6C70C4 48%,#54589E 100%);position:relative;overflow:hidden;box-shadow:0 18px 44px rgba(91,95,168,0.35)">
+          <div style="position:absolute;top:-50px;left:-30px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.20),rgba(255,255,255,0) 68%)"></div>
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(8deg) translateX(30px);width:112px;height:152px;border-radius:19px;background:rgba(255,255,255,0.13);border:1.5px solid rgba(255,255,255,0.3)"></div>
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);width:112px;height:152px;border-radius:19px;background:linear-gradient(172deg,#FEFCF8 0%,#F4EEE2 100%);box-shadow:0 12px 30px rgba(38,40,88,0.4)">
+            <div style="position:absolute;inset:7px;border-radius:13px;border:1.5px solid rgba(123,127,212,0.45)"></div>
+            <div style="position:absolute;top:11px;left:11px;width:5px;height:5px;border-radius:50%;background:#C9CBEE"></div>
+            <div style="position:absolute;top:11px;right:11px;width:5px;height:5px;border-radius:50%;background:#C9CBEE"></div>
+            <div style="position:absolute;bottom:11px;left:11px;width:5px;height:5px;border-radius:50%;background:#C9CBEE"></div>
+            <div style="position:absolute;bottom:11px;right:11px;width:5px;height:5px;border-radius:50%;background:#C9CBEE"></div>
+            <svg width="112" height="152" viewBox="0 0 112 152" style="position:absolute;inset:0">
+              <path d="M34 52 V104 M34 64 H27.5 V93 H40.5 V64 Z" fill="#D08C8C" stroke="#D08C8C" stroke-width="2.8" stroke-linejoin="round"></path>
+              <path d="M56 42 V96 M56 53 H49.5 V84 H62.5 V53 Z" fill="#FEFCF8" stroke="#7B7FD4" stroke-width="2.8" stroke-linejoin="round"></path>
+              <path d="M78 60 V112 M78 72 H71.5 V100 H84.5 V72 Z" fill="#9DBFAA" stroke="#9DBFAA" stroke-width="2.8" stroke-linejoin="round"></path>
+              <path d="M56 118 L57.6 122.4 L62 124 L57.6 125.6 L56 130 L54.4 125.6 L50 124 L54.4 122.4 Z" fill="#E4B384"></path>
+              <path d="M56 22 L57.6 26.4 L62 28 L57.6 29.6 L56 34 L54.4 29.6 L50 28 L54.4 26.4 Z" fill="#E4B384"></path>
+            </svg>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+          <div style="width:64px;height:64px;border-radius:15px;background:linear-gradient(150deg,#9094E2,#54589E);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);width:36px;height:49px;border-radius:6px;background:#FEFCF8"><svg width="36" height="49" viewBox="0 0 112 152"><path d="M34 52 V104 M34 64 H27.5 V93 H40.5 V64 Z" fill="#D08C8C" stroke="#D08C8C" stroke-width="8" stroke-linejoin="round"></path><path d="M56 42 V96 M56 53 H49.5 V84 H62.5 V53 Z" fill="#FEFCF8" stroke="#7B7FD4" stroke-width="8" stroke-linejoin="round"></path><path d="M78 60 V112 M78 72 H71.5 V100 H84.5 V72 Z" fill="#9DBFAA" stroke="#9DBFAA" stroke-width="8" stroke-linejoin="round"></path></svg></div></div>
+          <div style="width:40px;height:40px;border-radius:9px;background:linear-gradient(150deg,#9094E2,#54589E);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);width:23px;height:31px;border-radius:4px;background:#FEFCF8"><svg width="23" height="31" viewBox="0 0 112 152"><path d="M34 52 V104 M34 64 H27 V93 H41 V64 Z" fill="#D08C8C" stroke="#D08C8C" stroke-width="11" stroke-linejoin="round"></path><path d="M56 42 V96 M56 53 H49 V84 H63 V53 Z" fill="#FEFCF8" stroke="#7B7FD4" stroke-width="11" stroke-linejoin="round"></path><path d="M78 60 V112 M78 72 H71 V100 H85 V72 Z" fill="#9DBFAA" stroke="#9DBFAA" stroke-width="11" stroke-linejoin="round"></path></svg></div></div>
+          <div style="width:29px;height:29px;border-radius:7px;background:linear-gradient(150deg,#9094E2,#54589E);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);width:16px;height:22px;border-radius:3px;background:#FEFCF8"><svg width="16" height="22" viewBox="0 0 112 152"><path d="M56 38 V100 M56 50 H47 V88 H65 V50 Z" fill="#FEFCF8" stroke="#7B7FD4" stroke-width="15" stroke-linejoin="round"></path></svg></div></div>
+          <div style="font-size:10px;color:#A9A49B;font-family:monospace">60/40/29</div>
+        </div>
+      </div>
+      <div style="font-size:12.5px;color:#8A857C;line-height:1.8">相對 <a href="#4a" style="color:#7B7FD4">4a</a> 的修整:卡片放大 8%、K 線位置置中收緊;加回塔羅四角圓點與上下星角,儀式感更完整;紅燭降飽和(#D08C8C),背後光暈移到左上讓卡面更亮。</div>
+    </div>
+
+    <!-- 5b 極簡單卡 -->
+    <div id="5b" style="width:480px;background:#FFFFFF;border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px">5b</div>
+        <div style="font-size:17px;font-weight:800;color:#3A3733">極簡單卡</div>
+        <div style="font-size:12px;color:#A9A49B">正立單卡 + 金線框 · 更沉穩高級</div>
+      </div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:28px">
+        <div style="width:220px;height:220px;border-radius:49px;background:linear-gradient(165deg,#565A9E 0%,#42467E 60%,#383C6C 100%);position:relative;overflow:hidden;box-shadow:0 18px 44px rgba(56,60,108,0.4)">
+          <div style="position:absolute;bottom:-60px;left:50%;transform:translateX(-50%);width:240px;height:140px;border-radius:50%;background:radial-gradient(ellipse,rgba(228,179,132,0.18),rgba(228,179,132,0) 70%)"></div>
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:118px;height:158px;border-radius:20px;background:linear-gradient(172deg,#FEFCF8,#F4EEE2);box-shadow:0 14px 34px rgba(20,22,60,0.5)">
+            <div style="position:absolute;inset:7px;border-radius:14px;border:1.5px solid #E4B384"></div>
+            <svg width="118" height="158" viewBox="0 0 118 158" style="position:absolute;inset:0">
+              <path d="M36 58 V106 M36 69 H29.5 V96 H42.5 V69 Z" fill="#FEFCF8" stroke="#B9BCEA" stroke-width="2.8" stroke-linejoin="round"></path>
+              <path d="M59 44 V102 M59 55 H52.5 V88 H65.5 V55 Z" fill="#7B7FD4" stroke="#7B7FD4" stroke-width="2.8" stroke-linejoin="round"></path>
+              <path d="M82 62 V114 M82 74 H75.5 V102 H88.5 V74 Z" fill="#FEFCF8" stroke="#B9BCEA" stroke-width="2.8" stroke-linejoin="round"></path>
+              <path d="M42 132 H76" stroke="#E4B384" stroke-width="3" stroke-linecap="round"></path>
+            </svg>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+          <div style="width:64px;height:64px;border-radius:15px;background:linear-gradient(165deg,#565A9E,#383C6C);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:38px;height:51px;border-radius:7px;background:#FEFCF8;box-sizing:border-box;border:1px solid #E4B384"><svg width="36" height="49" viewBox="0 0 118 158"><path d="M36 58 V106 M36 69 H29 V96 H43 V69 Z" fill="#FEFCF8" stroke="#B9BCEA" stroke-width="8" stroke-linejoin="round"></path><path d="M59 44 V102 M59 55 H52 V88 H66 V55 Z" fill="#7B7FD4" stroke="#7B7FD4" stroke-width="8" stroke-linejoin="round"></path><path d="M82 62 V114 M82 74 H75 V102 H89 V74 Z" fill="#FEFCF8" stroke="#B9BCEA" stroke-width="8" stroke-linejoin="round"></path></svg></div></div>
+          <div style="width:40px;height:40px;border-radius:9px;background:linear-gradient(165deg,#565A9E,#383C6C);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:24px;height:32px;border-radius:5px;background:#FEFCF8"><svg width="24" height="32" viewBox="0 0 118 158"><path d="M36 58 V106 M36 69 H28 V96 H44 V69 Z" fill="#FEFCF8" stroke="#B9BCEA" stroke-width="11" stroke-linejoin="round"></path><path d="M59 44 V102 M59 55 H51 V88 H67 V55 Z" fill="#7B7FD4" stroke="#7B7FD4" stroke-width="11" stroke-linejoin="round"></path><path d="M82 62 V114 M82 74 H74 V102 H90 V74 Z" fill="#FEFCF8" stroke="#B9BCEA" stroke-width="11" stroke-linejoin="round"></path></svg></div></div>
+          <div style="width:29px;height:29px;border-radius:7px;background:linear-gradient(165deg,#565A9E,#383C6C);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:17px;height:23px;border-radius:3px;background:#FEFCF8"><svg width="17" height="23" viewBox="0 0 118 158"><path d="M59 40 V106 M59 52 H49 V92 H69 V52 Z" fill="#7B7FD4" stroke="#7B7FD4" stroke-width="15" stroke-linejoin="round"></path></svg></div></div>
+          <div style="font-size:10px;color:#A9A49B;font-family:monospace">60/40/29</div>
+        </div>
+      </div>
+      <div style="font-size:12.5px;color:#8A857C;line-height:1.8">另一個收斂方向:去掉背後幽靈卡與傾斜,單卡正立居中;K 線改「中央實心藍紫 + 兩側淡紫」單色系,底色加深、內框改金線(#E4B384)+ 底部金短線 — 沉穩、精品感,小尺寸最乾淨。</div>
+    </div>
+
+  </div>
+  <div style="height:1px;background:#DBD7CD"></div>
+
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="font-size:24px;font-weight:900;color:#3A3733">App Icon 提案 · 第二輪(股市元素)</div>
+    <div style="font-size:14px;color:#8A857C">K 線 / 走勢圖直接入畫 · <a href="#4a" style="color:#7B7FD4">4a</a> <a href="#4b" style="color:#7B7FD4">4b</a> <a href="#4c" style="color:#7B7FD4">4c</a></div>
+  </div>
+  <div style="display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start;width:1840px">
+
+    <!-- 4a 持股卡K線 -->
+    <div id="4a" style="width:400px;background:#FFFFFF;border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px">4a</div>
+        <div style="font-size:17px;font-weight:800;color:#3A3733">持股卡 × K 線</div>
+        <div style="font-size:12px;color:#A9A49B">抽卡 + 股市 · 主打</div>
+      </div>
+      <div style="display:flex;justify-content:center">
+        <div style="width:200px;height:200px;border-radius:45px;background:linear-gradient(155deg,#8B8FDD 0%,#6C70C4 55%,#585CA8 100%);position:relative;overflow:hidden;box-shadow:0 18px 44px rgba(91,95,168,0.35)">
+          <div style="position:absolute;top:-40px;right:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.22),rgba(255,255,255,0) 70%)"></div>
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);width:104px;height:140px;border-radius:18px;background:linear-gradient(170deg,#FDFBF7,#F3EDE1);box-shadow:0 10px 26px rgba(40,42,90,0.35)">
+            <div style="position:absolute;inset:8px;border-radius:12px;border:1.5px solid rgba(123,127,212,0.35)"></div>
+            <svg width="104" height="140" viewBox="0 0 104 140" style="position:absolute;inset:0">
+              <path d="M30 44 V96 M30 56 H24 V84 H36 V56 Z" fill="#C97F7F" stroke="#C97F7F" stroke-width="2.5" stroke-linejoin="round"></path>
+              <path d="M52 36 V88 M52 46 H46 V76 H58 V46 Z" fill="#FDFBF7" stroke="#7B7FD4" stroke-width="2.5" stroke-linejoin="round"></path>
+              <path d="M74 52 V104 M74 64 H68 V92 H80 V64 Z" fill="#9DBFAA" stroke="#9DBFAA" stroke-width="2.5" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(10deg) translateX(34px);width:104px;height:140px;border-radius:18px;background:rgba(255,255,255,0.14);border:1.5px solid rgba(255,255,255,0.32)"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:16px;justify-content:center">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:64px;height:64px;border-radius:15px;background:linear-gradient(155deg,#8B8FDD,#585CA8);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);width:34px;height:46px;border-radius:6px;background:#FDFBF7"><svg width="34" height="46" viewBox="0 0 104 140"><path d="M30 44 V96 M30 56 H24 V84 H36 V56 Z" fill="#C97F7F" stroke="#C97F7F" stroke-width="7" stroke-linejoin="round"></path><path d="M52 36 V88 M52 46 H46 V76 H58 V46 Z" fill="#FDFBF7" stroke="#7B7FD4" stroke-width="7" stroke-linejoin="round"></path><path d="M74 52 V104 M74 64 H68 V92 H80 V64 Z" fill="#9DBFAA" stroke="#9DBFAA" stroke-width="7" stroke-linejoin="round"></path></svg></div></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">60pt</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:40px;height:40px;border-radius:9px;background:linear-gradient(155deg,#8B8FDD,#585CA8);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);width:21px;height:29px;border-radius:4px;background:#FDFBF7"><svg width="21" height="29" viewBox="0 0 104 140"><path d="M30 44 V96 M30 56 H24 V84 H36 V56 Z" fill="#C97F7F" stroke="#C97F7F" stroke-width="10" stroke-linejoin="round"></path><path d="M52 36 V88 M52 46 H46 V76 H58 V46 Z" fill="#FDFBF7" stroke="#7B7FD4" stroke-width="10" stroke-linejoin="round"></path><path d="M74 52 V104 M74 64 H68 V92 H80 V64 Z" fill="#9DBFAA" stroke="#9DBFAA" stroke-width="10" stroke-linejoin="round"></path></svg></div></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">40pt</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:29px;height:29px;border-radius:7px;background:linear-gradient(155deg,#8B8FDD,#585CA8);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-6deg);width:15px;height:21px;border-radius:3px;background:#FDFBF7"><svg width="15" height="21" viewBox="0 0 104 140"><path d="M52 36 V88 M52 46 H46 V76 H58 V46 Z" fill="#FDFBF7" stroke="#7B7FD4" stroke-width="14" stroke-linejoin="round"></path></svg></div></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">29pt</div></div>
+      </div>
+      <div style="font-size:12.5px;color:#8A857C;line-height:1.8">白卡上畫三根柔和 K 線(紅漲/空心/綠跌,配色降飽和不刺激),保留「每日抽一張持股卡」的儀式感。29pt 只留一根空心 K 線。</div>
+    </div>
+
+    <!-- 4b 盤面情緒儀表 -->
+    <div id="4b" style="width:400px;background:#FFFFFF;border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px">4b</div>
+        <div style="font-size:17px;font-weight:800;color:#3A3733">盤面情緒儀表</div>
+        <div style="font-size:12px;color:#A9A49B">焦慮環 + 走勢圖</div>
+      </div>
+      <div style="display:flex;justify-content:center">
+        <div style="width:200px;height:200px;border-radius:45px;background:linear-gradient(180deg,#FAF7F1,#F0EADC);position:relative;overflow:hidden;box-shadow:0 18px 44px rgba(120,100,70,0.18)">
+          <svg width="200" height="200" viewBox="0 0 200 200" style="position:absolute;inset:0">
+            <path d="M100 34 A66 66 0 1 1 42 66" fill="none" stroke="#7B7FD4" stroke-width="15" stroke-linecap="round"></path>
+            <path d="M42 66 A66 66 0 0 1 100 34" fill="none" stroke="#EAE4D6" stroke-width="15" stroke-linecap="round"></path>
+            <path d="M56 122 L80 96 L98 110 L128 74" fill="none" stroke="#3A3733" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M128 74 H106 M128 74 V96" fill="none" stroke="#3A3733" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></path>
+            <circle cx="128" cy="74" r="7" fill="#E4B384"></circle>
+          </svg>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:16px;justify-content:center">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:64px;height:64px;border-radius:15px;background:linear-gradient(180deg,#FAF7F1,#F0EADC);overflow:hidden"><svg width="64" height="64" viewBox="0 0 200 200"><path d="M100 34 A66 66 0 1 1 42 66" fill="none" stroke="#7B7FD4" stroke-width="17" stroke-linecap="round"></path><path d="M56 122 L80 96 L98 110 L128 74" fill="none" stroke="#3A3733" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="128" cy="74" r="10" fill="#E4B384"></circle></svg></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">60pt</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:40px;height:40px;border-radius:9px;background:linear-gradient(180deg,#FAF7F1,#F0EADC);overflow:hidden;border:0.5px solid #EDE7DA"><svg width="40" height="40" viewBox="0 0 200 200"><path d="M100 34 A66 66 0 1 1 42 66" fill="none" stroke="#7B7FD4" stroke-width="20" stroke-linecap="round"></path><path d="M56 122 L80 96 L98 110 L128 74" fill="none" stroke="#3A3733" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="128" cy="74" r="12" fill="#E4B384"></circle></svg></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">40pt</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:29px;height:29px;border-radius:7px;background:linear-gradient(180deg,#FAF7F1,#F0EADC);overflow:hidden;border:0.5px solid #EDE7DA"><svg width="29" height="29" viewBox="0 0 200 200"><path d="M56 122 L80 96 L98 110 L128 74" fill="none" stroke="#3A3733" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="128" cy="74" r="15" fill="#E4B384"></circle></svg></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">29pt</div></div>
+      </div>
+      <div style="font-size:12.5px;color:#8A857C;line-height:1.8">焦慮分數環包住一條上揚走勢箭頭 — 「幫你把盤面讀成情緒溫度」。米白底 + 深灰走勢線,金融感明確又不冰冷。</div>
+    </div>
+
+    <!-- 4c 燭台呼吸 -->
+    <div id="4c" style="width:400px;background:#FFFFFF;border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px">4c</div>
+        <div style="font-size:17px;font-weight:800;color:#3A3733">K 線呼吸</div>
+        <div style="font-size:12px;color:#A9A49B">純燭台 · 最直白</div>
+      </div>
+      <div style="display:flex;justify-content:center">
+        <div style="width:200px;height:200px;border-radius:45px;background:linear-gradient(160deg,#6C70C4,#4E5290);position:relative;overflow:hidden;box-shadow:0 18px 44px rgba(78,82,144,0.35)">
+          <div style="position:absolute;bottom:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(228,179,132,0.22),rgba(228,179,132,0) 70%)"></div>
+          <svg width="200" height="200" viewBox="0 0 200 200" style="position:absolute;inset:0">
+            <path d="M60 52 V148" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round"></path>
+            <rect x="46" y="76" width="28" height="52" rx="9" fill="rgba(255,255,255,0.55)"></rect>
+            <path d="M100 40 V160" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"></path>
+            <rect x="86" y="64" width="28" height="64" rx="9" fill="#FFFFFF"></rect>
+            <path d="M140 66 V138" stroke="#E4B384" stroke-width="7" stroke-linecap="round"></path>
+            <rect x="126" y="86" width="28" height="34" rx="9" fill="#E4B384"></rect>
+          </svg>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:16px;justify-content:center">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:64px;height:64px;border-radius:15px;background:linear-gradient(160deg,#6C70C4,#4E5290);overflow:hidden"><svg width="64" height="64" viewBox="0 0 200 200"><path d="M60 52 V148" stroke="rgba(255,255,255,0.55)" stroke-width="9" stroke-linecap="round"></path><rect x="44" y="76" width="32" height="52" rx="10" fill="rgba(255,255,255,0.55)"></rect><path d="M100 40 V160" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round"></path><rect x="84" y="64" width="32" height="64" rx="10" fill="#FFFFFF"></rect><path d="M140 66 V138" stroke="#E4B384" stroke-width="9" stroke-linecap="round"></path><rect x="124" y="86" width="32" height="34" rx="10" fill="#E4B384"></rect></svg></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">60pt</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:40px;height:40px;border-radius:9px;background:linear-gradient(160deg,#6C70C4,#4E5290);overflow:hidden"><svg width="40" height="40" viewBox="0 0 200 200"><path d="M60 52 V148" stroke="rgba(255,255,255,0.55)" stroke-width="11" stroke-linecap="round"></path><rect x="42" y="76" width="36" height="52" rx="12" fill="rgba(255,255,255,0.55)"></rect><path d="M100 40 V160" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round"></path><rect x="82" y="64" width="36" height="64" rx="12" fill="#FFFFFF"></rect><path d="M140 66 V138" stroke="#E4B384" stroke-width="11" stroke-linecap="round"></path><rect x="122" y="86" width="36" height="34" rx="12" fill="#E4B384"></rect></svg></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">40pt</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:29px;height:29px;border-radius:7px;background:linear-gradient(160deg,#6C70C4,#4E5290);overflow:hidden"><svg width="29" height="29" viewBox="0 0 200 200"><path d="M100 36 V164" stroke="#FFFFFF" stroke-width="13" stroke-linecap="round"></path><rect x="78" y="62" width="44" height="70" rx="14" fill="#FFFFFF"></rect><path d="M148 66 V138" stroke="#E4B384" stroke-width="13" stroke-linecap="round"></path><rect x="128" y="86" width="40" height="36" rx="13" fill="#E4B384"></rect></svg></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">29pt</div></div>
+      </div>
+      <div style="font-size:12.5px;color:#8A857C;line-height:1.8">三根圓角燭台像呼吸般高低起伏,最右橘燭=今天。單色系 + 圓角讓 K 線變柔和,一眼是股市 App 卻不焦慮。</div>
+    </div>
+
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+    <div style="font-size:18px;font-weight:800;color:#8A857C">第一輪(抽象方向,保留參考)</div>
+  </div>
+  <div style="display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start;width:1840px">
+
+    <!-- 3a 今日一卡 -->
+    <div id="3a" style="width:400px;background:#FFFFFF;border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px">3a</div>
+        <div style="font-size:17px;font-weight:800;color:#3A3733">今日一卡</div>
+        <div style="font-size:12px;color:#A9A49B">抽卡儀式感 · 主打</div>
+      </div>
+      <div style="display:flex;justify-content:center">
+        <div style="width:200px;height:200px;border-radius:45px;background:linear-gradient(155deg,#8B8FDD 0%,#6C70C4 55%,#585CA8 100%);position:relative;overflow:hidden;box-shadow:0 18px 44px rgba(91,95,168,0.35)">
+          <div style="position:absolute;top:-40px;right:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.22),rgba(255,255,255,0) 70%)"></div>
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-7deg);width:96px;height:136px;border-radius:18px;background:linear-gradient(170deg,#FDFBF7,#F3EDE1);box-shadow:0 10px 26px rgba(40,42,90,0.35)">
+            <div style="position:absolute;inset:8px;border-radius:12px;border:1.5px solid rgba(123,127,212,0.4)"></div>
+            <svg width="44" height="44" viewBox="0 0 24 24" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="#7B7FD4"></path></svg>
+          </div>
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(9deg) translateX(30px);width:96px;height:136px;border-radius:18px;background:rgba(255,255,255,0.16);border:1.5px solid rgba(255,255,255,0.35)"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:16px;justify-content:center">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:64px;height:64px;border-radius:15px;background:linear-gradient(155deg,#8B8FDD,#585CA8);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-7deg);width:31px;height:44px;border-radius:6px;background:#FDFBF7;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="#7B7FD4"></path></svg></div></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">60pt</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:40px;height:40px;border-radius:9px;background:linear-gradient(155deg,#8B8FDD,#585CA8);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-7deg);width:19px;height:27px;border-radius:4px;background:#FDFBF7;display:flex;align-items:center;justify-content:center"><svg width="10" height="10" viewBox="0 0 24 24"><path d="M12 2 L14.4 9.6 L22 12 L14.4 14.4 L12 22 L9.6 14.4 L2 12 L9.6 9.6 Z" fill="#7B7FD4"></path></svg></div></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">40pt</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:29px;height:29px;border-radius:7px;background:linear-gradient(155deg,#8B8FDD,#585CA8);position:relative;overflow:hidden"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-7deg);width:14px;height:20px;border-radius:3px;background:#FDFBF7"></div></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">29pt</div></div>
+      </div>
+      <div style="font-size:12.5px;color:#8A857C;line-height:1.8">白色卡片在藍紫漸層上翻起,右側半透明卡影暗示「每日更新」。星形 = 今日訊息。小尺寸僅保留單卡 + 星,辨識度最高。</div>
+    </div>
+
+    <!-- 3b 安心環 -->
+    <div id="3b" style="width:400px;background:#FFFFFF;border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px">3b</div>
+        <div style="font-size:17px;font-weight:800;color:#3A3733">安心環</div>
+        <div style="font-size:12px;color:#A9A49B">焦慮分數環 · 產品核心</div>
+      </div>
+      <div style="display:flex;justify-content:center">
+        <div style="width:200px;height:200px;border-radius:45px;background:linear-gradient(180deg,#FAF7F1,#F0EADC);position:relative;box-shadow:0 18px 44px rgba(120,100,70,0.18)">
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:124px;height:124px;border-radius:50%;background:conic-gradient(#7B7FD4 0 68%,#E4B384 68% 82%,#E9E3D5 82% 100%)"></div>
+          <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:88px;height:88px;border-radius:50%;background:#FAF7F1;display:flex;align-items:center;justify-content:center">
+            <div style="width:36px;height:36px;border-radius:50%;background:#7B7FD4;box-shadow:0 4px 14px rgba(123,127,212,0.4)"></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:16px;justify-content:center">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:64px;height:64px;border-radius:15px;background:#FAF7F1;position:relative"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:conic-gradient(#7B7FD4 0 68%,#E4B384 68% 82%,#E9E3D5 82% 100%)"></div><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:50%;background:#FAF7F1;display:flex;align-items:center;justify-content:center"><div style="width:12px;height:12px;border-radius:50%;background:#7B7FD4"></div></div></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">60pt</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:40px;height:40px;border-radius:9px;background:#FAF7F1;position:relative;border:0.5px solid #EDE7DA"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;background:conic-gradient(#7B7FD4 0 68%,#E4B384 68% 82%,#E9E3D5 82% 100%)"></div><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#FAF7F1;display:flex;align-items:center;justify-content:center"><div style="width:8px;height:8px;border-radius:50%;background:#7B7FD4"></div></div></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">40pt</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:29px;height:29px;border-radius:7px;background:#FAF7F1;position:relative;border:0.5px solid #EDE7DA"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:19px;height:19px;border-radius:50%;background:conic-gradient(#7B7FD4 0 68%,#E4B384 68% 82%,#E9E3D5 82% 100%)"></div><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:13px;height:13px;border-radius:50%;background:#FAF7F1"></div></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">29pt</div></div>
+      </div>
+      <div style="font-size:12.5px;color:#8A857C;line-height:1.8">米白底 + 雙色進度環(藍紫=已看懂、淡橘=波動),中心圓點=安定的自己。淺底在深色桌布上很突出,也最貼近首頁畫面。</div>
+    </div>
+
+    <!-- 3c 心跳卡 -->
+    <div id="3c" style="width:400px;background:#FFFFFF;border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:5px 12px;border-radius:999px">3c</div>
+        <div style="font-size:17px;font-weight:800;color:#3A3733">心跳緩下來</div>
+        <div style="font-size:12px;color:#A9A49B">波動→平穩的線 · 敘事型</div>
+      </div>
+      <div style="display:flex;justify-content:center">
+        <div style="width:200px;height:200px;border-radius:45px;background:linear-gradient(160deg,#6C70C4,#4E5290);position:relative;overflow:hidden;box-shadow:0 18px 44px rgba(78,82,144,0.35)">
+          <div style="position:absolute;bottom:-30px;left:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(228,179,132,0.25),rgba(228,179,132,0) 70%)"></div>
+          <svg width="200" height="200" viewBox="0 0 200 200" style="position:absolute;inset:0">
+            <path d="M28 108 L58 108 L72 74 L88 138 L102 96 L116 112 L134 104 C150 98 164 102 176 102" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
+            <circle cx="176" cy="102" r="9" fill="#E4B384"></circle>
+          </svg>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:16px;justify-content:center">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:64px;height:64px;border-radius:15px;background:linear-gradient(160deg,#6C70C4,#4E5290);position:relative;overflow:hidden"><svg width="64" height="64" viewBox="0 0 200 200"><path d="M28 108 L58 108 L72 74 L88 138 L102 96 L116 112 L134 104 C150 98 164 102 176 102" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="176" cy="102" r="14" fill="#E4B384"></circle></svg></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">60pt</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:40px;height:40px;border-radius:9px;background:linear-gradient(160deg,#6C70C4,#4E5290);position:relative;overflow:hidden"><svg width="40" height="40" viewBox="0 0 200 200"><path d="M28 108 L58 108 L72 74 L88 138 L102 96 L116 112 L134 104 C150 98 164 102 176 102" fill="none" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="176" cy="102" r="16" fill="#E4B384"></circle></svg></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">40pt</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:29px;height:29px;border-radius:7px;background:linear-gradient(160deg,#6C70C4,#4E5290);position:relative;overflow:hidden"><svg width="29" height="29" viewBox="0 0 200 200"><path d="M28 108 L58 108 L72 74 L88 138 L102 96 L116 112 L134 104 C150 98 164 102 176 102" fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="176" cy="102" r="18" fill="#E4B384"></circle></svg></div><div style="font-size:10px;color:#A9A49B;font-family:monospace">29pt</div></div>
+      </div>
+      <div style="font-size:12.5px;color:#8A857C;line-height:1.8">一條線從劇烈心跳/K 線波動,漸漸走平 — 「焦慮被安撫」的故事。終點橘點=今天的落點。線條粗,小尺寸依然清楚。</div>
+    </div>
+
+  </div>
+  <div style="height:1px;background:#DBD7CD"></div>
+
   <div id="2a" style="display:flex;flex-direction:column;gap:24px">
     <div style="display:flex;align-items:center;gap:14px">
       <div style="background:#3A3733;color:#fff;font-weight:700;font-size:14px;padding:6px 14px;border-radius:999px">2a</div>
@@ -26,7 +436,7 @@ body{margin:0;background:#EBE9E3;}
       <div style="font-size:14px;color:#8A857C">單位:pt · 基準機型 iPhone 16 Pro(402 × 874 pt)· @3x 輸出</div>
     </div>
 
-    <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap">
+    <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;width:1840px">
 
       <!-- 卡1 佈局網格 -->
       <div style="width:340px;background:#FFFFFF;border-radius:20px;padding:26px;box-shadow:0 10px 30px rgba(120,100,70,0.08);display:flex;flex-direction:column;gap:16px">

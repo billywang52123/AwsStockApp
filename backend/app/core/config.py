@@ -8,5 +8,6 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./stock_mood.db"
     ADMIN_API_KEY: str = "stockmood-admin-secret-key"
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8080"
+    OPENAI_API_KEY: str = ""
 
 settings = Settings()

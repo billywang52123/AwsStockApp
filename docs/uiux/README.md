@@ -8,8 +8,19 @@
 | 檔案 | 內容 |
 |---|---|
 | `股感安心卡 設計畫布.dc.html` | 主設計畫布(可平移縮放),含以下全部內容 |
+| `股感安心卡 原型A.dc.html` | 方向 A 可互動原型(完整流程 + Tab 切換 + 抽卡翻牌) |
+| `AppIcon.appiconset/` | 定案 App Icon(5a 儀式牌面)全套切版,可直接拖入 Xcode |
 | `ios-frame.jsx` | iPhone 16 Pro 機殼元件(狀態列 + Home Indicator) |
 | `uploads/claude_design_ios_prompt_v2.md` | 原始需求文件 |
+
+## App Icon(定案:5a 儀式牌面)
+
+塔羅式白卡置中微傾(-6°),卡面三根柔和 K 線(紅 `#D08C8C` / 空心藍紫 `#7B7FD4` / 綠 `#9DBFAA`),上下金色星角 `#E4B384`,四角圓點;背後半透明幽靈卡(+8°)暗示「每日更新」;底為藍紫漸層 `#9094E2 → #6C70C4 → #54589E`。
+
+`AppIcon.appiconset/` 內含(直接拖進 Xcode Assets 即可):
+- `AppIcon-1024.png` — App Store 母版(方形無圓角,iOS 自動套 squircle 遮罩)
+- 20 / 29 / 40 / 60 pt 各 @2x @3x(40–180 px 共 8 檔)
+- `Contents.json` — Xcode asset catalog 對映
 
 ## 畫布結構(由上而下)
 
@@ -64,8 +75,21 @@
 4. 原生 iOS 慣例 — SF Pro / PingFang TC、原生 Toggle、Sheet、Tab Bar
 5. 不是投資建議 — 全站不出現買/賣/加碼字眼
 
+## 畫布新增段落(第四輪)
+
+- `6a` 登入 — Sign in with Apple / Google + 「先逛逛」訪客路徑
+- `6b` 成就系統 — 獎勵「冷靜的習慣」(連續看懂天數、大跌日完成閱讀),不與賺賠掛鉤
+- `6c` 持股 AI 分析 — 點持股卡上彈 Sheet,GPT 生成三段式解讀(發生什麼 / 跟你有關 / 可以留意)
+- `6d` AI 抽卡結果 — 持股當日表現丟 GPT 生成專屬卡面文字 + 今日心法
+
+## 已定案
+
+- ✅ 視覺方向:**A 暖陽米杏**
+- ✅ App Icon:**5a 儀式牌面**(切版見 `AppIcon.appiconset/`)
+
 ## 下一階段
 
-- [ ] 選定方向(A / B)後製作可互動原型:Tab 切換、抽卡翻牌動畫、Onboarding 流程
+- [ ] 6a–6d 新畫面併入互動原型
 - [ ] Dark Mode 延伸
 - [ ] 抽卡 5 種卡面完整設計
+- [ ] GPT API 串接規格(prompt 模板 + 免責審核)

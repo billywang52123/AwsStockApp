@@ -10,10 +10,11 @@ from app.models.stock_daily_price import StockDailyPrice
 from app.models.market_index import MarketIndexDaily
 from app.models.reminder import ReminderSettingModel
 from app.models.card_result import CardResultModel
+from app.models.achievement import AchievementModel
 
 # Routes
 from app.api.routes import (
-    portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import
+    portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements
 )
 
 Base.metadata.create_all(bind=engine)
@@ -43,6 +44,7 @@ app.include_router(market.router, prefix=settings.API_V1_STR)
 app.include_router(recommendations.router, prefix=settings.API_V1_STR)
 app.include_router(reminders.router, prefix=settings.API_V1_STR)
 app.include_router(admin_import.router, prefix=settings.API_V1_STR)
+app.include_router(achievements.router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["Health"])
 def health_check():

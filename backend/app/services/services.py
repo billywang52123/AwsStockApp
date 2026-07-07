@@ -13,6 +13,21 @@ from app.calculators.card_draw_engine import CardDrawEngine
 from typing import List, Optional
 from sqlalchemy import select, and_
 
+def run_async(coro):
+    import asyncio
+    from concurrent.futures import ThreadPoolExecutor
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+    if loop.is_running():
+        with ThreadPoolExecutor(1) as executor:
+            return executor.submit(lambda: asyncio.run(coro)).result()
+    else:
+        return loop.run_until_complete(coro)
+
 def get_live_market_change(db: Session) -> float:
     """
     Checks if TAIEX market index daily price is cached in DB for today.
@@ -254,6 +269,18 @@ class DailySummaryService:
                 "reason": reason
             })
             
+        # Check and trigger achievements
+        achievement_service = AchievementService(self.portfolio_repo.db)
+        achievement_service.trigger_unlock("CALM_BEGINNER", user_id)
+        
+        if market_change < -1.5:
+            achievement_service.trigger_unlock("MARKET_RESISTER", user_id)
+            
+        for item in impact_items:
+            if item["change_percent"] < -3.0:
+                achievement_service.trigger_unlock("STORM_WITNESS", user_id)
+                break
+                
         return {
             "title": "今日持股白話分析",
             "summary": "今天你的持股整體呈現拉回走勢。這主要是整體半導體及科技股遭遇獲利回吐，並不一定代表你的持股公司基本面發生了變化。",
@@ -283,19 +310,60 @@ class CardDrawService:
         anxiety = self.anxiety_service.calculate_anxiety(user_id)
         score = anxiety["score"]
         
-        card_data = self.engine.draw_by_score(score)
+        # Build dynamic card metrics
+        items = self.anxiety_service.portfolio_repo.get_items(user_id)
+        worst_name = None
+        worst_change = 0.0
+        best_name = None
+        best_change = 0.0
         
+        if items:
+            for item in items:
+                stock = self.anxiety_service.stock_repo.get_stock(item.symbol)
+                price_info = self.anxiety_service.stock_repo.get_daily_price(item.symbol)
+                change = float(price_info.change_percent) if price_info else 0.0
+                
+                if worst_name is None or change < worst_change:
+                    worst_name = stock.name if stock else item.symbol
+                    worst_change = change
+                if best_name is None or change > best_change:
+                    best_name = stock.name if stock else item.symbol
+                    best_change = change
+                    
+        market_change = get_live_market_change(self.anxiety_service.portfolio_repo.db)
+        avg_change = (worst_change + best_change) / 2.0 if items else 0.0
+        
+        # Draw card via OpenAI (with robust fallback)
+        from app.services.openai_service import OpenAIService
+        card_data = run_async(
+            OpenAIService.fetch_card_draw_message(
+                avg_change=avg_change,
+                worst_name=worst_name,
+                worst_change=worst_change,
+                market_change=market_change
+            )
+        )
+        
+        msg_with_motto = card_data["message"]
+        if card_data.get("motto"):
+            msg_with_motto += f"\n\n【今日心法】\n{card_data['motto']}"
+            
         card_model = CardResultModel(
             user_id=user_id,
             trade_date=today,
             card_type=card_data["card_type"],
             title=card_data["title"],
-            message=card_data["message"],
+            message=msg_with_motto,
             action_text=card_data["action_text"]
         )
         self.card_repo.save_card(card_model)
         
-        return card_data
+        return {
+            "card_type": card_data["card_type"],
+            "title": card_data["title"],
+            "message": msg_with_motto,
+            "action_text": card_data["action_text"]
+        }
         
     def get_today_card(self, user_id: str = "demo-user") -> Optional[dict]:
         today = date.today()
@@ -383,3 +451,63 @@ class ReminderService:
                 "volatility_alert": saved.volatility_alert
             }
         }
+
+class AchievementService:
+    def __init__(self, db: Session):
+        self.db = db
+        
+    def get_achievements(self, user_id: str = "demo-user") -> List[dict]:
+        from app.models.achievement import AchievementModel
+        from sqlalchemy import select
+        stmt = select(AchievementModel).where(AchievementModel.user_id == user_id)
+        results = self.db.scalars(stmt).all()
+        
+        if not results:
+            # Seed default achievements
+            defaults = [
+                ("CALM_BEGINNER", "冷靜初學者", "完成第一天的持股情緒白話分析閱讀", "leaf.fill"),
+                ("HABIT_BUILDER", "冷靜記錄者", "連續 3 天打開 App 閱讀持股分析與心法", "calendar.badge.clock"),
+                ("STORM_WITNESS", "風浪見證者", "在庫存個股大跌超過 3% 的日子，冷靜讀完分析不慌張", "wind"),
+                ("MARKET_RESISTER", "大盤對抗者", "在大盤指數大跌超過 1.5% 的日子，依然上線閱讀陪伴內容", "shield.fill")
+            ]
+            results = []
+            for key, title, desc, icon in defaults:
+                model = AchievementModel(
+                    user_id=user_id,
+                    achievement_key=key,
+                    title=title,
+                    description=desc,
+                    icon_name=icon,
+                    is_unlocked=False,
+                    unlocked_at=None
+                )
+                self.db.add(model)
+                results.append(model)
+            self.db.commit()
+            
+        return [
+            {
+                "achievement_key": r.achievement_key,
+                "title": r.title,
+                "description": r.description,
+                "icon_name": r.icon_name,
+                "is_unlocked": r.is_unlocked,
+                "unlocked_at": r.unlocked_at.strftime("%Y-%m-%d") if r.unlocked_at else None
+            }
+            for r in results
+        ]
+        
+    def trigger_unlock(self, achievement_key: str, user_id: str = "demo-user") -> bool:
+        from app.models.achievement import AchievementModel
+        from sqlalchemy import select, and_
+        from datetime import date
+        stmt = select(AchievementModel).where(
+            and_(AchievementModel.user_id == user_id, AchievementModel.achievement_key == achievement_key)
+        )
+        achievement = self.db.scalars(stmt).first()
+        if achievement and not achievement.is_unlocked:
+            achievement.is_unlocked = True
+            achievement.unlocked_at = date.today()
+            self.db.commit()
+            return True
+        return False
