@@ -13,6 +13,8 @@ struct ScannedStockResult {
 private struct ScanAPIResponse: Codable {
     let success: Bool
     let stocks: [ScanAPIStock]
+    // 對帳單所屬券商(9d 匯入合併「來源 chip」);辨識不出時為 nil
+    let broker: String?
     let rawText: String?
     let message: String?
 }
@@ -26,6 +28,8 @@ private struct ScanAPIStock: Codable {
 // MARK: - Stock Scan View (Real Camera + Photo Library + GPT-4o-mini OCR)
 struct StockScanSimulatorView: View {
     let onImport: ([ScannedStockResult]) -> Void
+    /// 走 9d 合併流程完成時呼叫(已直接寫入後端,不經過手動編輯頁)
+    var onMergeCompleted: (() -> Void)? = nil
     @Environment(\.dismiss) var dismiss
     
     // Photo picker
@@ -36,10 +40,12 @@ struct StockScanSimulatorView: View {
     // "camera"（拍攝對帳單）或 "photo"（相簿截圖），後端據此解鎖對應成就
     @State private var imageSource = "photo"
     
-    // Scan state: 0 = choose, 1 = scanning/uploading, 2 = result, 3 = error
+    // Scan state: 0 = choose, 1 = scanning/uploading, 2 = result, 3 = error, 4 = 9d merge decision
     @State private var scanStep = 0
     @State private var scanProgress = 0.0
     @State private var scannedStocks: [ScanAPIStock] = []
+    @State private var scannedBroker: String? = nil
+    @State private var mergeViewModel: ImportMergeViewModel? = nil
     @State private var errorMessage: String? = nil
     @State private var recognizedCount = 0
     
@@ -54,6 +60,7 @@ struct StockScanSimulatorView: View {
                         case 0: sourcePickerView
                         case 1: scanningView
                         case 2: resultView
+                        case 4: mergeDecisionView
                         default: errorView
                         }
                     }
@@ -369,7 +376,7 @@ struct StockScanSimulatorView: View {
                 request.httpMethod = "POST"
                 request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
                 // Identify the user so OCR achievements land in the right account
-                request.setValue(AppPreferenceStore.shared.currentUserId, forHTTPHeaderField: "X-User-Id")
+                APIClient.attachAuthHeaders(to: &request)
                 
                 var body = Data()
                 body.append("--\(boundary)\r\n".data(using: .utf8)!)
@@ -393,6 +400,7 @@ struct StockScanSimulatorView: View {
                 
                 await MainActor.run {
                     scannedStocks = scanResponse.stocks
+                    scannedBroker = scanResponse.broker
                     HapticManager.shared.triggerNotification(type: .success)
                     scanStep = 2
                 }
@@ -408,6 +416,30 @@ struct StockScanSimulatorView: View {
     }
     
     private func importResults() {
+        Task {
+            // 先比對現有持股:有紀錄就走 9d 合併決策(分帳加總/取代/略過),
+            // 全新用戶或辨識不到股數時,退回原本的手動編輯流程。
+            let holdings = (try? await DependencyContainer.shared.holdingService.getHoldings()) ?? []
+            let scanned = scannedStocks.compactMap { s -> (symbol: String, name: String, shares: Int, cost: Double?)? in
+                guard !s.symbol.isEmpty,
+                      let shares = Int((s.shares ?? "").filter(\.isNumber)), shares > 0 else { return nil }
+                return (symbol: s.symbol, name: s.name, shares: shares, cost: Double(s.cost ?? ""))
+            }
+
+            if holdings.isEmpty || scanned.isEmpty {
+                await MainActor.run { legacyImport() }
+            } else {
+                await MainActor.run {
+                    mergeViewModel = ImportMergeViewModel(
+                        scanned: scanned, detectedBroker: scannedBroker, holdings: holdings)
+                    scanStep = 4
+                }
+            }
+        }
+    }
+
+    /// 原始流程:把辨識結果丟回持股編輯頁讓用戶確認後逐筆新增
+    private func legacyImport() {
         let results = scannedStocks.compactMap { stock -> ScannedStockResult? in
             guard !stock.symbol.isEmpty else { return nil }
             return ScannedStockResult(
@@ -417,6 +449,17 @@ struct StockScanSimulatorView: View {
             )
         }
         onImport(results)
+    }
+
+    // MARK: - 9d 匯入合併決策
+    @ViewBuilder
+    private var mergeDecisionView: some View {
+        if let vm = mergeViewModel {
+            ImportMergeView(viewModel: vm) {
+                dismiss()
+                onMergeCompleted?()
+            }
+        }
     }
     
     private func compressImage(_ image: UIImage, maxDimension: CGFloat, quality: CGFloat) -> UIImage {

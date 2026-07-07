@@ -6,6 +6,20 @@ protocol PortfolioServiceProtocol {
     func deletePortfolioItem(id: UUID) async throws
 }
 
+/// 持股異動與多券商合併(spec 04 · 9a–9e)
+protocol HoldingServiceProtocol {
+    func getHoldings() async throws -> [Holding]
+    func getHolding(symbol: String) async throws -> Holding?
+    func buy(symbol: String, shares: Int, price: Double?, broker: String?) async throws -> TradeResult
+    func sell(symbol: String, shares: Int, price: Double?, broker: String?) async throws -> TradeResult
+    func override(symbol: String, shares: Int, broker: String?) async throws -> TradeResult
+    func restore(symbol: String) async throws -> TradeResult
+    func importMerge(decisions: [MergeDecision]) async throws -> ImportMergeResult
+    func getActivities(symbol: String) async throws -> [HoldingActivity]
+    func deleteActivity(id: String) async throws
+    func deleteLot(id: String) async throws
+}
+
 protocol StockServiceProtocol {
     func searchStocks(keyword: String) async throws -> [Stock]
     func getDailyPrice(symbol: String) async throws -> StockDailyPrice

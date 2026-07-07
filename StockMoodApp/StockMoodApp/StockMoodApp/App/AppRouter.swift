@@ -64,5 +64,9 @@ struct AppRouterView: View {
                     .environmentObject(container)
             }
         }
+        .task {
+            // Upgrades from token-less builds: silently obtain a session token
+            await AuthService.shared.ensureSessionToken()
+        }
     }
 }

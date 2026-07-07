@@ -5,10 +5,14 @@ services:
     build: .
     container_name: stock-mood-api
     ports:
-      - "8000:8000"
+      # Bind to loopback only: production traffic must come through the
+      # TLS reverse proxy, never hit :8000 directly from the internet.
+      - "127.0.0.1:8000:8000"
     environment:
-      - DATABASE_URL=postgresql+psycopg2://stockmood:stockmood@db:5432/stockmood
+      - DATABASE_URL=postgresql+psycopg2://stockmood:${POSTGRES_PASSWORD:-stockmood}@db:5432/stockmood
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - JWT_SECRET=${JWT_SECRET:-}
+      - ADMIN_API_KEY=${ADMIN_API_KEY:-}
     volumes:
       - .:/app
     depends_on:
@@ -20,11 +24,12 @@ services:
     container_name: stock-mood-db
     environment:
       - POSTGRES_USER=stockmood
-      - POSTGRES_PASSWORD=stockmood
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-stockmood}
       - POSTGRES_DB=stockmood
     ports:
-      # 5436 on the host: 5432-5434 are used by other local projects
-      - "5436:5432"
+      # 5436 on the host: 5432-5434 are used by other local projects.
+      # Loopback only — the database must never be reachable from outside.
+      - "127.0.0.1:5436:5432"
     volumes:
       - stock_mood_pgdata:/var/lib/postgresql/data
     healthcheck:

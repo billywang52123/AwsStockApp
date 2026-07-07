@@ -7,6 +7,11 @@ struct StockDetailView: View {
     @StateObject private var viewModel: StockDetailViewModel
     @Environment(\.dismiss) var dismiss
     @State private var showAIAnalysisSheet = false
+
+    // 持股異動(spec 04 · 9a–9e)
+    @State private var holding: Holding?
+    @State private var showUpdateIntentSheet = false
+    @State private var activeIntent: HoldingUpdateIntent?
     
     init(symbol: String, name: String) {
         self.symbol = symbol
@@ -82,6 +87,11 @@ struct StockDetailView: View {
                             }
                         }
                         
+                        // 我的持股卡(9a 入口 + 9e 券商分帳)
+                        if let holding {
+                            holdingCard(holding)
+                        }
+
                         // Explanation block
                         ExplanationBlock(
                             title: "白話狀態翻譯器",
@@ -179,6 +189,23 @@ struct StockDetailView: View {
         .onAppear {
             Task {
                 await viewModel.loadDetails()
+                await reloadHolding()
+            }
+        }
+        .sheet(isPresented: $showUpdateIntentSheet) {
+            if let holding {
+                UpdateIntentSheet(holding: holding) { intent in
+                    activeIntent = intent
+                }
+            }
+        }
+        .sheet(item: $activeIntent) { intent in
+            if let holding {
+                NavigationView {
+                    TradeUpdateView(intent: intent, holding: holding) {
+                        Task { await reloadHolding() }
+                    }
+                }
             }
         }
         .sheet(isPresented: $showAIAnalysisSheet) {
@@ -192,6 +219,94 @@ struct StockDetailView: View {
                     Task { await viewModel.fetchAIAnalysis() }
                 }
             )
+        }
+    }
+
+    private func reloadHolding() async {
+        holding = try? await DependencyContainer.shared.holdingService.getHolding(symbol: symbol)
+    }
+
+    // MARK: - 我的持股卡(合併數字 + 更新入口 + 券商分帳)
+
+    private func holdingCard(_ holding: Holding) -> some View {
+        AppCard {
+            VStack(spacing: 14) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("我的持股")
+                            .font(.system(.subheadline, design: .rounded))
+                            .foregroundColor(AppColor.textSecondary)
+
+                        HStack(alignment: .firstTextBaseline, spacing: 5) {
+                            Text(holding.totalShares.formatted())
+                                .font(.system(.title2, design: .rounded).monospacedDigit())
+                                .fontWeight(.heavy)
+                                .foregroundColor(AppColor.textPrimary)
+                            Text("股")
+                                .font(.system(.caption, design: .rounded))
+                                .foregroundColor(AppColor.textSecondary)
+                            if let avg = holding.avgPrice {
+                                Text("· 均價 \(avg.trimmedString)")
+                                    .font(.system(.caption, design: .rounded).monospacedDigit())
+                                    .foregroundColor(AppColor.textSecondary)
+                            }
+                        }
+                    }
+
+                    Spacer()
+
+                    Button {
+                        showUpdateIntentSheet = true
+                    } label: {
+                        Text("更新持股")
+                            .font(.system(.caption, design: .rounded))
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(AppColor.primary)
+                            .clipShape(Capsule())
+                    }
+                }
+
+                if holding.avgPriceIncomplete {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.circle")
+                            .font(.caption)
+                        Text("有分帳還沒填買價,補填後均價會更準")
+                            .font(.system(.caption2, design: .rounded))
+                        Spacer()
+                    }
+                    .foregroundColor(AppColor.amberStrong)
+                }
+
+                NavigationLink {
+                    BrokerLotsView(symbol: symbol, holding: holding) {
+                        Task { await reloadHolding() }
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "building.columns")
+                            .font(.caption)
+                            .foregroundColor(AppColor.primary)
+                        Text("\(holding.lots.count) 個券商帳戶")
+                            .font(.system(.caption, design: .rounded))
+                            .fontWeight(.semibold)
+                            .foregroundColor(AppColor.textPrimary)
+                        Spacer()
+                        Text("查看分帳與異動")
+                            .font(.system(.caption2, design: .rounded))
+                            .foregroundColor(AppColor.textSecondary)
+                        Image(systemName: "chevron.right")
+                            .font(.caption2)
+                            .foregroundColor(AppColor.textSecondary)
+                    }
+                    .padding(10)
+                    .background(AppColor.bgInset)
+                    .cornerRadius(10)
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 

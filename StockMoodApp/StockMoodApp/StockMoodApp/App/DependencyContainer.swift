@@ -7,6 +7,7 @@ class DependencyContainer: ObservableObject {
     // Live backend services only — mock mode was removed so the app always
     // reflects real data from the API
     let portfolioService: PortfolioServiceProtocol = RemotePortfolioService()
+    let holdingService: HoldingServiceProtocol = RemoteHoldingService()
     let stockService: StockServiceProtocol = RemoteStockService()
     let anxietyService: AnxietyServiceProtocol = RemoteAnxietyService()
     let dailySummaryService: DailySummaryServiceProtocol = RemoteDailySummaryService()

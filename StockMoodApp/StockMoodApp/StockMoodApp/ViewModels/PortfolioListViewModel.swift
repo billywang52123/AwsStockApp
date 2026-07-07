@@ -4,26 +4,27 @@ import Combine
 
 @MainActor
 class PortfolioListViewModel: ObservableObject {
-    @Published var portfolioItems: [PortfolioItem] = []
+    /// 聚合後的持股:多券商分帳加總、加權均價(spec 04)
+    @Published var holdings: [Holding] = []
     @Published var dailyPrices: [String: StockDailyPrice] = [:]
     @Published var isLoading = false
     @Published var hasError = false
     @Published var errorMessage = ""
-    
+
     private let container: DependencyContainer
-    
+
     init(container: DependencyContainer? = nil) {
         self.container = container ?? .shared
     }
-    
+
     func loadPortfolio() async {
-        isLoading = true
+        isLoading = holdings.isEmpty
         hasError = false
         do {
-            portfolioItems = try await container.portfolioService.getPortfolioItems()
-            for item in portfolioItems {
-                let price = try await container.stockService.getDailyPrice(symbol: item.symbol)
-                dailyPrices[item.symbol] = price
+            holdings = try await container.holdingService.getHoldings()
+            for holding in holdings {
+                let price = try await container.stockService.getDailyPrice(symbol: holding.symbol)
+                dailyPrices[holding.symbol] = price
             }
         } catch {
             hasError = true
@@ -32,13 +33,16 @@ class PortfolioListViewModel: ObservableObject {
         }
         isLoading = false
     }
-    
-    func deleteItem(id: UUID) async {
+
+    /// 刪除整檔持股 = 刪掉它所有券商分帳
+    func deleteHolding(_ holding: Holding) async {
         HapticManager.shared.triggerImpact(style: .light)
         hasError = false
         do {
-            try await container.portfolioService.deletePortfolioItem(id: id)
-            portfolioItems.removeAll(where: { $0.id == id })
+            for lot in holding.lots {
+                try await container.holdingService.deleteLot(id: lot.id)
+            }
+            holdings.removeAll(where: { $0.symbol == holding.symbol })
         } catch {
             hasError = true
             errorMessage = error.localizedDescription

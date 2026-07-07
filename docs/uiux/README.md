@@ -11,13 +11,15 @@
 | `specs/01-庫存分析-切版規格.md` | 8a 總覽 / 8b 持股明細 / 8c 風險提醒(逐元件 redline) |
 | `specs/02-個股AI觀點-切版規格.md` | 8d 觀點總覽 / 8e 觀點詳情(多空溫度計 + 新聞訊號) |
 | `specs/03-動畫規格.md` | 庫存分析與個股觀點全部進場/互動動畫 |
+| `specs/04-持股異動與多券商合併-切版規格.md` | 9a 更新入口 / 9b 加碼 / 9c 賣出 / 9d 匯入合併 / 9e 券商分帳(含均價計算與合併規則、動畫) |
 | `tokens/DesignTokens.json` | 全部色彩/圓角/陰影/字級 tokens(可轉 Asset Catalog) |
 | `AppIcon.appiconset/` | 定案 App Icon 全套切版,直接拖入 Xcode Assets |
 
 ## 對照設計稿
 
-畫面設計稿在專案根目錄 `股感安心卡 設計畫布.dc.html` 的「第六輪」段落:
-`8a` 庫存分析總覽 · `8b` 持股明細 · `8c` 風險提醒 · `8d` 個股 AI 觀點總覽 · `8e` 個股觀點詳情。
+畫面設計稿在專案根目錄 `股感安心卡 設計畫布.dc.html`:
+- 第七輪:`9a` 更新持股入口 · `9b` 加碼買進 · `9c` 賣出 · `9d` 匯入合併決策 · `9e` 券商分帳 · `9f` 合併邏輯規格
+- 第六輪:`8a` 庫存分析總覽 · `8b` 持股明細 · `8c` 風險提醒 · `8d` 個股 AI 觀點總覽 · `8e` 個股觀點詳情
 
 ## 建議元件命名(SwiftUI)
 
@@ -30,6 +32,14 @@
 - `SentimentMeter` — 8e 多空溫度計
 - `NewsSignalCard` — 新聞訊號卡
 - `PlainSummaryBlock` — 白話總結盒(沿用既有 `ExplanationBlock` 樣式)
+- `UpdateIntentSheet` — 9a 更新持股意圖選擇 bottom sheet
+- `TradeInputCard` — 9b/9c 股數・價格輸入卡(含快選 chips)
+- `MergePreviewCard` — 9b 攤平預覽紫卡 / 9e 合併持股卡
+- `RealizedPnLBox` — 9c 已實現損益盒
+- `ImportMergeRow` — 9d 重複持股合併卡(算式盒 + 三段選擇)
+- `MergeChoiceSegments` — 9d 分帳加總/取代/略過 三段選擇
+- `BrokerLotRow` — 9e 券商分帳列
+- `ActivityLogRow` — 9e 最近異動紀錄列
 
 ## 三條鐵則(全 App 通用)
 

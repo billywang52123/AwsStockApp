@@ -11,13 +11,16 @@ from app.models.market_index import MarketIndexDaily
 from app.models.reminder import ReminderSettingModel
 from app.models.card_result import CardResultModel
 from app.models.achievement import AchievementModel
+from app.models.holding_activity import HoldingActivityModel
 
 # Routes
 from app.api.routes import (
-    portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis
+    auth, portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis, holdings
 )
+from app.db.migrations import run_light_migrations
 
 Base.metadata.create_all(bind=engine)
+run_light_migrations(engine)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -35,6 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(portfolio.router, prefix=settings.API_V1_STR)
 app.include_router(stocks.router, prefix=settings.API_V1_STR)
 app.include_router(anxiety.router, prefix=settings.API_V1_STR)
@@ -47,6 +51,7 @@ app.include_router(admin_import.router, prefix=settings.API_V1_STR)
 app.include_router(achievements.router, prefix=settings.API_V1_STR)
 app.include_router(scan.router, prefix=settings.API_V1_STR)
 app.include_router(analysis.router, prefix=settings.API_V1_STR)
+app.include_router(holdings.router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["Health"])
 def health_check():

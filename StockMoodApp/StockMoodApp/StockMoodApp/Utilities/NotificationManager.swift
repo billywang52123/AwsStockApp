@@ -96,4 +96,14 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             }
         }
     }
+    
+    // MARK: - UNUserNotificationCenterDelegate
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        // Force the system to display the notification banner even if app is in foreground
+        completionHandler([.banner, .list, .sound])
+    }
 }

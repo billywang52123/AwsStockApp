@@ -56,13 +56,17 @@ class APIClient {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        // Identify the acting user so backend data is isolated per account
-        request.setValue(AppPreferenceStore.shared.currentUserId, forHTTPHeaderField: "X-User-Id")
+        APIClient.attachAuthHeaders(to: &request)
         request.httpBody = body
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
-        
+
         guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 401 {
+                // Session token rejected (expired / secret rotated) — drop it so
+                // the next launch re-registers instead of failing forever.
+                KeychainStore.shared.sessionToken = nil
+            }
             throw APIError.invalidResponse
         }
         
@@ -113,6 +117,16 @@ class APIClient {
         return responseData
     }
     
+    /// Attach auth headers: the session JWT (preferred) plus the legacy
+    /// X-User-Id header, kept during the transition for servers/paths that
+    /// don't take tokens yet.
+    static func attachAuthHeaders(to request: inout URLRequest) {
+        if let token = KeychainStore.shared.sessionToken {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        request.setValue(AppPreferenceStore.shared.currentUserId, forHTTPHeaderField: "X-User-Id")
+    }
+
     /// Like request() but accepts an Encodable body and encodes it as JSON automatically.
     func requestBody<T: Codable, B: Encodable>(_ endpoint: String, method: String = "POST", body: B) async throws -> T {
         let encoder = JSONEncoder()

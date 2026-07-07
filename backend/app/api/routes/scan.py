@@ -1,5 +1,8 @@
 import base64
 import json
+import logging
+import time
+from collections import defaultdict, deque
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from openai import AsyncOpenAI
 from sqlalchemy.orm import Session
@@ -9,7 +12,27 @@ from app.db.database import get_db
 from pydantic import BaseModel
 from typing import Optional
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
+
+# Per-user sliding-window rate limit: each OCR call costs real OpenAI money.
+SCAN_RATE_LIMIT = 15          # requests
+SCAN_RATE_WINDOW = 60 * 60    # per hour
+_scan_history: dict[str, deque] = defaultdict(deque)
+
+
+def _check_scan_rate_limit(user_id: str) -> None:
+    now = time.monotonic()
+    history = _scan_history[user_id]
+    while history and now - history[0] > SCAN_RATE_WINDOW:
+        history.popleft()
+    if len(history) >= SCAN_RATE_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail="掃描次數已達上限，請一小時後再試"
+        )
+    history.append(now)
 
 class ScannedStock(BaseModel):
     symbol: str
@@ -20,6 +43,8 @@ class ScannedStock(BaseModel):
 class ScanReceiptResponse(BaseModel):
     success: bool
     stocks: list[ScannedStock]
+    # 對帳單所屬券商(9d 匯入合併「來源 chip」用;辨識不出時為 None,由前端要求用戶補選)
+    broker: Optional[str] = None
     raw_text: Optional[str] = None
     message: Optional[str] = None
 
@@ -29,6 +54,7 @@ SYSTEM_PROMPT = """你是一個專業的台灣股票對帳單 OCR 助理。
 2. 股票名稱（如 台積電、元大台灣50 等）
 3. 持有股數（單位：股）
 4. 平均成本/買入均價（單位：新台幣元）
+5. 券商名稱（從 App 介面 logo、標題列或對帳單抬頭判斷，如 富邦證券、國泰證券、元大證券、凱基證券、永豐金證券 等）
 
 請以 JSON 格式回傳，格式如下：
 {
@@ -40,6 +66,7 @@ SYSTEM_PROMPT = """你是一個專業的台灣股票對帳單 OCR 助理。
       "cost": "920.5"
     }
   ],
+  "broker": "富邦證券",
   "raw_text": "從圖片識別到的原始文字"
 }
 
@@ -47,7 +74,7 @@ SYSTEM_PROMPT = """你是一個專業的台灣股票對帳單 OCR 助理。
 - 如果圖片模糊或無法識別，stocks 回傳空陣列
 - 股票代號只包含數字（台灣股票）
 - shares 和 cost 用字串格式
-- 如果無法確定某欄位，該欄位填 null
+- 如果無法確定某欄位，該欄位填 null（包含 broker 無法判斷時）
 - 只回傳 JSON，不要加任何額外說明
 """
 
@@ -66,6 +93,8 @@ async def scan_stock_receipt(
             status_code=503,
             detail="OpenAI API Key 尚未設定，無法使用 AI 對帳單識別功能"
         )
+
+    _check_scan_rate_limit(user_id)
 
     # Validate file type
     content_type = file.content_type or ""
@@ -137,6 +166,7 @@ async def scan_stock_receipt(
 
             parsed = json.loads(cleaned)
             stocks_data = parsed.get("stocks", [])
+            broker = parsed.get("broker") or None
             raw_text = parsed.get("raw_text", "")
 
             stocks = [
@@ -167,6 +197,7 @@ async def scan_stock_receipt(
             return ScanReceiptResponse(
                 success=True,
                 stocks=stocks,
+                broker=broker,
                 raw_text=raw_text,
                 message=f"成功識別 {len(stocks)} 筆持股"
             )
@@ -180,8 +211,12 @@ async def scan_stock_receipt(
                 message="AI 識別格式異常，請重試或手動輸入"
             )
 
-    except Exception as e:
+    except HTTPException:
+        raise
+    except Exception:
+        # Log the real error server-side; never echo internals back to the client
+        logger.exception("Receipt scan failed for user %s", user_id)
         raise HTTPException(
             status_code=500,
-            detail=f"AI 分析失敗：{str(e)}"
+            detail="AI 分析失敗，請稍後再試"
         )
