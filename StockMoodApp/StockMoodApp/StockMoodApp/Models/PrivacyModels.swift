@@ -9,9 +9,13 @@ struct PrivacySummary: Codable, Hashable {
     let cardResults: Int
     let achievements: Int
     let reminderSettings: Int
+    let watchlists: Int
+    let watchlistItems: Int
+    let fortuneResults: Int
 
     static let zero = PrivacySummary(
-        holdings: 0, activities: 0, cardResults: 0, achievements: 0, reminderSettings: 0)
+        holdings: 0, activities: 0, cardResults: 0, achievements: 0, reminderSettings: 0,
+        watchlists: 0, watchlistItems: 0, fortuneResults: 0)
 }
 
 struct DeleteAllResult: Codable {

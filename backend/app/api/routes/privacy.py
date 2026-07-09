@@ -16,20 +16,25 @@ from app.core.auth import get_current_user_id
 from app.db.database import get_db
 from app.models.achievement import AchievementModel
 from app.models.card_result import CardResultModel
+from app.models.fortune import FortuneResultModel
 from app.models.holding_activity import HoldingActivityModel
 from app.models.portfolio import PortfolioItem
 from app.models.reminder import ReminderSettingModel
+from app.models.watchlist import Watchlist, WatchlistItem
 from app.schemas.common_schema import ApiResponse
 
 router = APIRouter(prefix="/privacy", tags=["Privacy"])
 
-# (回傳欄位, model) —— 我們持有的全部用戶資料就這五類
+# (回傳欄位, model) —— 我們持有的全部用戶資料就這幾類
 _USER_TABLES = [
     ("holdings", PortfolioItem),
     ("activities", HoldingActivityModel),
     ("card_results", CardResultModel),
     ("achievements", AchievementModel),
     ("reminder_settings", ReminderSettingModel),
+    ("watchlists", Watchlist),
+    ("watchlist_items", WatchlistItem),
+    ("fortune_results", FortuneResultModel),
 ]
 
 
@@ -39,6 +44,9 @@ class PrivacySummary(BaseModel):
     card_results: int
     achievements: int
     reminder_settings: int
+    watchlists: int = 0
+    watchlist_items: int = 0
+    fortune_results: int = 0
 
 
 class DeleteAllResult(BaseModel):

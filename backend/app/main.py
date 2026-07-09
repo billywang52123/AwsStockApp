@@ -17,10 +17,12 @@ from app.models.reminder import ReminderSettingModel
 from app.models.card_result import CardResultModel
 from app.models.achievement import AchievementModel
 from app.models.holding_activity import HoldingActivityModel
+from app.models.watchlist import Watchlist, WatchlistItem
+from app.models.fortune import FortuneResultModel
 
 # Routes
 from app.api.routes import (
-    auth, portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis, holdings, privacy
+    auth, portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis, holdings, privacy, watchlists, fortune
 )
 from app.db.migrations import run_light_migrations
 
@@ -77,6 +79,8 @@ app.include_router(scan.router, prefix=settings.API_V1_STR)
 app.include_router(analysis.router, prefix=settings.API_V1_STR)
 app.include_router(holdings.router, prefix=settings.API_V1_STR)
 app.include_router(privacy.router, prefix=settings.API_V1_STR)
+app.include_router(watchlists.router, prefix=settings.API_V1_STR)
+app.include_router(fortune.router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["Health"])
 def health_check():

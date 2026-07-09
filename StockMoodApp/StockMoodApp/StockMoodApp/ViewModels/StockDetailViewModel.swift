@@ -8,7 +8,7 @@ class StockDetailViewModel: ObservableObject {
     let name: String
     
     @Published var dailyPrice: StockDailyPrice? = nil
-    @Published var recommendations: [Stock] = []
+    @Published var recommendations: [RecommendedStock] = []
     @Published var explanation = ""
     @Published var anxietyImpact = "低"
     @Published var isLoading = false

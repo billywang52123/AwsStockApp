@@ -173,6 +173,44 @@ def test_insight_detail(client, db_session):
     assert data["stance_label"] == "短線留意 · 長線看好"
 
 
+def test_insights_merge_multi_broker_lots(client, db_session):
+    # 同一檔 0050 分散在兩個券商 → 個股觀點只出現一次,股數與成本聚合
+    db_session.add_all([
+        PortfolioItem(user_id="demo-user", symbol="0050", cost_price=160.0, shares=2000, broker="元大"),
+        PortfolioItem(user_id="demo-user", symbol="0050", cost_price=180.0, shares=2000, broker="富邦"),
+        PortfolioItem(user_id="demo-user", symbol="2330", cost_price=900.0, shares=1000),
+    ])
+    db_session.commit()
+
+    data = client.get("/api/insights").json()["data"]
+    symbols = [item["symbol"] for item in data["items"]]
+    assert symbols.count("0050") == 1
+    assert len(data["items"]) == 2
+
+    analysis = client.get("/api/portfolio/analysis").json()["data"]
+    assert analysis["holdings_count"] == 2
+    merged = next(h for h in analysis["holdings"] if h["symbol"] == "0050")
+    assert merged["shares"] == 4000
+    # 成本加權平均 (160*2000 + 180*2000) / 4000 = 170
+    assert merged["cost_price"] == pytest.approx(170.0, abs=0.1)
+    # 市值 185*4000=740,000 · 損益 = (185-170)*4000 = 60,000
+    assert merged["pnl"] == pytest.approx(60000, abs=1)
+
+
+def test_analysis_excludes_exited_lots(client, db_session):
+    db_session.add_all([
+        PortfolioItem(user_id="demo-user", symbol="2330", cost_price=900.0, shares=1000),
+        PortfolioItem(user_id="demo-user", symbol="0050", cost_price=170.0, shares=0, status="exited"),
+    ])
+    db_session.commit()
+
+    data = client.get("/api/insights").json()["data"]
+    assert [item["symbol"] for item in data["items"]] == ["2330"]
+
+    analysis = client.get("/api/portfolio/analysis").json()["data"]
+    assert analysis["holdings_count"] == 1
+
+
 def test_insight_detail_not_found(client, db_session):
     seed_portfolio(db_session)
     response = client.get("/api/insights/9999")

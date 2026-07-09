@@ -4,7 +4,7 @@ import Combine
 
 @MainActor
 class StockRecommendationViewModel: ObservableObject {
-    @Published var recommendations: [Stock] = []
+    @Published var recommendations: [RecommendedStock] = []
     @Published var isLoading = false
     @Published var hasError = false
     @Published var errorMessage = ""
@@ -31,7 +31,7 @@ class StockRecommendationViewModel: ObservableObject {
         isLoading = false
     }
     
-    func addRecommendation(_ stock: Stock) async {
+    func addRecommendation(_ stock: RecommendedStock) async {
         let item = PortfolioItem(id: UUID(), symbol: stock.symbol, name: stock.name, costPrice: nil, shares: nil, createdAt: Date())
         hasError = false
         do {

@@ -19,6 +19,25 @@ def _clamp(value: float, low: float, high: float) -> float:
     return max(low, min(high, value))
 
 
+class _MergedLots:
+    """同一檔股票可能分散在多個券商 lot;分析一律以 symbol 聚合,
+    股數加總、成本以股數加權平均,避免同一檔重複出現。"""
+
+    def __init__(self, lots):
+        self.id = lots[0].id
+        self.symbol = lots[0].symbol
+        self.shares = sum(l.shares or 0 for l in lots)
+        costed = [
+            ((l.shares or 0), float(l.cost_price))
+            for l in lots
+            if (l.shares or 0) > 0 and is_finite_number(l.cost_price)
+        ]
+        costed_shares = sum(s for s, _ in costed)
+        self.cost_price = (
+            sum(s * c for s, c in costed) / costed_shares if costed_shares > 0 else None
+        )
+
+
 class _Holding:
     def __init__(self, item, stock, price):
         self.id = item.id
@@ -47,11 +66,18 @@ class _Holding:
 def _load_holdings(db: Session, user_id: str) -> List[_Holding]:
     portfolio_repo = PortfolioRepository(db)
     stock_repo = StockRepository(db)
-    holdings = []
+
+    by_symbol: dict = {}
     for item in portfolio_repo.get_items(user_id):
-        stock = stock_repo.get_stock(item.symbol)
-        price = stock_repo.get_daily_price(item.symbol)
-        holdings.append(_Holding(item, stock, price))
+        if item.status == "exited":
+            continue
+        by_symbol.setdefault(item.symbol, []).append(item)
+
+    holdings = []
+    for symbol, lots in by_symbol.items():
+        stock = stock_repo.get_stock(symbol)
+        price = stock_repo.get_daily_price(symbol)
+        holdings.append(_Holding(_MergedLots(lots), stock, price))
 
     total = sum(h.market_value for h in holdings)
     if total > 0:

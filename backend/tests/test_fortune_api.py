@@ -1,0 +1,167 @@
+"""每日御神籤 API 測試(spec 第十輪 12a–12d)。"""
+import sys
+from datetime import date
+from pathlib import Path
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+
+backend_dir = Path(__file__).resolve().parent.parent
+sys.path.append(str(backend_dir))
+
+from app.main import app
+from app.db.base import Base
+from app.db.database import get_db
+from app.models.stock import Stock
+from app.models.stock_daily_price import StockDailyPrice
+from app.models.market_index import MarketIndexDaily
+from app.models.portfolio import PortfolioItem
+from app.services.fortune_service import _level_value, _chinese_number, LEVELS
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+BANNED_WORDS = ("建議", "買進", "賣出", "加碼", "減碼", "停損", "停利", "攤平", "進場", "出場")
+
+
+@pytest.fixture()
+def db_session():
+    Base.metadata.create_all(bind=engine)
+    db = TestingSessionLocal()
+
+    today = date.today()
+    db.add_all([
+        Stock(symbol="2330", name="台積電", market="TW", industry="半導體"),
+        Stock(symbol="2454", name="聯發科", market="TW", industry="IC設計"),
+        Stock(symbol="0050", name="元大台灣50", market="TW", industry="ETF"),
+        StockDailyPrice(symbol="2330", trade_date=today, close_price=980.0, change_percent=1.4, volume=1000),
+        StockDailyPrice(symbol="2454", trade_date=today, close_price=1250.0, change_percent=0.3, volume=500),
+        StockDailyPrice(symbol="0050", trade_date=today, close_price=185.0, change_percent=-0.4, volume=800),
+        MarketIndexDaily(index_code="TAIEX", trade_date=today, close_price=22000.0, change_percent=0.6),
+    ])
+    db.commit()
+
+    try:
+        yield db
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture()
+def client(db_session):
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    del app.dependency_overrides[get_db]
+
+
+def seed_portfolio(db):
+    db.add_all([
+        PortfolioItem(user_id="demo-user", symbol="2330", cost_price=900.0, shares=3000),
+        PortfolioItem(user_id="demo-user", symbol="2454", cost_price=1300.0, shares=500),
+        PortfolioItem(user_id="demo-user", symbol="0050", cost_price=170.0, shares=5000),
+    ])
+    db.commit()
+
+
+# ── 規則單元:六級對映與中文數字 ─────────────────────────────
+
+def test_level_value_thresholds():
+    assert LEVELS[_level_value(3.0) - 1] == "大吉"
+    assert LEVELS[_level_value(1.5) - 1] == "吉"
+    assert LEVELS[_level_value(0.2) - 1] == "小吉"
+    assert LEVELS[_level_value(-0.5) - 1] == "小凶"
+    assert LEVELS[_level_value(-1.8) - 1] == "凶"
+    assert LEVELS[_level_value(-3.5) - 1] == "大凶"
+
+
+def test_chinese_number():
+    assert _chinese_number(14) == "十四"
+    assert _chinese_number(7) == "七"
+    assert _chinese_number(21) == "二十一"
+    assert _chinese_number(100) == "一百"
+
+
+# ── /fortune ─────────────────────────────────────────────────
+
+def test_today_before_draw_is_null(client):
+    response = client.get("/api/fortune/today")
+    assert response.status_code == 200
+    assert response.json()["data"] is None
+
+
+def test_draw_fortune_structure(client, db_session):
+    seed_portfolio(db_session)
+    response = client.post("/api/fortune/draw")
+    assert response.status_code == 201
+    data = response.json()["data"]
+
+    assert 1 <= data["stick_number"] <= 100
+    assert data["stick_label"].startswith("第") and data["stick_label"].endswith("籤")
+    assert data["overall_level"] in LEVELS
+    assert data["already_drawn"] is False
+
+    # 三欄位:持股與狀態 / 說明 / 注意事項
+    assert len(data["holdings"]) == 3
+    for h in data["holdings"]:
+        assert h["level"] in LEVELS
+        assert len(h["comment"]) > 0
+    assert len(data["summary"]) > 0
+    assert len(data["stance"]) > 0
+    assert 1 <= len(data["notices"]) <= 3
+
+    # 2330 +1.4% → 吉;2454 +0.3% → 小吉;0050 -0.4% → 小凶
+    by_symbol = {h["symbol"]: h["level"] for h in data["holdings"]}
+    assert by_symbol == {"2330": "吉", "2454": "小吉", "0050": "小凶"}
+    # 加權綜合(2330 權重最大)落在偏吉區
+    assert data["overall_level"] in ("小吉", "吉")
+
+
+def test_draw_is_idempotent_per_day(client, db_session):
+    seed_portfolio(db_session)
+    first = client.post("/api/fortune/draw").json()["data"]
+    second = client.post("/api/fortune/draw").json()["data"]
+    assert second["already_drawn"] is True
+    assert second["stick_number"] == first["stick_number"]
+    assert second["summary"] == first["summary"]
+
+    today = client.get("/api/fortune/today").json()["data"]
+    assert today["stick_number"] == first["stick_number"]
+
+
+def test_no_banned_words(client, db_session):
+    seed_portfolio(db_session)
+    data = client.post("/api/fortune/draw").json()["data"]
+    all_text = data["summary"] + data["stance"] + data["stance_note"] \
+        + "".join(data["notices"]) + "".join(h["comment"] for h in data["holdings"]) \
+        + data["level_note"]
+    for banned in BANNED_WORDS:
+        assert banned not in all_text, f"籤詩文字出現禁字:{banned}"
+
+
+def test_draw_without_holdings(client):
+    data = client.post("/api/fortune/draw").json()["data"]
+    assert data["overall_level"] == "小吉"
+    assert data["holdings"] == []
+    assert len(data["summary"]) > 0
+
+
+def test_user_isolation(client, db_session):
+    seed_portfolio(db_session)
+    client.post("/api/fortune/draw")
+    other = client.get("/api/fortune/today", headers={"X-User-Id": "someone-else"})
+    assert other.json()["data"] is None

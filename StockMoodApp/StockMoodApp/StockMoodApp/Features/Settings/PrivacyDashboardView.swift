@@ -81,7 +81,7 @@ struct PrivacyDashboardView: View {
             Button("取消", role: .cancel) {}
         } message: {
             if let s = viewModel.summary {
-                Text("將刪除:持股紀錄 \(s.holdings) 筆、異動紀錄 \(s.activities) 筆、抽卡 \(s.cardResults) 筆、成就 \(s.achievements) 筆、提醒設定 \(s.reminderSettings) 筆。刪了就沒了,無法復原。")
+                Text("將刪除:持股紀錄 \(s.holdings) 筆、異動紀錄 \(s.activities) 筆、籤詩與抽卡 \(s.cardResults + s.fortuneResults) 筆、觀察清單 \(s.watchlists + s.watchlistItems) 筆、成就 \(s.achievements) 筆、提醒設定 \(s.reminderSettings) 筆。刪了就沒了,無法復原。")
             } else {
                 Text("將刪除這個帳號名下的全部紀錄,無法復原。")
             }
@@ -137,8 +137,10 @@ struct PrivacyDashboardView: View {
 
             haveRow(icon: "briefcase", title: "持股紀錄", subtitle: "代號、股數、均價",
                     count: viewModel.summary.map { "\($0.holdings) 筆" })
-            haveRow(icon: "clock.arrow.circlepath", title: "異動與抽卡紀錄", subtitle: "加買/賣出流水、每日卡",
-                    count: viewModel.summary.map { "\($0.activities + $0.cardResults) 筆" })
+            haveRow(icon: "clock.arrow.circlepath", title: "異動與抽籤紀錄", subtitle: "持股異動流水、每日籤詩",
+                    count: viewModel.summary.map { "\($0.activities + $0.cardResults + $0.fortuneResults) 筆" })
+            haveRow(icon: "star", title: "觀察清單", subtitle: "清單名稱與追蹤代號",
+                    count: viewModel.summary.map { "\($0.watchlistItems) 檔" })
             haveRow(icon: "bell", title: "提醒偏好", subtitle: "推播時段設定",
                     count: viewModel.summary.map { $0.reminderSettings > 0 ? "有" : "無" })
 
@@ -258,7 +260,8 @@ struct PrivacyDashboardView: View {
             ForEach([
                 ("持股紀錄", deleted.holdings),
                 ("異動紀錄", deleted.activities),
-                ("抽卡紀錄", deleted.cardResults),
+                ("籤詩與抽卡紀錄", deleted.cardResults + deleted.fortuneResults),
+                ("觀察清單", deleted.watchlists + deleted.watchlistItems),
                 ("成就紀錄", deleted.achievements),
                 ("提醒設定", deleted.reminderSettings),
             ], id: \.0) { name, count in

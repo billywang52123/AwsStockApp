@@ -6,10 +6,18 @@ struct PortfolioAnalysisView: View {
     @StateObject private var viewModel = AnalysisViewModel()
     @State private var mode: AnalysisMode = .portfolio
     @State private var outlookFilter: Outlook? = nil
+    // 11e/11f:持股與觀察清單分頁(資料嚴格分離,不合併列表)
+    @State private var analysisSource: DataSource = .holdings
+    @State private var insightSource: DataSource = .holdings
 
     enum AnalysisMode: String, CaseIterable {
         case portfolio = "庫存分析"
         case insights = "個股觀點"
+    }
+
+    enum DataSource: Hashable {
+        case holdings
+        case watchlist
     }
 
     var body: some View {
@@ -23,7 +31,8 @@ struct PortfolioAnalysisView: View {
                     ErrorStateView(message: viewModel.errorMessage) {
                         Task { await viewModel.load() }
                     }
-                } else if let analysis = viewModel.analysis, analysis.holdingsCount == 0 {
+                } else if let analysis = viewModel.analysis, analysis.holdingsCount == 0,
+                          (viewModel.watchAnalysis?.watchCount ?? 0) == 0 {
                     EmptyStateView(
                         title: "還沒有可分析的持股",
                         message: "先到「持股」分頁加入你的股票，AI 就會幫你整理市值、風險與每一檔的觀點。",
@@ -89,19 +98,48 @@ struct PortfolioAnalysisView: View {
         .padding(.top, 8)
     }
 
-    // MARK: - 8a + 8b + 8c
+    // MARK: - 8a + 8b + 8c ↔ 11e(庫存分析 / 觀察清單分析)
     @ViewBuilder
     private func portfolioSection(_ analysis: PortfolioAnalysis) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            // 大標
-            Text("庫存分析")
+            // 大標:副標依 segment 切換
+            Text("投組分析")
                 .font(.system(size: 30, weight: .heavy, design: .rounded))
                 .foregroundColor(AppColor.inkPrimary)
-            Text("AI 幫你把整個投組看過一遍")
+            Text(analysisSource == .holdings ? "AI 先幫你看懂自己的投資組合" : "買了的和還在看的,分開分析")
                 .font(.system(size: 14, design: .rounded))
                 .foregroundColor(AppColor.inkTertiary)
                 .padding(.top, 4)
 
+            // 11e segmented control(庫存分析 / 觀察清單分析)
+            AnalysisSegmentedControl(
+                options: [
+                    .init(value: DataSource.holdings, title: "庫存分析", icon: nil, count: nil, countTint: nil),
+                    .init(value: DataSource.watchlist, title: "觀察清單分析", icon: "star.fill", count: nil, countTint: nil),
+                ],
+                selection: $analysisSource
+            )
+            .padding(.top, 16)
+
+            // 內容 crossfade,不做位移(避免資料類型混淆的錯覺)
+            Group {
+                switch analysisSource {
+                case .holdings:
+                    holdingsAnalysisBody(analysis)
+                case .watchlist:
+                    WatchlistAnalysisSection(viewModel: viewModel)
+                }
+            }
+            .id(analysisSource)
+            .transition(.opacity)
+        }
+        .animation(.easeOut(duration: 0.25), value: analysisSource)
+    }
+
+    // 8a + 8b + 8c 原庫存分析內容
+    @ViewBuilder
+    private func holdingsAnalysisBody(_ analysis: PortfolioAnalysis) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
             // 投組總市值卡
             summaryCard(analysis)
                 .padding(.top, 20)
@@ -175,7 +213,7 @@ struct PortfolioAnalysisView: View {
                     HapticManager.shared.triggerImpact(style: .light)
                     activeTab = 1
                 } label: {
-                    Text("抽一張安心卡，看怎麼辦")
+                    Text("求一支安心籤，看怎麼辦")
                         .font(.system(size: 17, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -293,18 +331,100 @@ struct PortfolioAnalysisView: View {
         .shadow(color: Color(hex: "786446").opacity(0.06), radius: 9, x: 0, y: 6)
     }
 
-    // MARK: - 8d 個股 AI 觀點
+    // MARK: - 8d ↔ 11f 個股 AI 觀點(我的持股 / 觀察清單分頁)
     @ViewBuilder
     private var insightsSection: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("個股 AI 觀點")
                 .font(.system(size: 30, weight: .heavy, design: .rounded))
                 .foregroundColor(AppColor.inkPrimary)
-            Text("每檔持股，AI 都幫你追了最新變化")
+            Text(insightSource == .holdings ? "每檔持股，AI 都幫你追了最新變化" : "還沒買的,AI 也幫你先盯著")
                 .font(.system(size: 14, design: .rounded))
                 .foregroundColor(AppColor.inkTertiary)
                 .padding(.top, 4)
 
+            // 11f segmented control:持股/觀察完全分開,避免把「還沒買的評分」當成「已持有的觀點」
+            AnalysisSegmentedControl(
+                options: [
+                    .init(value: DataSource.holdings, title: "我的持股", icon: nil,
+                          count: viewModel.insights?.items.count,
+                          countTint: nil),
+                    .init(value: DataSource.watchlist, title: "觀察清單", icon: nil,
+                          count: viewModel.watchInsights?.items.count,
+                          countTint: (bg: AppColor.watchStarBadgeBg, text: AppColor.watchScoreStrong)),
+                ],
+                selection: $insightSource
+            )
+            .padding(.top, 16)
+
+            Group {
+                switch insightSource {
+                case .holdings:
+                    holdingInsightsBody
+                case .watchlist:
+                    watchInsightsBody
+                }
+            }
+            .id(insightSource)
+            .transition(.opacity)
+
+            DisclaimerBlock(text: "觀點由 AI 整理近期價格與大盤資料，僅供參考")
+                .padding(.top, 24)
+        }
+        .animation(.easeOut(duration: 0.25), value: insightSource)
+    }
+
+    // 11f 觀察清單分頁
+    @ViewBuilder
+    private var watchInsightsBody: some View {
+        if let watchInsights = viewModel.watchInsights {
+            if watchInsights.items.isEmpty {
+                VStack(spacing: 10) {
+                    Image(systemName: "star")
+                        .font(.system(size: 36))
+                        .foregroundColor(AppColor.watchStarIcon.opacity(0.6))
+                    Text("觀察清單還沒有股票\n到持股頁左上角建立清單、加入想追蹤的股票")
+                        .font(.system(size: 13, design: .rounded))
+                        .foregroundColor(AppColor.inkTertiary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(5)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 40)
+            } else {
+                HStack(spacing: 8) {
+                    watchCountChip(.bullish, count: watchInsights.bullishCount)
+                    watchCountChip(.neutral, count: watchInsights.neutralCount)
+                    watchCountChip(.caution, count: watchInsights.cautionCount)
+                }
+                .padding(.top, 16)
+
+                VStack(spacing: 11) {
+                    ForEach(Array(watchInsights.items.enumerated()), id: \.element.id) { index, item in
+                        WatchInsightRow(item: item)
+                            .entrance(index: index, stagger: 0.06)
+                    }
+                }
+                .padding(.top, 16)
+            }
+        }
+    }
+
+    private func watchCountChip(_ outlook: Outlook, count: Int) -> some View {
+        Text("\(outlook.label) \(count)")
+            .font(.system(size: 12, weight: .bold, design: .rounded))
+            .monospacedDigit()
+            .foregroundColor(outlook.textColor)
+            .padding(.vertical, 6)
+            .padding(.horizontal, 13)
+            .background(outlook.bgColor)
+            .clipShape(Capsule())
+    }
+
+    // 8d 我的持股分頁(原內容)
+    @ViewBuilder
+    private var holdingInsightsBody: some View {
+        VStack(alignment: .leading, spacing: 0) {
             if let insights = viewModel.insights {
                 // 統計 chips(可點擊篩選,再點一次取消)
                 HStack(spacing: 8) {
@@ -335,9 +455,6 @@ struct PortfolioAnalysisView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.top, 32)
                 }
-
-                DisclaimerBlock(text: "觀點由 AI 整理近期價格與大盤資料，僅供參考")
-                    .padding(.top, 24)
             }
         }
     }

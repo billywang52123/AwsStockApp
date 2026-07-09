@@ -129,8 +129,72 @@ class RemoteStockService: StockServiceProtocol {
         return try await APIClient.shared.request("/stocks/\(symbol)/daily", method: "GET")
     }
     
-    func getRecommendations(symbol: String) async throws -> [Stock] {
+    func getRecommendations(symbol: String) async throws -> [RecommendedStock] {
         return try await APIClient.shared.request("/recommendations/stocks?symbol=\(symbol)", method: "GET")
+    }
+}
+
+// MARK: - Remote Watchlist Service(觀察清單 · spec 05)
+
+struct WatchlistCreateBody: Encodable {
+    let name: String
+    let color: String?
+}
+
+struct WatchItemAddBody: Encodable {
+    let symbol: String
+}
+
+struct ConvertRequestBody: Encodable {
+    let shares: Int
+    let price: Double?
+}
+
+class RemoteWatchlistService: WatchlistServiceProtocol {
+    func getIndex() async throws -> WatchlistIndex {
+        return try await APIClient.shared.request("/watchlists", method: "GET")
+    }
+
+    func createWatchlist(name: String, color: String?) async throws -> WatchlistSummary {
+        return try await APIClient.shared.requestBody(
+            "/watchlists", body: WatchlistCreateBody(name: name, color: color)
+        )
+    }
+
+    func deleteWatchlist(id: String) async throws {
+        let _: Bool = try await APIClient.shared.request("/watchlists/\(id)", method: "DELETE")
+    }
+
+    func getDetail(id: String) async throws -> WatchlistDetail {
+        return try await APIClient.shared.request("/watchlists/\(id)", method: "GET")
+    }
+
+    func addItem(watchlistId: String, symbol: String) async throws -> WatchStock {
+        return try await APIClient.shared.requestBody(
+            "/watchlists/\(watchlistId)/items", body: WatchItemAddBody(symbol: symbol)
+        )
+    }
+
+    func removeItem(watchlistId: String, symbol: String) async throws {
+        let _: Bool = try await APIClient.shared.request(
+            "/watchlists/\(watchlistId)/items/\(symbol)", method: "DELETE"
+        )
+    }
+
+    func convertToHolding(watchlistId: String, symbol: String, shares: Int, price: Double?) async throws -> ConvertResult {
+        return try await APIClient.shared.requestBody(
+            "/watchlists/\(watchlistId)/items/\(symbol)/convert",
+            body: ConvertRequestBody(shares: shares, price: price)
+        )
+    }
+
+    func getAnalysis(watchlistId: String?) async throws -> WatchlistAnalysis {
+        let query = watchlistId.map { "?watchlist_id=\($0)" } ?? ""
+        return try await APIClient.shared.request("/watchlists/analysis\(query)", method: "GET")
+    }
+
+    func getWatchInsights() async throws -> WatchInsightList {
+        return try await APIClient.shared.request("/watchlists/insights", method: "GET")
     }
 }
 
@@ -148,14 +212,20 @@ class RemoteDailySummaryService: DailySummaryServiceProtocol {
     }
 }
 
-// MARK: - Remote Card Draw Service
-class RemoteCardDrawService: CardDrawServiceProtocol {
-    func drawTodayCard() async throws -> DrawCardResult {
-        return try await APIClient.shared.request("/cards/draw", method: "POST")
+// MARK: - Remote Fortune Service(每日御神籤,取代原每日抽卡)
+class RemoteFortuneService: FortuneServiceProtocol {
+    func drawFortune() async throws -> FortuneResult {
+        return try await APIClient.shared.request("/fortune/draw", method: "POST")
     }
-    
-    func getTodayCard() async throws -> DrawCardResult? {
-        return try await APIClient.shared.request("/cards/today", method: "GET")
+
+    func getTodayFortune() async throws -> FortuneResult? {
+        do {
+            let result: FortuneResult = try await APIClient.shared.request("/fortune/today", method: "GET")
+            return result
+        } catch APIError.invalidResponse(_, 200) {
+            // 200 + data: null = 今天還沒抽 → 顯示 12a 搖籤入口,不是錯誤
+            return nil
+        }
     }
 }
 

@@ -12,10 +12,11 @@ class DependencyContainer: ObservableObject {
     let stockService: StockServiceProtocol = RemoteStockService()
     let anxietyService: AnxietyServiceProtocol = RemoteAnxietyService()
     let dailySummaryService: DailySummaryServiceProtocol = RemoteDailySummaryService()
-    let cardDrawService: CardDrawServiceProtocol = RemoteCardDrawService()
+    let fortuneService: FortuneServiceProtocol = RemoteFortuneService()
     let marketService: MarketServiceProtocol = RemoteMarketService()
     let reminderService: ReminderServiceProtocol = RemoteReminderService()
     let analysisService: AnalysisServiceProtocol = RemoteAnalysisService()
+    let watchlistService: WatchlistServiceProtocol = RemoteWatchlistService()
 
     private init() {}
 }

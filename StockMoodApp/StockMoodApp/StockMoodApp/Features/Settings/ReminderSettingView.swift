@@ -96,7 +96,7 @@ struct ReminderSettingView: View {
                                 .tint(AppColor.primary)
                                 .onChange(of: viewModel.anxietyScore) { _, _ in viewModel.saveSettings() }
                             
-                            Toggle("今日情緒陪伴卡", isOn: $viewModel.dailyCard)
+                            Toggle("今日安心籤", isOn: $viewModel.dailyCard)
                                 .tint(AppColor.primary)
                                 .onChange(of: viewModel.dailyCard) { _, _ in viewModel.saveSettings() }
                             

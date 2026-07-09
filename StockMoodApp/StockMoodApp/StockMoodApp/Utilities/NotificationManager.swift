@@ -42,7 +42,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             messageParts.append("今日持股焦慮分數已更新")
         }
         if setting.items.dailyCard {
-            messageParts.append("來抽今日陪伴卡")
+            messageParts.append("來求今日安心籤")
         }
         if setting.items.volatilityAlert {
             messageParts.append("留意您的持股大幅波動")
@@ -82,7 +82,7 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     func triggerTestNotification() {
         let content = UNMutableNotificationContent()
         content.title = "股票情緒陪伴 (測試推播)"
-        content.body = "📊 今日持股焦慮分數已更新，快來看看你的今日陪伴卡吧！"
+        content.body = "📊 今日持股焦慮分數已更新，快來求一支今日安心籤吧！"
         content.sound = .default
         
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1.0, repeats: false)
