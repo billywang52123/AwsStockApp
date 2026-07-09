@@ -1,3 +1,5 @@
+import math
+
 from sqlalchemy.orm import Session
 from datetime import date, datetime
 from app.repositories.repositories import (
@@ -12,6 +14,19 @@ from app.calculators.anxiety_score_calculator import AnxietyScoreCalculator, Anx
 from app.calculators.card_draw_engine import CardDrawEngine
 from typing import List, Optional
 from sqlalchemy import select, and_
+
+def is_finite_number(value) -> bool:
+    """NaN/Infinity 會被 pydantic 序列化成 null,導致 iOS 解碼失敗;
+    凡是要進回應的數值都先過這關。"""
+    try:
+        return math.isfinite(float(value))
+    except (TypeError, ValueError):
+        return False
+
+
+def finite_or_zero(value) -> float:
+    return float(value) if is_finite_number(value) else 0.0
+
 
 def run_async(coro):
     import asyncio
@@ -38,29 +53,32 @@ def get_live_market_change(db: Session) -> float:
         and_(MarketIndexDaily.index_code == "TAIEX", MarketIndexDaily.trade_date == today)
     )
     existing = db.scalars(stmt).first()
-    if existing:
+    if existing and is_finite_number(existing.change_percent):
         return float(existing.change_percent)
-        
-    # Cache miss
+
+    # Cache miss (or poisoned NaN cache — refetch to self-heal)
     live_data = YahooFinanceService.fetch_live_price("TAIEX")
     if live_data:
-        new_index = MarketIndexDaily(
-            index_code="TAIEX",
-            trade_date=today,
-            close_price=live_data["close_price"],
-            change_percent=live_data["change_percent"]
-        )
-        db.add(new_index)
+        if existing:
+            existing.close_price = live_data["close_price"]
+            existing.change_percent = live_data["change_percent"]
+        else:
+            db.add(MarketIndexDaily(
+                index_code="TAIEX",
+                trade_date=today,
+                close_price=live_data["close_price"],
+                change_percent=live_data["change_percent"]
+            ))
         db.commit()
         return float(live_data["change_percent"])
-        
+
     # Fallback to latest in DB
     from sqlalchemy import desc
     fallback_stmt = select(MarketIndexDaily).where(MarketIndexDaily.index_code == "TAIEX").order_by(desc(MarketIndexDaily.trade_date))
     fallback = db.scalars(fallback_stmt).first()
-    if fallback:
+    if fallback and is_finite_number(fallback.change_percent):
         return float(fallback.change_percent)
-        
+
     return -0.9
 
 class StockService:
@@ -75,8 +93,14 @@ class StockService:
         cached = self.repo.get_daily_price(symbol)
         
         # 2. Check if we have a cached price for today
+        #    (帶 NaN 的當日快取視同 miss,重抓一次自癒)
         today = date.today()
-        if cached and cached.trade_date == today:
+        if (
+            cached
+            and cached.trade_date == today
+            and is_finite_number(cached.close_price)
+            and is_finite_number(cached.change_percent)
+        ):
             return cached
             
         # 3. Cache miss: Fetch from Yahoo Finance
@@ -196,7 +220,7 @@ class AnxietyScoreService:
         
         for item in items:
             price_info = self.stock_repo.get_daily_price(item.symbol)
-            change = float(price_info.change_percent) if price_info else 0.0
+            change = finite_or_zero(price_info.change_percent) if price_info else 0.0
             total_change += change
             if change < max_drop:
                 max_drop = change
@@ -249,7 +273,7 @@ class DailySummaryService:
         for item in items:
             stock = self.stock_repo.get_stock(item.symbol)
             price_info = self.stock_repo.get_daily_price(item.symbol)
-            change = float(price_info.change_percent) if price_info else 0.0
+            change = finite_or_zero(price_info.change_percent) if price_info else 0.0
             
             if change < -2.0:
                 impact = "HIGH"
@@ -320,7 +344,7 @@ class CardDrawService:
         for item in items:
             stock = self.anxiety_service.stock_repo.get_stock(item.symbol)
             price_info = self.anxiety_service.stock_repo.get_daily_price(item.symbol)
-            change = float(price_info.change_percent) if price_info else 0.0
+            change = finite_or_zero(price_info.change_percent) if price_info else 0.0
             name = stock.name if stock else item.symbol
 
             holdings.append({
@@ -401,7 +425,7 @@ class MarketCompareService:
         total_change = 0.0
         for item in items:
             price_info = self.stock_repo.get_daily_price(item.symbol)
-            change = float(price_info.change_percent) if price_info else 0.0
+            change = finite_or_zero(price_info.change_percent) if price_info else 0.0
             total_change += change
             
         avg_change = total_change / len(items)
