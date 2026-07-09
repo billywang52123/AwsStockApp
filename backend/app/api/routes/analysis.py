@@ -27,12 +27,13 @@ def get_stock_insights(db: Session = Depends(get_db), user_id: str = Depends(get
 
 @router.get("/insights/{symbol}", response_model=ApiResponse[StockInsightDetail])
 def get_stock_insight_detail(symbol: str, db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
-    """個股觀點詳情(8e):多空溫度計分數、訊號與白話總結。"""
+    """個股觀點詳情(8e/11f):多空溫度計分數、訊號與白話總結;
+    持股與觀察股都可查,查無此股才 404。"""
     service = StockInsightService(db)
     detail = service.get_insight_detail(symbol, user_id)
     if detail is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Holding not found for this user"
+            detail="Stock not found"
         )
     return ApiResponse(success=True, data=detail)

@@ -3,6 +3,18 @@ import SwiftUI
 struct ReminderSettingView: View {
     @StateObject private var viewModel = ReminderSettingViewModel()
     @ObservedObject private var privacy = PrivacyManager.shared
+    @State private var showSignOutConfirm = false
+
+    private var accountLabel: String {
+        let id = AppPreferenceStore.shared.currentUserId
+        if id.hasPrefix("apple-") { return "Apple 帳號" }
+        if id.hasPrefix("google-") { return "Google 帳號" }
+        return "訪客模式"
+    }
+
+    private var isGuest: Bool {
+        AppPreferenceStore.shared.currentUserId.hasPrefix("guest-")
+    }
 
     var body: some View {
         NavigationView {
@@ -11,6 +23,38 @@ struct ReminderSettingView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 Form {
+                    // 帳號與登出
+                    Section(
+                        header: Text("帳號").font(.system(.footnote, design: .rounded)),
+                        footer: Text(isGuest
+                                     ? "訪客資料綁定這台裝置,重新登入訪客即可找回。"
+                                     : "登出不會刪除資料,重新登入同一帳號即可找回。")
+                            .font(.system(.caption2, design: .rounded))
+                    ) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "person.crop.circle.fill")
+                                .foregroundColor(AppColor.primary)
+                            Text("目前登入方式")
+                                .foregroundColor(AppColor.textPrimary)
+                            Spacer()
+                            Text(accountLabel)
+                                .font(.system(.subheadline, design: .rounded))
+                                .foregroundColor(AppColor.textSecondary)
+                        }
+
+                        Button {
+                            showSignOutConfirm = true
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
+                                    .foregroundColor(AppColor.downText)
+                                Text("登出")
+                                    .foregroundColor(AppColor.downText)
+                                    .font(.system(.body, design: .rounded))
+                            }
+                        }
+                    }
+
                     Section(header: Text("投資情緒成就").font(.system(.footnote, design: .rounded))) {
                         NavigationLink(destination: AchievementListView()) {
                             HStack(spacing: 10) {
@@ -141,6 +185,17 @@ struct ReminderSettingView: View {
                 .scrollContentBackground(.hidden)
             }
             .navigationTitle("設定")
+            .confirmationDialog("確定要登出嗎?", isPresented: $showSignOutConfirm, titleVisibility: .visible) {
+                Button("登出", role: .destructive) {
+                    HapticManager.shared.triggerImpact(style: .medium)
+                    AuthService.shared.signOut()
+                }
+                Button("取消", role: .cancel) {}
+            } message: {
+                Text(isGuest
+                     ? "登出後回到登入頁;訪客資料留在這台裝置,重新以訪客登入即可找回。"
+                     : "登出後回到登入頁;資料安全保存在雲端,重新登入即可找回。")
+            }
             .alert(isPresented: $viewModel.showPermissionAlert) {
                 Alert(
                     title: Text("通知權限不足"),

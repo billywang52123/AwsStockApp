@@ -2,18 +2,17 @@ import Foundation
 import SwiftUI
 import Combine
 
-// MARK: - 每日御神籤
-// 12a 入口 → 12b 搖籤 → 籤支彈出+光/煙從籤旁長出(revealing)
-// → 13a/13b 綜合籤等整頁儀式(levelReveal)→ 12c 籤詩(result)
+// MARK: - 每日御神籤(第十二輪 14a–14d)
+// 14a 入口 → 14b 搖籤 → 籤支彈出+金光/黑煙從籤旁長出(revealing)
+// → 淡入 + 上移展開 14c/14d 籤詩結果
 @MainActor
 class FortuneViewModel: ObservableObject {
     enum Phase {
         case loading      // 開頁查今日狀態
-        case entry        // 12a 搖籤入口(籤筒待機微晃)
-        case shaking      // 12b 搖籤動畫
+        case entry        // 14a 搖籤入口(籤筒待機微晃)
+        case shaking      // 14b 搖籤動畫
         case revealing    // 籤支彈出,金光/黑煙從籤旁慢慢長出、籠罩畫面
-        case levelReveal  // 13a/13b 綜合籤等(金光爆閃 / 濃煙),CTA 看今日籤詩
-        case result       // 12c 籤詩結果
+        case result       // 14c/14d 籤詩結果
     }
 
     @Published var phase: Phase = .loading
@@ -34,12 +33,6 @@ class FortuneViewModel: ObservableObject {
         guard phase == .result else { return }
         forceNextDraw = true
         withAnimation(.easeOut(duration: 0.25)) { phase = .entry }
-    }
-
-    /// 13a/13b CTA「看今日籤詩」→ 進籤詩
-    func proceedToResult() {
-        guard phase == .levelReveal else { return }
-        withAnimation(.easeOut(duration: 0.45)) { phase = .result }
     }
 
     /// 開頁:今天抽過直接進籤詩(不重播儀式),沒抽過進入口
@@ -74,8 +67,8 @@ class FortuneViewModel: ObservableObject {
             withAnimation(.spring(response: 0.55, dampingFraction: 0.65)) { phase = .revealing }
             try? await Task.sleep(for: .seconds(1.8))
 
-            // 籠罩完成 → 13a/13b 綜合籤等整頁儀式(等使用者點 CTA)
-            withAnimation(.easeInOut(duration: 0.6)) { phase = .levelReveal }
+            // 籠罩完成 → 淡入 + 上移展開 14c/14d 籤詩結果
+            withAnimation(.easeInOut(duration: 0.6)) { phase = .result }
         } catch {
             try? await minimumShake
             hasError = true

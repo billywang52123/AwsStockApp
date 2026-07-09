@@ -71,6 +71,11 @@ struct PortfolioAnalysisView: View {
             .navigationDestination(for: HoldingDetail.self) { holding in
                 StockInsightDetailView(symbol: holding.symbol, name: holding.name)
             }
+            // 11f 觀察清單觀點列點入:同 8e 詳情,白話總結改為「觀察風向」
+            .navigationDestination(for: WatchInsightItem.self) { item in
+                StockInsightDetailView(symbol: item.symbol, name: item.name,
+                                       plainSummaryLabel: "觀察風向")
+            }
             .task { await viewModel.load() }
         }
     }
@@ -401,8 +406,11 @@ struct PortfolioAnalysisView: View {
 
                 VStack(spacing: 11) {
                     ForEach(Array(watchInsights.items.enumerated()), id: \.element.id) { index, item in
-                        WatchInsightRow(item: item)
-                            .entrance(index: index, stagger: 0.06)
+                        NavigationLink(value: item) {
+                            WatchInsightRow(item: item)
+                        }
+                        .buttonStyle(.plain)
+                        .entrance(index: index, stagger: 0.06)
                     }
                 }
                 .padding(.top, 16)
