@@ -54,7 +54,7 @@ class RemoteHoldingService: HoldingServiceProtocol {
         do {
             let holding: Holding = try await APIClient.shared.request("/portfolio/holdings/\(symbol)", method: "GET")
             return holding
-        } catch APIError.invalidResponse {
+        } catch APIError.invalidResponse(_, 404) {
             // 404 = 尚未持有這檔 → 以 nil 表示,不是錯誤
             return nil
         }

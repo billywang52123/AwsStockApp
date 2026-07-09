@@ -1,5 +1,10 @@
-from fastapi import FastAPI
+import math
+
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.core.config import settings
 
 # Database initializers
@@ -27,6 +32,25 @@ app = FastAPI(
     description="Backend API for beginner investor emotional companion iOS App",
     version="0.1.0"
 )
+
+def _json_safe(obj):
+    """422 錯誤內容會夾帶原始輸入值;NaN/Infinity 沒轉字串會讓錯誤回應本身序列化失敗變 500。"""
+    if isinstance(obj, float) and not math.isfinite(obj):
+        return str(obj)
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_safe(v) for v in obj]
+    return obj
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"detail": _json_safe(jsonable_encoder(exc.errors()))},
+    )
+
 
 # CORS — use specific origins, not wildcard
 allowed_origins = [o.strip() for o in settings.ALLOWED_ORIGINS.split(",") if o.strip()]
