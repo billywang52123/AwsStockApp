@@ -219,8 +219,9 @@ class RemoteDailySummaryService: DailySummaryServiceProtocol {
 
 // MARK: - Remote Fortune Service(每日御神籤,取代原每日抽卡)
 class RemoteFortuneService: FortuneServiceProtocol {
-    func drawFortune() async throws -> FortuneResult {
-        return try await APIClient.shared.request("/fortune/draw", method: "POST")
+    func drawFortune(force: Bool) async throws -> FortuneResult {
+        let query = force ? "?force=true" : ""
+        return try await APIClient.shared.request("/fortune/draw\(query)", method: "POST")
     }
 
     func getTodayFortune() async throws -> FortuneResult? {

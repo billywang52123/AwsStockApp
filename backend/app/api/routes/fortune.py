@@ -15,10 +15,12 @@ router = APIRouter(prefix="/fortune", tags=["Fortune"])
 
 
 @router.post("/draw", response_model=ApiResponse[FortuneRead], status_code=status.HTTP_201_CREATED)
-def draw_fortune(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
-    """搖籤(12b):每天一支;當天再抽直接回同一支籤。"""
+def draw_fortune(force: bool = False, db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
+    """搖籤(12b):每天一支;當天再抽直接回同一支籤。
+
+    force=true(重抽測試用):丟棄今日籤,依「當下」持股與市場重新求一支。"""
     service = FortuneService(db)
-    fortune = service.draw(user_id)
+    fortune = service.draw(user_id, force=force)
     db.commit()
     return ApiResponse(success=True, data=fortune)
 
