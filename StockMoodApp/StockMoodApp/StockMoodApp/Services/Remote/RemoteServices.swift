@@ -124,6 +124,11 @@ class RemoteStockService: StockServiceProtocol {
         let encodedKeyword = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         return try await APIClient.shared.request("/stocks/search?keyword=\(encodedKeyword)", method: "GET")
     }
+
+    func aiScreenStocks(query: String) async throws -> AiScreenResult {
+        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        return try await APIClient.shared.request("/stocks/ai-screen?query=\(encodedQuery)", method: "GET")
+    }
     
     func getDailyPrice(symbol: String) async throws -> StockDailyPrice {
         return try await APIClient.shared.request("/stocks/\(symbol)/daily", method: "GET")

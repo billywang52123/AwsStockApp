@@ -7,6 +7,7 @@ from app.repositories.repositories import (
 )
 from app.models.portfolio import PortfolioItem
 from app.models.card_result import CardResultModel
+from app.models.stock import Stock
 from app.models.stock_daily_price import StockDailyPrice
 from app.models.market_index import MarketIndexDaily
 from app.services.yahoo_finance_service import YahooFinanceService
@@ -81,13 +82,156 @@ def get_live_market_change(db: Session) -> float:
 
     return -0.9
 
+# AI 找股離線 fallback:常見主題關鍵字 → (代號, 客觀描述)。
+# 描述只陳述標的特性,依 no-advice 規則不得出現「建議」與買賣操作字眼。
+FALLBACK_SCREEN_THEMES = [
+    (("高股息", "股息", "殖利率", "配息", "存股", "高息", "領息"), [
+        ("0056", "元大高股息,追蹤台灣高股息指數,配息紀錄長"),
+        ("00878", "國泰永續高股息,季配息,規模居台股 ETF 前列"),
+        ("00919", "群益台灣精選高息,近年現金殖利率屬市場偏高水準"),
+        ("00929", "復華台灣科技優息,月配息的科技高息 ETF"),
+        ("2412", "中華電信,電信龍頭,獲利與股利長年穩定"),
+        ("2882", "國泰金控,大型金控,長期有配發股利紀錄"),
+    ]),
+    (("半導體", "晶片", "晶圓", "ic 設計"), [
+        ("2330", "台積電,全球晶圓代工龍頭"),
+        ("2454", "聯發科,手機晶片設計大廠"),
+        ("2303", "聯電,成熟製程晶圓代工"),
+        ("3711", "日月光投控,封裝測試龍頭"),
+        ("00891", "中信關鍵半導體,半導體主題 ETF"),
+    ]),
+    (("市值型", "市值", "大盤", "0050", "台灣50", "指數型"), [
+        ("0050", "元大台灣50,追蹤台灣市值前 50 大公司"),
+        ("006208", "富邦台50,同樣追蹤台灣50指數,經理費率較低"),
+        ("00922", "國泰台灣領袖50,市值型並加入低碳篩選"),
+    ]),
+    (("金融", "金控", "銀行"), [
+        ("2882", "國泰金控,壽險為主的大型金控"),
+        ("2881", "富邦金控,獲利規模居金控前列"),
+        ("2886", "兆豐金控,官股色彩的銀行型金控"),
+        ("2891", "中信金控,銀行型金控,股東人數眾多"),
+    ]),
+    (("ai", "人工智慧", "伺服器", "機器人"), [
+        ("2330", "台積電,AI 晶片主要代工者"),
+        ("2317", "鴻海,AI 伺服器組裝要角"),
+        ("2382", "廣達,AI 伺服器主力供應商"),
+        ("3231", "緯創,AI 伺服器代工"),
+    ]),
+]
+
+
 class StockService:
     def __init__(self, db: Session):
         self.repo = StockRepository(db)
         
     def search_stocks(self, keyword: str):
-        return self.repo.search_stocks(keyword)
+        results = self.repo.search_stocks(keyword)
+        if results:
+            return results
+
+        # 本地資料庫沒有 + 長得像台股代號 → 用 Yahoo 驗證後自動入庫
+        symbol = keyword.strip()
+        if symbol.isdigit() and 4 <= len(symbol) <= 6:
+            imported = self._import_unknown_symbol(symbol)
+            if imported:
+                return [imported]
+        return results
+
+    def _import_unknown_symbol(self, symbol: str) -> Optional[Stock]:
+        """驗證代號存在(Yahoo 有價格)後寫進 stocks 表,之後可加持股/觀察清單。
+
+        名稱優先用證交所/櫃買目錄的中文簡稱(含產業);目錄查不到
+        (例如 ETF)才退回 Yahoo 的英文名,再不行就先用代號。"""
+        live = YahooFinanceService.fetch_live_price(symbol)
+        if not live:
+            return None
+
+        from app.services.stock_directory_service import lookup_tw_stock
+        profile = lookup_tw_stock(symbol) or {}
+        name = profile.get("name") or YahooFinanceService.fetch_display_name(symbol) or symbol
+        # 目錄只收公司,查不到但名稱帶 ETF 的視為 ETF(產業曝險歸類用)
+        industry = profile.get("industry") or ("ETF" if "etf" in name.lower() else None)
+
+        db = self.repo.db
+        stock = Stock(symbol=symbol, name=name, market="TW", industry=industry)
+        db.add(stock)
+
+        # 順手寫入今日價格快取,搜尋結果馬上有現價可看
+        today = date.today()
+        stmt = select(StockDailyPrice).where(
+            and_(StockDailyPrice.symbol == symbol, StockDailyPrice.trade_date == today)
+        )
+        if not db.scalars(stmt).first():
+            db.add(StockDailyPrice(
+                symbol=symbol, trade_date=today,
+                close_price=live["close_price"],
+                change_percent=live["change_percent"],
+                volume=live["volume"],
+            ))
+        db.commit()
+        db.refresh(stock)
+        return stock
         
+    def ai_screen(self, query: str) -> dict:
+        """AI 找股(觀察清單「加入觀察股」用):自然語言條件 → 已驗證的台股名單。
+
+        GPT 給的名單逐檔用本地 stocks 表 / Yahoo 驗證,查無此代號的直接丟掉,
+        確保回傳的每一檔都能直接加入觀察清單;GPT 離線時退回主題式名單。"""
+        query = (query or "").strip()
+        if not query:
+            return {"items": [], "note": "輸入想找的條件,例如:高股息、殖利率 5% 以上"}
+
+        from app.services.openai_service import OpenAIService
+        raw_items = run_async(OpenAIService.fetch_stock_screen(query))
+
+        note = None
+        if raw_items is None:
+            raw_items, note = self._fallback_screen(query)
+
+        items = []
+        seen = set()
+        for cand in raw_items:
+            if not isinstance(cand, dict):
+                continue
+            symbol = str(cand.get("symbol", "")).strip().upper()
+            reason = str(cand.get("reason", "")).strip()
+            if not symbol or symbol in seen:
+                continue
+            seen.add(symbol)
+
+            stock = self.repo.get_stock(symbol)
+            if not stock and symbol.isdigit() and 4 <= len(symbol) <= 6:
+                stock = self._import_unknown_symbol(symbol)
+            if not stock:
+                continue
+
+            price = self.repo.get_daily_price(symbol)
+            close = float(price.close_price) if price and is_finite_number(price.close_price) else None
+            change = float(price.change_percent) if price and is_finite_number(price.change_percent) else None
+            items.append({
+                "symbol": stock.symbol,
+                "name": stock.name,
+                "industry": stock.industry,
+                "close_price": close,
+                "change_percent": change,
+                "reason": reason or "符合你輸入的條件",
+            })
+            if len(items) >= 8:
+                break
+
+        if not items and note is None:
+            note = "AI 沒找到可驗證的標的,換個說法試試,例如:高股息、半導體"
+        return {"items": items, "note": note}
+
+    def _fallback_screen(self, query: str):
+        """GPT 離線時的主題式名單:關鍵字比對常見主題,回 (候選清單, 備註)。"""
+        lowered = query.lower()
+        for keywords, candidates in FALLBACK_SCREEN_THEMES:
+            if any(kw in lowered for kw in keywords):
+                raw = [{"symbol": s, "reason": r} for s, r in candidates]
+                return raw, "AI 暫時連不上,先列出這個主題的常見標的"
+        return [], "AI 暫時連不上,離線模式支援的主題:高股息、半導體、市值型、金融、AI"
+
     def get_daily_price(self, symbol: str):
         # 1. Check local DB cache first
         cached = self.repo.get_daily_price(symbol)

@@ -13,6 +13,23 @@ enum Market: String, Codable {
     case us = "US"
 }
 
+// MARK: - AI 找股(觀察清單「加入觀察股」的 AI 搜尋)
+/// 後端已逐檔驗證過的候選標的;reason 為 AI 對條件關聯的描述(不含操作字眼)。
+struct AiScreenItem: Identifiable, Codable, Hashable {
+    var id: String { symbol }
+    let symbol: String
+    let name: String
+    let industry: String?
+    let closePrice: Double?
+    let changePercent: Double?
+    let reason: String
+}
+
+struct AiScreenResult: Codable, Hashable {
+    let items: [AiScreenItem]
+    let note: String?
+}
+
 struct PortfolioItem: Identifiable, Codable, Hashable {
     let id: UUID
     let symbol: String

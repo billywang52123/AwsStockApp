@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.schemas.common_schema import ApiResponse
-from app.schemas.stock_schema import StockRead, StockDailyPriceRead
+from app.schemas.stock_schema import StockRead, StockDailyPriceRead, AiScreenResult
 from app.services.services import StockService
 
 router = APIRouter(prefix="/stocks", tags=["Stocks"])
@@ -12,6 +12,13 @@ def search_stocks(keyword: str = "", db: Session = Depends(get_db)):
     service = StockService(db)
     results = service.search_stocks(keyword)
     return ApiResponse(success=True, data=results)
+
+@router.get("/ai-screen", response_model=ApiResponse[AiScreenResult])
+def ai_screen_stocks(query: str = "", db: Session = Depends(get_db)):
+    """AI 找股:自然語言條件(如「殖利率 5% 以上的高股息」)→ 已驗證可加入觀察清單的名單。"""
+    service = StockService(db)
+    result = service.ai_screen(query)
+    return ApiResponse(success=True, data=result)
 
 @router.get("/{symbol}/daily", response_model=ApiResponse[StockDailyPriceRead])
 def get_daily_price(symbol: str, db: Session = Depends(get_db)):
