@@ -163,6 +163,24 @@ struct StockDetailView: View {
                                             .frame(width: 140, alignment: .leading)
                                             .background(AppColor.cardBackground)
                                             .cornerRadius(12)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                    .strokeBorder(rec.inWatchlist ? AppColor.watchScoreBorder : Color.clear, lineWidth: 1.5)
+                                            )
+                                            .overlay(alignment: .topTrailing) {
+                                                // 11g 已在觀察清單 → 星形徽章
+                                                if rec.inWatchlist {
+                                                    ZStack {
+                                                        Circle()
+                                                            .fill(AppColor.watchStarBadgeBg)
+                                                            .frame(width: 20, height: 20)
+                                                        Image(systemName: "star.fill")
+                                                            .font(.system(size: 10))
+                                                            .foregroundColor(AppColor.watchStarIcon)
+                                                    }
+                                                    .padding(6)
+                                                }
+                                            }
                                             .shadow(color: Color.black.opacity(0.01), radius: 4, x: 0, y: 2)
                                         }
                                     }

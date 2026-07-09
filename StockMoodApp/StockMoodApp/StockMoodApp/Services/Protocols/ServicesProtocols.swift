@@ -29,7 +29,20 @@ protocol PrivacyServiceProtocol {
 protocol StockServiceProtocol {
     func searchStocks(keyword: String) async throws -> [Stock]
     func getDailyPrice(symbol: String) async throws -> StockDailyPrice
-    func getRecommendations(symbol: String) async throws -> [Stock]
+    func getRecommendations(symbol: String) async throws -> [RecommendedStock]
+}
+
+/// 觀察清單(spec 05 · 11a–11g)
+protocol WatchlistServiceProtocol {
+    func getIndex() async throws -> WatchlistIndex
+    func createWatchlist(name: String, color: String?) async throws -> WatchlistSummary
+    func deleteWatchlist(id: String) async throws
+    func getDetail(id: String) async throws -> WatchlistDetail
+    func addItem(watchlistId: String, symbol: String) async throws -> WatchStock
+    func removeItem(watchlistId: String, symbol: String) async throws
+    func convertToHolding(watchlistId: String, symbol: String, shares: Int, price: Double?) async throws -> ConvertResult
+    func getAnalysis(watchlistId: String?) async throws -> WatchlistAnalysis
+    func getWatchInsights() async throws -> WatchInsightList
 }
 
 protocol AnxietyServiceProtocol {
@@ -40,9 +53,10 @@ protocol DailySummaryServiceProtocol {
     func getDailySummary() async throws -> DailySummary
 }
 
-protocol CardDrawServiceProtocol {
-    func drawTodayCard() async throws -> DrawCardResult
-    func getTodayCard() async throws -> DrawCardResult?
+/// 每日御神籤(spec 第十輪 12a–12d,取代原每日抽卡)
+protocol FortuneServiceProtocol {
+    func drawFortune() async throws -> FortuneResult
+    func getTodayFortune() async throws -> FortuneResult?
 }
 
 protocol MarketServiceProtocol {

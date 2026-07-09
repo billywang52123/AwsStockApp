@@ -57,6 +57,17 @@ struct AppColor {
     // 分數
     static let riskScore = Color(hex: "D9A264")
     static let anxietyScore = Color(hex: "7B7FD4")
+
+    // 觀察清單(spec 05 · tokens.color.watchlist)
+    static let watchScoreBg = Color(hex: "FDF9F0")
+    static let watchScoreBorder = Color(hex: "EEDFC2")
+    static let watchScoreStrong = Color(hex: "B0813F")
+    static let watchGradientTop = Color(hex: "E0B072")
+    static let watchGradientBottom = Color(hex: "C08F4F")
+    static let watchStarBadgeBg = Color(hex: "FBEFDF")
+    static let watchStarIcon = Color(hex: "D9A264")
+    static let watchStatusPillBg = Color(hex: "FBEFDF")
+    static let watchStatusPillText = Color(hex: "B0813F")
 }
 
 // MARK: - 產業配色(曝險 bar、頭像、權重 bar 共用)

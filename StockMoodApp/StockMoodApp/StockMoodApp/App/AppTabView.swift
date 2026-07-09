@@ -12,9 +12,9 @@ struct AppTabView: View {
                 }
                 .tag(0)
             
-            CardDrawView()
+            FortuneDrawView()
                 .tabItem {
-                    Label("抽卡", systemImage: "suit.spade.fill")
+                    Label("抽籤", systemImage: "scroll.fill")
                 }
                 .tag(1)
             

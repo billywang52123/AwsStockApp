@@ -47,7 +47,7 @@ final class AnalysisFlowUITests: XCTestCase {
         snap(app, "8c_risk_notices")
 
         // CTA 存在性(若有風險提醒)
-        let cta = app.buttons["抽一張安心卡，看怎麼辦"]
+        let cta = app.buttons["求一支安心籤，看怎麼辦"]
         if cta.exists {
             XCTAssertTrue(cta.isHittable || true)
         }

@@ -70,8 +70,8 @@ struct TodayDashboardView: View {
                                     showExplanationDetail = true
                                 }
                                 
-                                AppButton(title: "抽今日情緒陪伴卡", icon: "suit.spade.fill", backgroundColor: AppColor.secondary, textColor: AppColor.textPrimary) {
-                                    activeTab = 1 // Switch to Draw Tab
+                                AppButton(title: "求今日安心籤", icon: "scroll.fill", backgroundColor: AppColor.secondary, textColor: AppColor.textPrimary) {
+                                    activeTab = 1 // Switch to Fortune Tab
                                 }
                             }
                             

@@ -189,5 +189,76 @@ class OpenAIService:
                     logger.warning(f"OpenAI returned error code {response.status_code}: {response.text}")
         except Exception as e:
             logger.error(f"Failed to fetch card message from OpenAI: {str(e)}")
-            
+
         return fallback_card
+
+    @classmethod
+    async def fetch_fortune_text(
+        cls,
+        overall_level: str,
+        avg_change: float,
+        market_change: float,
+        holdings: Optional[list] = None,
+    ) -> Dict[str, Any]:
+        """御神籤「說明 / 注意事項」文字(12c)。籤等由後端規則決定,
+        GPT 只補文字;離線或失敗時回空 dict,由 FortuneService 用規則式 fallback。"""
+        if not settings.OPENAI_API_KEY:
+            logger.info("OPENAI_API_KEY is not set. Using rule-based fortune text.")
+            return {}
+
+        holdings_lines = [
+            f"- {h['name']} ({h['symbol']})：今日 {h['change_percent']:+.2f}%，產業 {h.get('industry', '其他')}"
+            for h in holdings or []
+        ]
+        holdings_desc = "\n".join(holdings_lines) if holdings_lines else "（目前沒有持股資料）"
+
+        prompt = (
+            "你是一位溫暖的日式御神籤解籤人,為投資新手寫今天的籤詩內容。用戶今天的狀況：\n"
+            f"{holdings_desc}\n"
+            f"持股平均漲跌 {avg_change:+.2f}%；大盤 {market_change:+.2f}%；"
+            f"今日綜合籤等（已由系統判定,不可更改）：{overall_level}。\n\n"
+            "請生成以下 JSON：\n"
+            "{\n"
+            '  "summary": "說明欄（60-100 字繁體中文）：描述今天可能發生的事與市場氛圍,語氣安撫、貼合籤等,可具體點名持股",\n'
+            '  "notices": ["注意事項 1（30 字內,只能根據上面提供的實際資料描述,不可編造新聞或事件）", "注意事項 2", "注意事項 3"]\n'
+            "}\n"
+            "硬性限制：全程繁體中文；不得出現「建議」二字,也不得出現「買進、賣出、加碼、減碼、停損、停利、攤平、進場、出場、獲利了結」等任何引導操作的字眼；"
+            "凶籤走安撫語氣,不製造恐慌;可描述市場現象,但不告訴用戶該做什麼交易動作。"
+        )
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "gpt-4o-mini",
+                        "messages": [
+                            {"role": "system", "content": "你是一個專門輸出 JSON 格式、溫暖安撫的日式御神籤解籤助手。"},
+                            {"role": "user", "content": prompt}
+                        ],
+                        "response_format": {"type": "json_object"},
+                        "temperature": 0.8
+                    },
+                    timeout=5.0
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    import json
+                    result = json.loads(data["choices"][0]["message"]["content"])
+                    logger.info("Successfully generated fortune text via GPT-4o-mini")
+                    notices = result.get("notices")
+                    return {
+                        "summary": result.get("summary"),
+                        "notices": notices if isinstance(notices, list) else None,
+                    }
+                else:
+                    logger.warning(f"OpenAI returned error code {response.status_code}: {response.text}")
+        except Exception as e:
+            logger.error(f"Failed to fetch fortune text from OpenAI: {str(e)}")
+
+        return {}

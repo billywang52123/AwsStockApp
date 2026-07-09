@@ -81,21 +81,6 @@ enum ImpactLevel: String, Codable {
     case low = "LOW"
 }
 
-struct DrawCardResult: Codable, Hashable {
-    let cardType: DrawCardType
-    let title: String
-    let message: String
-    let actionText: String
-}
-
-enum DrawCardType: String, Codable {
-    case calmObserve = "CALM_OBSERVE"
-    case marketImpact = "MARKET_IMPACT"
-    case volatilityAlert = "VOLATILITY_ALERT"
-    case stockEvent = "STOCK_EVENT"
-    case confidenceRestore = "CONFIDENCE_RESTORE"
-}
-
 struct MarketCompareResult: Codable, Hashable {
     let portfolioChangePercent: Double
     let marketChangePercent: Double
