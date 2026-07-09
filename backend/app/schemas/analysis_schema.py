@@ -1,15 +1,23 @@
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 # ── 庫存分析(8a / 8b / 8c) ─────────────────────────────────
 
+# allow_inf_nan=False:NaN 進到回應時直接 500,而不是被序列化成 null 害 iOS 解碼失敗
+_NO_NAN = ConfigDict(allow_inf_nan=False)
+
+
 class ExposureSegment(BaseModel):
+    model_config = _NO_NAN
+
     industry: str
     percent: float
 
 
 class HoldingDetail(BaseModel):
+    model_config = _NO_NAN
+
     id: str
     symbol: str
     name: str
@@ -34,6 +42,8 @@ class RiskNotice(BaseModel):
 
 
 class PortfolioAnalysisRead(BaseModel):
+    model_config = _NO_NAN
+
     total_market_value: float
     total_cost: float
     unrealized_pnl: float
@@ -53,6 +63,8 @@ class PortfolioAnalysisRead(BaseModel):
 # ── 個股 AI 觀點(8d / 8e) ─────────────────────────────────
 
 class StockInsightSummary(BaseModel):
+    model_config = _NO_NAN
+
     symbol: str
     name: str
     industry: str

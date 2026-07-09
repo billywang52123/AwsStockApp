@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.repositories.repositories import PortfolioRepository, StockRepository
-from app.services.services import AnxietyScoreService, get_live_market_change
+from app.services.services import AnxietyScoreService, get_live_market_change, is_finite_number
 
 # 視為「科技類」的產業關鍵字(曝險集中提醒用)
 TECH_INDUSTRY_KEYWORDS = ("半導體", "IC", "電子", "光電", "通信", "電腦", "科技")
@@ -26,9 +26,10 @@ class _Holding:
         self.name = stock.name if stock else item.symbol
         self.industry = (stock.industry if stock and stock.industry else "") or OTHER_INDUSTRY
         self.shares = item.shares
-        self.cost = float(item.cost_price) if item.cost_price is not None else None
-        self.close = float(price.close_price) if price else None
-        self.change = float(price.change_percent) if price else 0.0
+        # NaN(匯入異常或早盤 Yahoo 壞資料)一律視為缺值,避免污染整個投組加總
+        self.cost = float(item.cost_price) if is_finite_number(item.cost_price) else None
+        self.close = float(price.close_price) if price and is_finite_number(price.close_price) else None
+        self.change = float(price.change_percent) if price and is_finite_number(price.change_percent) else 0.0
 
         effective_price = self.close if self.close is not None else (self.cost or 0.0)
         self.market_value = effective_price * (self.shares or 0)
