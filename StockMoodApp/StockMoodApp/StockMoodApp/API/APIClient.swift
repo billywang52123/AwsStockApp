@@ -16,25 +16,25 @@ struct ApiErrorDetail: Codable, Error {
 enum APIError: Error, LocalizedError {
     case invalidURL
     case requestFailed(Error)
-    case invalidResponse
-    case decodingError(Error)
+    case invalidResponse(endpoint: String, statusCode: Int)
+    case decodingError(endpoint: String, Error)
     case serverError(code: String, detail: str)
-    
+
     var errorDescription: String? {
         switch self {
         case .invalidURL:
             return "無效的 API 連線網址。"
         case .requestFailed(let err):
             return "網路連線失敗：\(err.localizedDescription)"
-        case .invalidResponse:
-            return "伺服器回傳無效的格式。"
-        case .decodingError(let err):
-            return "資料解析失敗：\(err.localizedDescription)"
+        case .invalidResponse(let endpoint, let statusCode):
+            return "伺服器回應異常（\(endpoint) · HTTP \(statusCode)）。"
+        case .decodingError(let endpoint, let err):
+            return "資料解析失敗（\(endpoint)）：\(err.localizedDescription)"
         case .serverError(let code, let detail):
             return "伺服器錯誤 [\(code)]: \(detail)"
         }
     }
-    
+
     typealias str = String
 }
 
@@ -62,24 +62,33 @@ class APIClient {
         let (data, response) = try await URLSession.shared.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 401 {
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            if statusCode == 401 {
                 // Session token rejected (expired / secret rotated) — drop it so
                 // the next launch re-registers instead of failing forever.
                 KeychainStore.shared.sessionToken = nil
             }
-            throw APIError.invalidResponse
+            throw APIError.invalidResponse(endpoint: endpoint, statusCode: statusCode)
         }
-        
+
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        // Handle Python's ISO dates or customized datetime parses
+        // Handle Python's ISO dates or customized datetime parses.
+        // en_US_POSIX + UTC:沒鎖 locale 的 DateFormatter 會跟著裝置的
+        // 12/24 小時制與曆法設定走,部分用戶會解析失敗。
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "UTC")
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
-        
+
         let secondaryFormatter = DateFormatter()
+        secondaryFormatter.locale = Locale(identifier: "en_US_POSIX")
+        secondaryFormatter.timeZone = TimeZone(identifier: "UTC")
         secondaryFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        
+
         let dateOnlyFormatter = DateFormatter()
+        dateOnlyFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateOnlyFormatter.timeZone = TimeZone(identifier: "UTC")
         dateOnlyFormatter.dateFormat = "yyyy-MM-dd"
         
         decoder.dateDecodingStrategy = .custom { decoder -> Date in
@@ -102,16 +111,16 @@ class APIClient {
         do {
             apiResponse = try decoder.decode(ApiResponse<T>.self, from: data)
         } catch {
-            throw APIError.decodingError(error)
+            throw APIError.decodingError(endpoint: endpoint, error)
         }
-        
+
         if !apiResponse.success {
             let err = apiResponse.error ?? ApiErrorDetail(code: "UNKNOWN_ERROR", detail: "發生未知的伺服器錯誤")
             throw APIError.serverError(code: err.code, detail: err.detail)
         }
-        
+
         guard let responseData = apiResponse.data else {
-            throw APIError.invalidResponse
+            throw APIError.invalidResponse(endpoint: endpoint, statusCode: httpResponse.statusCode)
         }
         
         return responseData

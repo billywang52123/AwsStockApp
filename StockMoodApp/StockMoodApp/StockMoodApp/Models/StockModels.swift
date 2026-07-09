@@ -20,6 +20,26 @@ struct PortfolioItem: Identifiable, Codable, Hashable {
     let costPrice: Double?
     let shares: Int?
     let createdAt: Date
+
+    init(id: UUID, symbol: String, name: String, costPrice: Double?, shares: Int?, createdAt: Date) {
+        self.id = id
+        self.symbol = symbol
+        self.name = name
+        self.costPrice = costPrice
+        self.shares = shares
+        self.createdAt = createdAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        symbol = try container.decode(String.self, forKey: .symbol)
+        // 後端 schema 的 name 允許 null;缺名時退回用代號,不讓整份清單解碼失敗
+        name = (try? container.decode(String.self, forKey: .name)) ?? symbol
+        costPrice = try container.decodeIfPresent(Double.self, forKey: .costPrice)
+        shares = try container.decodeIfPresent(Int.self, forKey: .shares)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+    }
 }
 
 struct StockDailyPrice: Codable, Hashable {

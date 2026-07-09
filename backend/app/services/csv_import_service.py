@@ -1,6 +1,7 @@
 import csv
 import io
 import logging
+import math
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_
@@ -9,6 +10,15 @@ from app.models.stock_daily_price import StockDailyPrice
 from app.models.market_index import MarketIndexDaily
 
 logger = logging.getLogger(__name__)
+
+
+def _finite_float(value: str, field: str) -> float:
+    """float() 會接受 'nan'/'inf' 字串;匯入資料一律要求有限數值。"""
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError(f"{field} must be a finite number, got {value!r}")
+    return result
+
 
 class CSVImportService:
     @staticmethod
@@ -65,9 +75,9 @@ class CSVImportService:
             
             try:
                 trade_date = datetime.strptime(trade_date_str, "%Y-%m-%d").date()
-                close_price = float(close_price_val)
-                change_percent = float(change_percent_val) if change_percent_val else 0.0
-                volume = float(volume_val) if volume_val else None
+                close_price = _finite_float(close_price_val, "closePrice")
+                change_percent = _finite_float(change_percent_val, "changePercent") if change_percent_val else 0.0
+                volume = _finite_float(volume_val, "volume") if volume_val else None
             except (ValueError, TypeError) as e:
                 errors.append(f"Row {row_num}: {e}")
                 continue
@@ -118,8 +128,8 @@ class CSVImportService:
             
             try:
                 trade_date = datetime.strptime(trade_date_str, "%Y-%m-%d").date()
-                close_price = float(close_price_val)
-                change_percent = float(change_percent_val) if change_percent_val else 0.0
+                close_price = _finite_float(close_price_val, "closePrice")
+                change_percent = _finite_float(change_percent_val, "changePercent") if change_percent_val else 0.0
             except (ValueError, TypeError) as e:
                 errors.append(f"Row {row_num}: {e}")
                 continue

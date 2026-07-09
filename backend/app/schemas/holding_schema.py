@@ -1,7 +1,13 @@
 from datetime import datetime
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+# 交易/匯入輸入的共用防呆:拒絕 NaN/Infinity(注意:Infinity 能通過 gt=0,必須用 config 擋)
+_NO_NAN_INPUT = ConfigDict(allow_inf_nan=False)
+
+MAX_SHARES = 1_000_000_000
+MAX_PRICE = 10_000_000
 
 
 class BrokerLotRead(BaseModel):
@@ -25,13 +31,17 @@ class HoldingRead(BaseModel):
 
 
 class TradeRequest(BaseModel):
-    shares: int = Field(gt=0)
-    price: Optional[float] = Field(default=None, gt=0)
+    model_config = _NO_NAN_INPUT
+
+    shares: int = Field(gt=0, le=MAX_SHARES)
+    price: Optional[float] = Field(default=None, gt=0, le=MAX_PRICE)
     broker: Optional[str] = None
 
 
 class OverrideRequest(BaseModel):
-    shares: int = Field(ge=0)
+    model_config = _NO_NAN_INPUT
+
+    shares: int = Field(ge=0, le=MAX_SHARES)
     broker: Optional[str] = None
 
 
@@ -43,9 +53,11 @@ class TradeResult(BaseModel):
 
 
 class MergeDecision(BaseModel):
+    model_config = _NO_NAN_INPUT
+
     symbol: str
-    shares: int = Field(gt=0)
-    cost: Optional[float] = Field(default=None, gt=0)
+    shares: int = Field(gt=0, le=MAX_SHARES)
+    cost: Optional[float] = Field(default=None, gt=0, le=MAX_PRICE)
     broker: Optional[str] = None
     action: Literal["add_lot", "replace_broker", "merge_add", "replace_all", "skip"]
 
