@@ -114,6 +114,67 @@ class OpenAIService:
         return cls._generate_fallback_analysis(symbol, name, close_price, change_percent)
 
     @classmethod
+    async def fetch_stock_screen(cls, query: str) -> Optional[list]:
+        """AI 找股(觀察清單加入股票用):自然語言條件 → 台股候選名單。
+
+        回傳 [{"symbol", "name", "reason"}, ...];未設 key 或失敗回 None,
+        由 StockService 退回主題式 fallback。GPT 給的代號一律要再經
+        StockService 驗證(Yahoo 有價格)才會回給前端,幻覺代號會被丟掉。"""
+        if not settings.OPENAI_API_KEY:
+            logger.info("OPENAI_API_KEY is not set. Using rule-based fallback stock screen.")
+            return None
+
+        prompt = (
+            "你是台股資料整理助手。用戶想找符合以下條件的台股(上市/上櫃個股或 ETF):\n"
+            f"「{query}」\n\n"
+            "請列出最多 8 檔最符合條件的標的,生成以下 JSON:\n"
+            "{\n"
+            '  "items": [\n'
+            '    {"symbol": "台股代號(純數字,例如 0056、00878、2412)", "name": "中文名稱", '
+            '"reason": "40 字內說明它與條件的關聯(例如殖利率水準、配息頻率、產業屬性),只描述客觀特性"}\n'
+            "  ]\n"
+            "}\n"
+            "硬性限制:全程繁體中文;只列你確定真實存在的台股代號,不確定的寧可不列;"
+            "reason 不得出現「建議」二字,也不得出現「買進、賣出、加碼、減碼、停損、停利、攤平、進場、出場、獲利了結」等任何引導用戶操作的字眼;"
+            "不得保證報酬或未來配息;若用戶的條件跟找股票無關,items 回傳空陣列。"
+        )
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "gpt-4o-mini",
+                        "messages": [
+                            {"role": "system", "content": "你是一個專門輸出 JSON 格式、嚴謹的台股資料整理助手,只列真實存在的代號。"},
+                            {"role": "user", "content": prompt}
+                        ],
+                        "response_format": {"type": "json_object"},
+                        "temperature": 0.3
+                    },
+                    timeout=12.0
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    import json
+                    result = json.loads(data["choices"][0]["message"]["content"])
+                    items = result.get("items")
+                    if isinstance(items, list):
+                        logger.info(f"Successfully generated stock screen via GPT-4o-mini for query: {query}")
+                        return items
+                else:
+                    logger.warning(f"OpenAI returned error code {response.status_code}: {response.text}")
+        except Exception as e:
+            logger.error(f"Failed to fetch stock screen from OpenAI: {str(e)}")
+
+        return None
+
+    @classmethod
     async def fetch_card_draw_message(
         cls,
         avg_change: float,

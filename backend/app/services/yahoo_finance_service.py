@@ -74,3 +74,16 @@ class YahooFinanceService:
         except Exception as e:
             logger.error(f"Failed to fetch live price for {symbol} via Yahoo Finance: {str(e)}")
             return None
+
+    @staticmethod
+    def fetch_display_name(symbol: str) -> Optional[str]:
+        """取股票名稱(Yahoo 對台股多半只有英文名;僅在證交所目錄查不到時當備援)。"""
+        for suffix in (".TW", ".TWO"):
+            try:
+                info = yf.Ticker(f"{symbol}{suffix}").get_info()
+                name = info.get("longName") or info.get("shortName")
+                if name:
+                    return str(name).strip()
+            except Exception:
+                continue
+        return None

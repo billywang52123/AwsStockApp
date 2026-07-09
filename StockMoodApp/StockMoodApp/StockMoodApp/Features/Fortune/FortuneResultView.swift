@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - 12c · 籤詩結果(直式籤詩紙 + 三欄位)+ 13c 頂部狀態條
 struct FortuneResultView: View {
     let fortune: FortuneResult
+    var onReplay: (() -> Void)? = nil
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -39,6 +40,24 @@ struct FortuneResultView: View {
                     .lineSpacing(5)
                     .frame(maxWidth: .infinity)
                     .padding(.top, 16)
+
+                // 重看儀式(同一支籤,不重抽)
+                if let onReplay {
+                    Button {
+                        HapticManager.shared.triggerSelection()
+                        onReplay()
+                    } label: {
+                        Text("重看開籤動畫 (測試)")
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .foregroundColor(AppColor.inkQuaternary)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 14)
+                            .background(Color.black.opacity(0.03))
+                            .clipShape(Capsule())
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 8)
+                }
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 40)
@@ -303,83 +322,5 @@ extension FortuneLevel {
         case .kyo: return "今天逆風"
         case .daikyo: return "先別做決定"
         }
-    }
-}
-
-// MARK: - 13a/13b · 開籤瞬間光效(金光爆閃 / 黑煙,強度隨籤等,約 1.8s)
-struct FortuneRevealEffect: View {
-    let level: FortuneLevel
-    @State private var animating = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        if reduceMotion {
-            EmptyView()
-        } else if level.isAuspicious {
-            goldBurst
-        } else {
-            smokeRise
-        }
-    }
-
-    // 金光:全螢幕光暈 + 旋轉光苒(強度 1–3)
-    private var goldBurst: some View {
-        let intensity = Double(level.revealIntensity)  // 1–3
-        return ZStack {
-            RadialGradient(
-                colors: [
-                    Color(hex: "FFF4CD").opacity(0.28 * intensity),
-                    Color(hex: "FFE296").opacity(0.10 * intensity),
-                    .clear,
-                ],
-                center: .center, startRadius: 10, endRadius: 420
-            )
-            .ignoresSafeArea()
-            .opacity(animating ? 1 : 0)
-
-            // 旋轉光苒(角度漸層扇形)
-            AngularGradient(
-                colors: [
-                    Color(hex: "FFE296").opacity(0.0),
-                    Color(hex: "FFE296").opacity(0.14 * intensity),
-                    Color(hex: "FFE296").opacity(0.0),
-                    Color(hex: "FFE296").opacity(0.14 * intensity),
-                    Color(hex: "FFE296").opacity(0.0),
-                ],
-                center: .center
-            )
-            .ignoresSafeArea()
-            .rotationEffect(.degrees(animating ? 40 : 0))
-            .opacity(animating ? 0.9 : 0)
-        }
-        .animation(.easeOut(duration: 1.6), value: animating)
-        .onAppear { animating = true }
-    }
-
-    // 黑煙:低飽和煙團自下而上,畫面微轉暗(不閃爍、不搖晃)
-    private var smokeRise: some View {
-        let intensity = Double(-level.revealIntensity)  // 1–3
-        return ZStack {
-            Color(hex: "3A3733").opacity(0.06 * intensity)
-                .ignoresSafeArea()
-                .opacity(animating ? 1 : 0)
-
-            GeometryReader { geo in
-                ForEach(0..<Int(intensity) + 1, id: \.self) { index in
-                    Ellipse()
-                        .fill(Color(hex: "5C5850").opacity(0.10 + 0.04 * intensity))
-                        .frame(width: 150 + CGFloat(index) * 60, height: 100 + CGFloat(index) * 36)
-                        .blur(radius: 28)
-                        .position(
-                            x: geo.size.width * [0.3, 0.7, 0.5, 0.8][index % 4],
-                            y: geo.size.height * (animating ? 0.18 : 0.95) + CGFloat(index) * 40
-                        )
-                        .animation(.easeOut(duration: 1.9).delay(Double(index) * 0.18), value: animating)
-                }
-            }
-            .ignoresSafeArea()
-        }
-        .animation(.easeOut(duration: 1.2), value: animating)
-        .onAppear { animating = true }
     }
 }

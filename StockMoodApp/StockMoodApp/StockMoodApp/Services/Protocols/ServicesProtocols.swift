@@ -28,6 +28,8 @@ protocol PrivacyServiceProtocol {
 
 protocol StockServiceProtocol {
     func searchStocks(keyword: String) async throws -> [Stock]
+    /// AI 找股:自然語言條件(如「殖利率 5% 以上的高股息」)→ 已驗證的候選名單
+    func aiScreenStocks(query: String) async throws -> AiScreenResult
     func getDailyPrice(symbol: String) async throws -> StockDailyPrice
     func getRecommendations(symbol: String) async throws -> [RecommendedStock]
 }
