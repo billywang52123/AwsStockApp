@@ -32,11 +32,7 @@ struct AppRouterView: View {
                 
             case .login:
                 LoginView {
-                    if AppPreferenceStore.shared.isOnboardingCompleted {
-                        currentRoute = .mainApp
-                    } else {
-                        currentRoute = .onboarding
-                    }
+                    Task { await routeAfterLogin() }
                 }
                 
             case .onboarding:
@@ -68,5 +64,24 @@ struct AppRouterView: View {
             // Upgrades from token-less builds: silently obtain a session token
             await AuthService.shared.ensureSessionToken()
         }
+        // 設定頁登出 → 回登入頁
+        .onReceive(NotificationCenter.default.publisher(for: .authSessionDidEnd)) { _ in
+            currentRoute = .login
+        }
+    }
+
+    /// 登入成功後的路由:本機旗標沒有時,再問雲端有沒有這個帳號的資料
+    /// (換機/重裝的老用戶),有就直接進主畫面,不再重問初次問題。
+    private func routeAfterLogin() async {
+        if AppPreferenceStore.shared.isOnboardingCompleted {
+            currentRoute = .mainApp
+            return
+        }
+        if await AuthService.shared.hasExistingRemoteData() {
+            AppPreferenceStore.shared.isOnboardingCompleted = true
+            currentRoute = .mainApp
+            return
+        }
+        currentRoute = .onboarding
     }
 }

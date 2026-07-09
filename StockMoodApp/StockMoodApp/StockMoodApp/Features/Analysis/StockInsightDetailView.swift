@@ -4,6 +4,8 @@ import SwiftUI
 struct StockInsightDetailView: View {
     let symbol: String
     let name: String
+    /// 觀察清單(11f)點入時改為「觀察風向」;持股詳情維持「白話總結」
+    var plainSummaryLabel: String = "白話總結"
     @StateObject private var viewModel = StockInsightDetailViewModel()
 
     var body: some View {
@@ -45,8 +47,8 @@ struct StockInsightDetailView: View {
                         }
                         .padding(.top, 10)
 
-                        // 白話總結(最後進場)
-                        PlainSummaryBlock(content: detail.plainSummary)
+                        // 白話總結 / 觀察風向(最後進場)
+                        PlainSummaryBlock(label: plainSummaryLabel, content: detail.plainSummary)
                             .padding(.top, 12)
                             .entrance(index: detail.signals.count + 2, stagger: 0.09)
 

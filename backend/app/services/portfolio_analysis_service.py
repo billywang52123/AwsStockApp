@@ -304,7 +304,8 @@ class StockInsightService:
         holdings = _load_holdings(self.db, user_id)
         holding = next((h for h in holdings if h.symbol == symbol), None)
         if holding is None:
-            return None
+            # 未持有(觀察清單 11f 點入):同一套規則,但持倉視角換成觀察視角
+            return self._watch_insight_detail(symbol)
 
         outlook, score = self._outlook(holding)
         market_change = get_live_market_change(self.db)
@@ -320,6 +321,46 @@ class StockInsightService:
             "summary": self._summary(holding, market_change),
             "signals": signals,
             "plain_summary": self._plain_summary(holding, outlook),
+        }
+
+    def _watch_insight_detail(self, symbol: str) -> Optional[dict]:
+        """觀察股(未持有)的觀點詳情:價格/大盤訊號照舊,
+        第三張「你的持倉」訊號卡換成觀察視角;查無此股回 None(404)。"""
+        stock_repo = StockRepository(self.db)
+        stock = stock_repo.get_stock(symbol)
+        if stock is None:
+            return None
+        price = stock_repo.get_daily_price(symbol)
+
+        class _WatchStub:
+            id = None
+            shares = None
+            cost_price = None
+
+        stub = _WatchStub()
+        stub.symbol = symbol
+        h = _Holding(stub, stock, price)
+
+        outlook, score = self._outlook(h)
+        market_change = get_live_market_change(self.db)
+        signals = self._signals(h, market_change)
+        signals[-1] = {
+            "source": "觀察中 · 未持有",
+            "direction": "neutral",
+            "direction_label": "→ 中性觀望",
+            "text": "這檔還在觀察清單,不計入市值與損益;可以先留意量能與產業消息,節奏由你決定。",
+        }
+
+        return {
+            "symbol": h.symbol,
+            "name": h.name,
+            "industry": h.industry,
+            "outlook": outlook,
+            "outlook_score": score,
+            "stance_label": self._stance_label(h),
+            "summary": self._summary(h, market_change),
+            "signals": signals,
+            "plain_summary": self._plain_summary(h, outlook),
         }
 
     # ── 規則 ────────────────────────────────────────────────

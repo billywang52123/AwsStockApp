@@ -10,7 +10,7 @@
 <helmet>
 <meta name="design_doc_mode" content="canvas">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&amp;family=Noto+Serif+TC:wght@600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&amp;family=Noto+Serif+TC:wght@600;700;900&amp;family=Ma+Shan+Zheng&amp;family=ZCOOL+XiaoWei&amp;display=swap" rel="stylesheet">
 <style>
 body{margin:0;background:#EBE9E3;}
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
@@ -23,8 +23,246 @@ body{margin:0;background:#EBE9E3;}
 @keyframes blindFlash{0%{opacity:0}10%{opacity:1}38%{opacity:0.85}100%{opacity:0.22}}
 @keyframes glowPulse{0%,100%{opacity:0.5;transform:scale(1)}50%{opacity:0.95;transform:scale(1.1)}}
 @keyframes smokeUp{0%{transform:translateY(26px) scale(0.6);opacity:0}25%{opacity:0.5}100%{transform:translateY(-130px) scale(1.8);opacity:0}}
+@keyframes drift{0%{transform:translateY(30px) translateX(0) scale(0.5);opacity:0}20%{opacity:var(--o,0.4)}80%{opacity:calc(var(--o,0.4)*0.5)}100%{transform:translateY(-220px) translateX(var(--sx,20px)) scale(2.1);opacity:0}}
+@keyframes emberGlow{0%,100%{opacity:0.55;filter:blur(18px)}50%{opacity:1;filter:blur(26px)}}
+@keyframes rainfall{0%{transform:translateY(-140px);opacity:0}8%{opacity:1}92%{opacity:1}100%{transform:translateY(920px);opacity:0}}
+@keyframes dripgrow{0%{transform:translateY(0) scaleY(0.2);opacity:0}30%{opacity:1}70%{transform:translateY(0) scaleY(1);opacity:1}100%{transform:translateY(360px) scaleY(1.1);opacity:0}}
+@keyframes flick{0%,100%{opacity:0.92;text-shadow:0 0 18px var(--g1),0 0 42px var(--g2)}45%{opacity:1;text-shadow:0 0 26px var(--g1),0 0 66px var(--g2)}70%{opacity:0.85;text-shadow:0 0 14px var(--g1),0 0 34px var(--g2)}}
 </style>
 </helmet>
+
+<section style="padding:60px 60px 20px;display:flex;flex-direction:column;gap:24px;font-family:'Noto Sans TC','PingFang TC',sans-serif">
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="font-size:24px;font-weight:900;color:#3A3733">新功能畫面 · 第十二輪</div>
+    <div style="font-size:14px;color:#8A857C"><a href="#14a" style="color:#7B7FD4">14a 求籤入口</a> · <a href="#14b" style="color:#7B7FD4">14b 搖籤中</a> · <a href="#14c" style="color:#7B7FD4">14c 大凶籤詩</a> · <a href="#14d" style="color:#7B7FD4">14d 大吉籤詩</a> — 老籤紙 · 發光書法 · 煙/光從籤內漂出(參考圖風格)</div>
+  </div>
+  <div style="display:flex;gap:36px;flex-wrap:wrap;align-items:flex-start;width:1840px">
+
+    <!-- 14a 求籤入口 -->
+    <div id="14a" data-screen-label="14a 求籤入口" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px">14a</div><div style="font-size:14px;font-weight:600;color:#8A857C">求籤入口 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">暗場 · 琥珀微光 · 籤筒待機微晃</span></div></div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="height:100%;box-sizing:border-box;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 42%,#231A10,#120C06 62%,#080503);font-family:'Noto Sans TC','PingFang TC',sans-serif">
+          <div style="position:absolute;top:38%;left:50%;width:340px;height:340px;margin:-170px 0 0 -170px;border-radius:50%;background:radial-gradient(circle,rgba(206,150,60,0.28),transparent 66%);animation:emberGlow 4.5s ease-in-out infinite;--g1:transparent;--g2:transparent"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;top:0;pointer-events:none">
+            <div style="position:absolute;left:44%;top:52%;width:46px;height:46px;border-radius:50%;background:rgba(210,170,110,0.22);filter:blur(12px);--o:0.3;--sx:-24px;animation:drift 8s ease-in infinite"></div>
+            <div style="position:absolute;left:52%;top:56%;width:38px;height:38px;border-radius:50%;background:rgba(210,170,110,0.2);filter:blur(11px);--o:0.28;--sx:22px;animation:drift 9.5s ease-in 1.6s infinite"></div>
+          </div>
+          <div style="position:relative;height:100%;display:flex;flex-direction:column;align-items:center;padding:92px 28px 0">
+            <div style="font-family:'Ma Shan Zheng',cursive;font-size:40px;color:#E9C77E;letter-spacing:8px;text-shadow:0 0 20px rgba(214,168,80,0.6)">今日求籤</div>
+            <div style="margin-top:8px;font-size:12.5px;color:#9C8A66;letter-spacing:2px">7 月 9 日 · 依你的 7 檔持股問運勢</div>
+            <div style="margin-top:40px;position:relative;width:150px;height:230px;animation:omiRock 3.4s ease-in-out infinite;transform-origin:50% 92%">
+              <div style="position:absolute;top:24px;left:0;right:0;bottom:0;background:linear-gradient(160deg,#4A1712,#230B08);border-radius:18px 18px 24px 24px;box-shadow:0 24px 46px rgba(0,0,0,0.6),inset 0 2px 8px rgba(255,180,120,0.12);z-index:1"></div>
+              <div style="position:absolute;left:0;right:0;bottom:18px;height:7px;background:rgba(196,148,70,0.5);z-index:1"></div>
+              <div style="position:absolute;top:0;left:7px;right:7px;height:32px;background:linear-gradient(180deg,#CFA05A,#A9772F);border-radius:12px 12px 7px 7px;box-shadow:0 5px 12px rgba(0,0,0,0.4);z-index:2"></div>
+              <div style="position:absolute;top:58px;left:50%;margin-left:-26px;width:52px;height:120px;background:#EEE3C8;border-radius:8px;border:1.5px solid #C49446;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#7A1E14;letter-spacing:8px;z-index:2">安心籤</div>
+            </div>
+            <div style="margin-top:36px;font-size:13.5px;color:#B7A57E;text-align:center;line-height:1.8">誠心搖動籤筒<br>抽出今日持股的吉凶籤詩</div>
+            <div style="margin-top:24px;align-self:stretch;height:54px;border-radius:14px;background:linear-gradient(180deg,#C99A4A,#A2762E);box-shadow:0 12px 26px rgba(150,100,30,0.4);display:flex;align-items:center;justify-content:center;color:#2A1908;font-size:17px;font-weight:800;letter-spacing:3px;font-family:'Noto Serif TC',serif">搖 籤 問 卜</div>
+            <div style="margin-top:12px;font-size:11.5px;color:#7C6C4E">每日一籤 · 收盤後 14:30 更新</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 14b 搖籤中 -->
+    <div id="14b" data-screen-label="14b 搖籤中" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px">14b</div><div style="font-size:14px;font-weight:600;color:#8A857C">搖籤中 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">籤筒傾斜高頻搖動 · 煙氣自筒口漂出</span></div></div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="height:100%;box-sizing:border-box;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 46%,#1E1610,#0F0A06 62%,#070402);font-family:'Noto Sans TC','PingFang TC',sans-serif">
+          <div style="position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none">
+            <div style="position:absolute;left:46%;top:40%;width:48px;height:48px;border-radius:50%;background:rgba(150,140,130,0.3);filter:blur(12px);--o:0.4;--sx:-26px;animation:drift 6s ease-in infinite"></div>
+            <div style="position:absolute;left:52%;top:42%;width:40px;height:40px;border-radius:50%;background:rgba(160,150,140,0.28);filter:blur(11px);--o:0.36;--sx:24px;animation:drift 7s ease-in 1s infinite"></div>
+            <div style="position:absolute;left:48%;top:44%;width:44px;height:44px;border-radius:50%;background:rgba(140,130,120,0.28);filter:blur(12px);--o:0.34;--sx:-10px;animation:drift 6.6s ease-in 2s infinite"></div>
+          </div>
+          <div style="position:relative;height:100%;display:flex;flex-direction:column;align-items:center;padding:104px 28px 0">
+            <div style="position:relative;width:150px;height:240px;transform:rotate(24deg)">
+              <div style="position:absolute;inset:0;animation:omiShake 0.5s ease-in-out infinite;transform-origin:50% 80%">
+                <div style="position:absolute;top:-58px;left:50%;margin-left:-8px;width:16px;height:92px;border-radius:8px 8px 4px 4px;background:#EEE3C8;border:1.5px solid #D8C299;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;box-shadow:0 8px 16px rgba(0,0,0,0.4);animation:stickPop 2.1s ease-out infinite">
+                  <div style="width:100%;height:28px;border-radius:6px 6px 0 0;background:#7A1E14;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;font-family:'Noto Serif TC',serif;font-size:9px;font-weight:700;color:#EEE3C8">十四</div>
+                </div>
+                <div style="position:absolute;top:24px;left:0;right:0;bottom:0;background:linear-gradient(160deg,#4A1712,#230B08);border-radius:18px 18px 24px 24px;box-shadow:0 24px 46px rgba(0,0,0,0.6);z-index:1"></div>
+                <div style="position:absolute;top:0;left:7px;right:7px;height:32px;background:linear-gradient(180deg,#CFA05A,#A9772F);border-radius:12px 12px 7px 7px;z-index:2"></div>
+                <div style="position:absolute;top:58px;left:50%;margin-left:-26px;width:52px;height:120px;background:#EEE3C8;border-radius:8px;border:1.5px solid #C49446;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#7A1E14;letter-spacing:8px;z-index:2">安心籤</div>
+              </div>
+            </div>
+            <div style="margin-top:60px;font-family:'Ma Shan Zheng',cursive;font-size:30px;color:#E4C079;letter-spacing:8px;text-shadow:0 0 18px rgba(214,168,80,0.55)">搖籤中…</div>
+            <div style="margin-top:10px;font-size:12.5px;color:#9C8A66;letter-spacing:1px">正依你的持股與今日市場求卜</div>
+            <div style="margin-top:18px;display:flex;gap:7px">
+              <div style="width:7px;height:7px;border-radius:50%;background:#D6A850;animation:floaty 1.1s ease-in-out infinite"></div>
+              <div style="width:7px;height:7px;border-radius:50%;background:#B98E3E;animation:floaty 1.1s ease-in-out 0.18s infinite"></div>
+              <div style="width:7px;height:7px;border-radius:50%;background:#8A6A2E;animation:floaty 1.1s ease-in-out 0.36s infinite"></div>
+            </div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 14c 大凶籤詩 -->
+    <div id="14c" data-screen-label="14c 大凶籤詩" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px">14c</div><div style="font-size:14px;font-weight:600;color:#8A857C">大凶籤詩 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">黑底 · 血紅發光書法 · 黑煙自籤內漂出</span></div></div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="height:100%;box-sizing:border-box;position:relative;overflow-y:auto;overflow-x:hidden;background:radial-gradient(circle at 50% 20%,#1A0605,#0C0403 55%,#050202);font-family:'Noto Sans TC','PingFang TC',sans-serif">
+          <div style="position:absolute;top:60px;left:50%;width:300px;height:300px;margin-left:-150px;border-radius:50%;background:radial-gradient(circle,rgba(190,30,20,0.4),transparent 66%);animation:emberGlow 4s ease-in-out infinite"></div>
+          <div style="position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden">
+            <div style="position:absolute;top:-140px;left:12%;width:2px;height:64px;background:linear-gradient(rgba(10,4,4,0),rgba(14,5,5,0.75));animation:rainfall 1.5s linear 0s infinite"></div>
+            <div style="position:absolute;top:-140px;left:26%;width:2px;height:82px;background:linear-gradient(rgba(10,4,4,0),rgba(16,6,6,0.8));animation:rainfall 1.9s linear 0.4s infinite"></div>
+            <div style="position:absolute;top:-140px;left:38%;width:3px;height:56px;background:linear-gradient(rgba(10,4,4,0),rgba(20,6,6,0.72));animation:rainfall 1.6s linear 0.9s infinite"></div>
+            <div style="position:absolute;top:-140px;left:50%;width:2px;height:74px;background:linear-gradient(rgba(10,4,4,0),rgba(14,5,5,0.8));animation:rainfall 2.1s linear 0.2s infinite"></div>
+            <div style="position:absolute;top:-140px;left:62%;width:2px;height:60px;background:linear-gradient(rgba(10,4,4,0),rgba(18,6,6,0.75));animation:rainfall 1.7s linear 1.2s infinite"></div>
+            <div style="position:absolute;top:-140px;left:74%;width:3px;height:88px;background:linear-gradient(rgba(10,4,4,0),rgba(16,5,5,0.8));animation:rainfall 2s linear 0.6s infinite"></div>
+            <div style="position:absolute;top:-140px;left:86%;width:2px;height:66px;background:linear-gradient(rgba(10,4,4,0),rgba(14,5,5,0.72));animation:rainfall 1.8s linear 1.5s infinite"></div>
+            <div style="position:absolute;top:-140px;left:19%;width:2px;height:52px;background:linear-gradient(rgba(10,4,4,0),rgba(20,7,7,0.7));animation:rainfall 1.4s linear 2s infinite"></div>
+            <div style="position:absolute;top:0;left:30%;width:6px;height:24px;border-radius:0 0 60% 60%;background:linear-gradient(rgba(8,3,3,0.2),rgba(14,5,5,0.85));transform-origin:top;animation:dripgrow 3.2s ease-in 0.3s infinite"></div>
+            <div style="position:absolute;top:0;left:66%;width:5px;height:20px;border-radius:0 0 60% 60%;background:linear-gradient(rgba(8,3,3,0.2),rgba(16,5,5,0.85));transform-origin:top;animation:dripgrow 3.8s ease-in 1.4s infinite"></div>
+            <div style="position:absolute;top:0;left:48%;width:6px;height:28px;border-radius:0 0 60% 60%;background:linear-gradient(rgba(8,3,3,0.2),rgba(20,6,6,0.9));transform-origin:top;animation:dripgrow 3.4s ease-in 2.4s infinite"></div>
+          </div>
+          <div style="position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:3">
+            <div style="position:absolute;left:20%;top:44%;width:52px;height:52px;border-radius:50%;background:rgba(30,26,24,0.55);filter:blur(13px);--o:0.5;--sx:-30px;animation:drift 8s ease-in infinite"></div>
+            <div style="position:absolute;left:74%;top:46%;width:48px;height:48px;border-radius:50%;background:rgba(34,28,26,0.5);filter:blur(12px);--o:0.46;--sx:30px;animation:drift 9s ease-in 1.4s infinite"></div>
+            <div style="position:absolute;left:32%;top:52%;width:44px;height:44px;border-radius:50%;background:rgba(28,24,22,0.5);filter:blur(12px);--o:0.44;--sx:-18px;animation:drift 7.5s ease-in 2.6s infinite"></div>
+            <div style="position:absolute;left:60%;top:54%;width:50px;height:50px;border-radius:50%;background:rgba(36,20,18,0.5);filter:blur(13px);--o:0.48;--sx:22px;animation:drift 8.8s ease-in 3.4s infinite"></div>
+            <div style="position:absolute;left:46%;top:38%;width:40px;height:40px;border-radius:50%;background:rgba(30,24,22,0.45);filter:blur(11px);--o:0.4;--sx:8px;animation:drift 7s ease-in 4.4s infinite"></div>
+          </div>
+          <div style="position:relative;z-index:2;padding:78px 20px 34px;display:flex;flex-direction:column;align-items:center">
+            <div style="font-family:'Ma Shan Zheng',cursive;font-size:104px;line-height:0.92;color:#D6301F;letter-spacing:8px;--g1:rgba(214,48,31,0.9);--g2:rgba(150,20,12,0.8);animation:flick 3.4s ease-in-out infinite">大凶</div>
+            <div style="margin-top:6px;font-size:12.5px;color:#B8756A;letter-spacing:5px">今日綜合運勢 · 諸事不宜</div>
+
+            <div style="margin-top:22px;width:100%;position:relative;background:linear-gradient(150deg,#E7DABB,#D7C39C 55%,#C6AE80);border-radius:6px;box-shadow:0 18px 40px rgba(0,0,0,0.6);padding:7px">
+              <div style="position:absolute;inset:0;border-radius:6px;background:radial-gradient(circle at 22% 12%,rgba(120,60,20,0.14),transparent 40%),radial-gradient(circle at 82% 78%,rgba(90,50,20,0.16),transparent 42%);pointer-events:none"></div>
+              <div style="position:relative;border:2px solid #7A1E14;border-radius:4px;padding:4px">
+                <div style="border:1px solid rgba(122,30,20,0.55);border-radius:3px;padding:14px 12px 16px;display:flex;flex-direction:column;gap:13px">
+                  <div style="align-self:center;background:#7A1E14;color:#EEE3C8;font-family:'Noto Serif TC',serif;font-weight:700;font-size:13px;letter-spacing:4px;padding:4px 18px;border-radius:2px">安心籤 · 第十四籤</div>
+
+                  <!-- 持股與狀態 -->
+                  <div style="font-family:'Noto Serif TC',serif;font-size:13.5px;font-weight:700;color:#7A1E14;letter-spacing:3px;text-align:center">持股與狀態</div>
+                  <div style="display:flex;flex-direction:column">
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 2px"><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3A2A1E">台積電</div><div style="font-size:11px;color:#8A7458">法說會後外資調節</div></div><div style="font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#B0261B;flex-shrink:0">凶</div></div>
+                    <div style="border-top:1px solid rgba(122,30,20,0.18)"></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 2px"><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3A2A1E">聯發科</div><div style="font-size:11px;color:#8A7458">短線跌破均線</div></div><div style="font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#8E1A11;flex-shrink:0">大凶</div></div>
+                    <div style="border-top:1px solid rgba(122,30,20,0.18)"></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 2px"><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3A2A1E">長榮</div><div style="font-size:11px;color:#8A7458">航運運價回落</div></div><div style="font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#B0261B;flex-shrink:0">凶</div></div>
+                    <div style="border-top:1px solid rgba(122,30,20,0.18)"></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 2px"><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3A2A1E">元大台灣50</div><div style="font-size:11px;color:#8A7458">隨大盤走弱</div></div><div style="font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#7A6A88;flex-shrink:0">小凶</div></div>
+                    <div style="border-top:1px solid rgba(122,30,20,0.18)"></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 2px"><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3A2A1E">鴻海</div><div style="font-size:11px;color:#8A7458">觀望為宜</div></div><div style="font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#7A6A88;flex-shrink:0">小凶</div></div>
+                    <div style="border-top:1px solid rgba(122,30,20,0.18)"></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 2px"><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3A2A1E">中華電</div><div style="font-size:11px;color:#8A7458">防禦性抗跌</div></div><div style="font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#9A7A2E;flex-shrink:0">小吉</div></div>
+                  </div>
+
+                  <div style="border-top:1.5px solid rgba(122,30,20,0.35)"></div>
+
+                  <!-- 說明 -->
+                  <div style="font-family:'Noto Serif TC',serif;font-size:13.5px;font-weight:700;color:#7A1E14;letter-spacing:3px;text-align:center">說明</div>
+                  <div style="font-size:13px;color:#4A3A2A;line-height:1.8">今日市場恐上沖下洗,你的持股多數承壓、波動偏大。整體氛圍偏空,<b style="color:#7A1E14">不宜追高進場</b>,守好現有部位、少動為宜。</div>
+                  <div style="display:flex;align-items:center;gap:9px;background:rgba(122,30,20,0.08);border-radius:8px;padding:8px 11px">
+                    <div style="font-size:12px;font-weight:700;color:#7A1E14;flex-shrink:0">適合進場?</div>
+                    <div style="font-family:'Noto Serif TC',serif;font-size:12px;font-weight:800;color:#EEE3C8;background:#7A1E14;padding:3px 11px;border-radius:999px;flex-shrink:0">不宜進場</div>
+                    <div style="font-size:11.5px;color:#5A4633;line-height:1.5">今日按兵不動就是最好的操作</div>
+                  </div>
+
+                  <div style="border-top:1.5px solid rgba(122,30,20,0.35)"></div>
+
+                  <!-- 注意事項 -->
+                  <div style="font-family:'Noto Serif TC',serif;font-size:13px;font-weight:700;color:#7A1E14;letter-spacing:3px;text-align:center">注意事項</div>
+                  <div style="display:flex;flex-direction:column;gap:7px">
+                    <div style="display:flex;gap:8px;align-items:flex-start"><div style="width:5px;height:5px;border-radius:50%;background:#B0261B;margin-top:7px;flex-shrink:0"></div><div style="font-size:12.5px;color:#4A3A2A;line-height:1.7">美股科技股昨夜重挫,台股開盤恐低開跳空</div></div>
+                    <div style="display:flex;gap:8px;align-items:flex-start"><div style="width:5px;height:5px;border-radius:50%;background:#B0261B;margin-top:7px;flex-shrink:0"></div><div style="font-size:12.5px;color:#4A3A2A;line-height:1.7">今晚美國 CPI 公布,盤中波動恐再放大</div></div>
+                    <div style="display:flex;gap:8px;align-items:flex-start"><div style="width:5px;height:5px;border-radius:50%;background:#B0261B;margin-top:7px;flex-shrink:0"></div><div style="font-size:12.5px;color:#4A3A2A;line-height:1.7">融資維持率偏低者,留意是否接近追繳線</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:16px;text-align:center;font-size:10.5px;color:#7A5A52;line-height:1.6">籤詩由 AI 依你的持股與市場資訊生成<br>僅供情緒陪伴與資訊參考,不構成投資建議</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+    <!-- 14d 大吉籤詩 -->
+    <div id="14d" data-screen-label="14d 大吉籤詩" style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><div style="background:#7B7FD4;color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:999px">14d</div><div style="font-size:14px;font-weight:600;color:#8A857C">大吉籤詩 <span style="font-family:monospace;font-size:11px;color:#B4AFA5">深金底 · 燦金發光書法 · 金光自籤內漂出</span></div></div>
+      <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402,874">
+        <div style="height:100%;box-sizing:border-box;position:relative;overflow-y:auto;overflow-x:hidden;background:radial-gradient(circle at 50% 20%,#2A1C08,#160E04 55%,#0A0602);font-family:'Noto Sans TC','PingFang TC',sans-serif">
+          <div style="position:absolute;top:56px;left:50%;width:320px;height:320px;margin-left:-160px;border-radius:50%;background:radial-gradient(circle,rgba(230,180,70,0.42),transparent 66%);animation:emberGlow 3.6s ease-in-out infinite"></div>
+          <div style="position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden">
+            <div style="position:absolute;top:-140px;left:14%;width:2px;height:64px;background:linear-gradient(rgba(240,200,110,0),rgba(240,205,120,0.7));animation:rainfall 1.7s linear 0s infinite"></div>
+            <div style="position:absolute;top:-140px;left:28%;width:2px;height:80px;background:linear-gradient(rgba(240,200,110,0),rgba(245,210,130,0.75));animation:rainfall 2.1s linear 0.5s infinite"></div>
+            <div style="position:absolute;top:-140px;left:40%;width:3px;height:54px;background:linear-gradient(rgba(240,200,110,0),rgba(250,215,135,0.68));animation:rainfall 1.7s linear 1s infinite"></div>
+            <div style="position:absolute;top:-140px;left:52%;width:2px;height:74px;background:linear-gradient(rgba(240,200,110,0),rgba(240,205,120,0.75));animation:rainfall 2.3s linear 0.25s infinite"></div>
+            <div style="position:absolute;top:-140px;left:64%;width:2px;height:58px;background:linear-gradient(rgba(240,200,110,0),rgba(248,212,130,0.7));animation:rainfall 1.9s linear 1.3s infinite"></div>
+            <div style="position:absolute;top:-140px;left:76%;width:3px;height:86px;background:linear-gradient(rgba(240,200,110,0),rgba(245,208,125,0.75));animation:rainfall 2.1s linear 0.7s infinite"></div>
+            <div style="position:absolute;top:-140px;left:88%;width:2px;height:64px;background:linear-gradient(rgba(240,200,110,0),rgba(240,205,120,0.68));animation:rainfall 1.9s linear 1.6s infinite"></div>
+            <div style="position:absolute;top:-140px;left:21%;width:2px;height:50px;background:linear-gradient(rgba(240,200,110,0),rgba(250,218,140,0.66));animation:rainfall 1.5s linear 2.1s infinite"></div>
+            <div style="position:absolute;top:0;left:32%;width:6px;height:24px;border-radius:0 0 60% 60%;background:linear-gradient(rgba(240,200,110,0.2),rgba(245,208,125,0.85));transform-origin:top;animation:dripgrow 3.4s ease-in 0.4s infinite"></div>
+            <div style="position:absolute;top:0;left:68%;width:5px;height:20px;border-radius:0 0 60% 60%;background:linear-gradient(rgba(240,200,110,0.2),rgba(248,212,130,0.85));transform-origin:top;animation:dripgrow 3.9s ease-in 1.5s infinite"></div>
+            <div style="position:absolute;top:0;left:50%;width:6px;height:28px;border-radius:0 0 60% 60%;background:linear-gradient(rgba(240,200,110,0.2),rgba(250,215,135,0.9));transform-origin:top;animation:dripgrow 3.6s ease-in 2.5s infinite"></div>
+          </div>
+          <div style="position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:3">
+            <div style="position:absolute;left:22%;top:44%;width:40px;height:40px;border-radius:50%;background:rgba(255,220,130,0.5);filter:blur(12px);--o:0.55;--sx:-28px;animation:drift 7.5s ease-in infinite"></div>
+            <div style="position:absolute;left:74%;top:46%;width:36px;height:36px;border-radius:50%;background:rgba(255,225,140,0.48);filter:blur(11px);--o:0.5;--sx:28px;animation:drift 8.6s ease-in 1.2s infinite"></div>
+            <div style="position:absolute;left:34%;top:52%;width:32px;height:32px;border-radius:50%;background:rgba(255,230,150,0.5);filter:blur(10px);--o:0.5;--sx:-16px;animation:drift 7s ease-in 2.4s infinite"></div>
+            <div style="position:absolute;left:62%;top:54%;width:38px;height:38px;border-radius:50%;background:rgba(255,215,120,0.5);filter:blur(12px);--o:0.52;--sx:20px;animation:drift 8.2s ease-in 3.2s infinite"></div>
+            <div style="position:absolute;left:48%;top:38%;width:30px;height:30px;border-radius:50%;background:rgba(255,235,160,0.45);filter:blur(10px);--o:0.46;--sx:6px;animation:drift 6.6s ease-in 4.2s infinite"></div>
+          </div>
+          <div style="position:relative;z-index:2;padding:78px 20px 34px;display:flex;flex-direction:column;align-items:center">
+            <div style="font-family:'Ma Shan Zheng',cursive;font-size:104px;line-height:0.92;color:#F0C860;letter-spacing:8px;--g1:rgba(240,200,96,0.95);--g2:rgba(200,150,40,0.85);animation:flick 3.4s ease-in-out infinite">大吉</div>
+            <div style="margin-top:6px;font-size:12.5px;color:#C9A75E;letter-spacing:5px">今日綜合運勢 · 諸事順遂</div>
+
+            <div style="margin-top:22px;width:100%;position:relative;background:linear-gradient(150deg,#EFE4C4,#E1D0A6 55%,#D2BC8A);border-radius:6px;box-shadow:0 18px 40px rgba(0,0,0,0.55),0 0 40px rgba(214,168,80,0.25);padding:7px">
+              <div style="position:absolute;inset:0;border-radius:6px;background:radial-gradient(circle at 22% 12%,rgba(150,110,30,0.14),transparent 40%),radial-gradient(circle at 82% 78%,rgba(130,95,25,0.16),transparent 42%);pointer-events:none"></div>
+              <div style="position:relative;border:2px solid #9A6B1E;border-radius:4px;padding:4px">
+                <div style="border:1px solid rgba(154,107,30,0.55);border-radius:3px;padding:14px 12px 16px;display:flex;flex-direction:column;gap:13px">
+                  <div style="align-self:center;background:#9A6B1E;color:#F7EDCF;font-family:'Noto Serif TC',serif;font-weight:700;font-size:13px;letter-spacing:4px;padding:4px 18px;border-radius:2px">安心籤 · 第一籤</div>
+
+                  <!-- 持股與狀態 -->
+                  <div style="font-family:'Noto Serif TC',serif;font-size:13.5px;font-weight:700;color:#9A6B1E;letter-spacing:3px;text-align:center">持股與狀態</div>
+                  <div style="display:flex;flex-direction:column">
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 2px"><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3A2E1A">台積電</div><div style="font-size:11px;color:#8A7448">法說會後動能強</div></div><div style="font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#B8860E;flex-shrink:0">大吉</div></div>
+                    <div style="border-top:1px solid rgba(154,107,30,0.18)"></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 2px"><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3A2E1A">長榮</div><div style="font-size:11px;color:#8A7448">運價強勢反彈</div></div><div style="font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#B8860E;flex-shrink:0">大吉</div></div>
+                    <div style="border-top:1px solid rgba(154,107,30,0.18)"></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 2px"><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3A2E1A">聯發科</div><div style="font-size:11px;color:#8A7448">站上季線</div></div><div style="font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#C29A2E;flex-shrink:0">吉</div></div>
+                    <div style="border-top:1px solid rgba(154,107,30,0.18)"></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 2px"><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3A2E1A">元大台灣50</div><div style="font-size:11px;color:#8A7448">跟漲大盤</div></div><div style="font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#C29A2E;flex-shrink:0">吉</div></div>
+                    <div style="border-top:1px solid rgba(154,107,30,0.18)"></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 2px"><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3A2E1A">中華電</div><div style="font-size:11px;color:#8A7448">穩健配息</div></div><div style="font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#C29A2E;flex-shrink:0">吉</div></div>
+                    <div style="border-top:1px solid rgba(154,107,30,0.18)"></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:7px 2px"><div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3A2E1A">鴻海</div><div style="font-size:11px;color:#8A7448">緩步走高</div></div><div style="font-family:'Ma Shan Zheng',cursive;font-size:22px;color:#A98A3E;flex-shrink:0">小吉</div></div>
+                  </div>
+
+                  <div style="border-top:1.5px solid rgba(154,107,30,0.35)"></div>
+
+                  <!-- 說明 -->
+                  <div style="font-family:'Noto Serif TC',serif;font-size:13.5px;font-weight:700;color:#9A6B1E;letter-spacing:3px;text-align:center">說明</div>
+                  <div style="font-size:13px;color:#4A3E24;line-height:1.8">今日大方向順風,你的持股多數走強、氛圍偏多。想布局新標的,<b style="color:#9A6B1E">是相對安心的一天</b>,但仍宜分批、守紀律。</div>
+                  <div style="display:flex;align-items:center;gap:9px;background:rgba(154,107,30,0.1);border-radius:8px;padding:8px 11px">
+                    <div style="font-size:12px;font-weight:700;color:#9A6B1E;flex-shrink:0">適合進場?</div>
+                    <div style="font-family:'Noto Serif TC',serif;font-size:12px;font-weight:800;color:#F7EDCF;background:#9A6B1E;padding:3px 11px;border-radius:999px;flex-shrink:0">適合(分批)</div>
+                    <div style="font-size:11.5px;color:#5A4A2C;line-height:1.5">順勢但別重押,守好停利紀律</div>
+                  </div>
+
+                  <div style="border-top:1.5px solid rgba(154,107,30,0.35)"></div>
+
+                  <div style="font-family:'Noto Serif TC',serif;font-size:13px;font-weight:700;color:#9A6B1E;letter-spacing:3px;text-align:center">注意事項</div>
+                  <div style="display:flex;flex-direction:column;gap:7px">
+                    <div style="display:flex;gap:8px;align-items:flex-start"><div style="width:5px;height:5px;border-radius:50%;background:#B8860E;margin-top:7px;flex-shrink:0"></div><div style="font-size:12.5px;color:#4A3E24;line-height:1.7">漲多之後留意獲利了結賣壓,別追在最高點</div></div>
+                    <div style="display:flex;gap:8px;align-items:flex-start"><div style="width:5px;height:5px;border-radius:50%;background:#B8860E;margin-top:7px;flex-shrink:0"></div><div style="font-size:12.5px;color:#4A3E24;line-height:1.7">別因「大吉」就重押單一標的,分散仍是王道</div></div>
+                    <div style="display:flex;gap:8px;align-items:flex-start"><div style="width:5px;height:5px;border-radius:50%;background:#B8860E;margin-top:7px;flex-shrink:0"></div><div style="font-size:12.5px;color:#4A3E24;line-height:1.7">設好停利點,順風時更要守住紀律</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:16px;text-align:center;font-size:10.5px;color:#8A7248;line-height:1.6">籤詩由 AI 依你的持股與市場資訊生成<br>僅供情緒陪伴與資訊參考,不構成投資建議</div>
+          </div>
+        </div>
+      </x-import>
+    </div>
+
+  </div>
+</section>
 
 <section style="padding:60px 60px 20px;display:flex;flex-direction:column;gap:24px;font-family:'Noto Sans TC','PingFang TC',sans-serif">
   <div style="display:flex;align-items:center;gap:14px">

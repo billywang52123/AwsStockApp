@@ -221,10 +221,43 @@ final class AuthService: ObservableObject {
         await registerGuestSession()
     }
 
+    // MARK: - Returning-user check(換機/重裝後不再問初次設定)
+
+    /// 雲端已有這個帳號的資料(持股或觀察清單)就視為老用戶;
+    /// 本機 onboarding 旗標遺失(重裝、換機)時用這個補判,不再重問初次問題。
+    func hasExistingRemoteData() async -> Bool {
+        if let items: [PortfolioItem] = try? await APIClient.shared.request("/portfolio/items", method: "GET"),
+           !items.isEmpty {
+            return true
+        }
+        if let index: WatchlistIndex = try? await APIClient.shared.request("/watchlists", method: "GET"),
+           index.holdingCount > 0 || !index.watchlists.isEmpty {
+            return true
+        }
+        return false
+    }
+
+    // MARK: - Sign out
+
+    /// 登出:清掉本機登入狀態與 session token,回登入頁。
+    /// 雲端資料不動,重新登入同一帳號即可找回;訪客 id 也保留在裝置上。
+    func signOut() {
+        if GIDSignIn.sharedInstance.currentUser != nil {
+            GIDSignIn.sharedInstance.signOut()
+        }
+        AppPreferenceStore.shared.signOut()
+        NotificationCenter.default.post(name: .authSessionDidEnd, object: nil)
+    }
+
     // MARK: - Session token storage
 
     private static func storeSessionToken(from response: [String: String]) {
         guard let token = response["access_token"], !token.isEmpty else { return }
         KeychainStore.shared.sessionToken = token
     }
+}
+
+extension Notification.Name {
+    /// 登出完成:AppRouter 收到後切回登入頁
+    static let authSessionDidEnd = Notification.Name("com.stockmoodapp.authSessionDidEnd")
 }

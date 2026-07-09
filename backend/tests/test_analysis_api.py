@@ -215,3 +215,22 @@ def test_insight_detail_not_found(client, db_session):
     seed_portfolio(db_session)
     response = client.get("/api/insights/9999")
     assert response.status_code == 404
+
+
+def test_insight_detail_for_watch_stock(client, db_session):
+    """未持有但存在的股票(觀察清單 11f 點入):
+    價格/大盤訊號照舊,持倉訊號換成觀察視角。"""
+    db_session.add(PortfolioItem(user_id="demo-user", symbol="2330",
+                                 cost_price=900.0, shares=3000))
+    db_session.commit()
+
+    data = client.get("/api/insights/0050").json()["data"]
+    assert data["symbol"] == "0050"
+    assert data["name"] == "元大台灣50"
+    assert 8 <= data["outlook_score"] <= 92
+    assert len(data["signals"]) == 3
+    last = data["signals"][-1]
+    assert last["source"] == "觀察中 · 未持有"
+    assert "觀察清單" in last["text"]
+    assert "成本" not in last["text"]   # 不再出現「尚未填寫成本」的持倉文案
+    assert len(data["plain_summary"]) > 0

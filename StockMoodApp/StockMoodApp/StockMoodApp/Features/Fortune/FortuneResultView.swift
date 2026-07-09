@@ -1,178 +1,186 @@
 import SwiftUI
 
-// MARK: - 12c · 籤詩結果(直式籤詩紙 + 三欄位)+ 13c 頂部狀態條
+// MARK: - 14c/14d · 籤詩結果(深色沉浸:發光書法籤等 + 老籤紙 + 煙/光/雨特效)
+// 14c 大凶紅黑系 / 14d 大吉金棕系;中間級別跟隨吉凶方向,特效強度隨籤等遞增。
 struct FortuneResultView: View {
     let fortune: FortuneResult
     var onReplay: (() -> Void)? = nil
 
+    private var theme: FortuneTheme { FortuneTheme(level: fortune.overallLevel) }
+    private var intensity: Int { abs(fortune.overallLevel.revealIntensity) }   // 1–3
+
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                // 13c 綜合狀態條(光效強度隨籤等變化的收斂版)
-                FortuneTopBar(level: fortune.overallLevel, fortune: fortune)
-                    .padding(.top, 8)
-                    .entrance(index: 0)
+        ZStack {
+            // 深色底(radial 由上而下)
+            RadialGradient(
+                colors: [theme.bgInner, theme.bgMid, theme.bgOuter],
+                center: UnitPoint(x: 0.5, y: 0.2), startRadius: 0, endRadius: 700
+            )
+            .ignoresSafeArea()
 
-                HStack {
-                    Text(fortuneDateTextResult())
-                        .font(.system(size: 13, design: .rounded))
-                        .foregroundColor(AppColor.inkTertiary)
-                    Spacer()
-                    Text("今日已抽 · 明天可再抽")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                        .foregroundColor(AppColor.inkQuaternary)
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 10)
-                        .background(AppColor.bgTrack)
-                        .clipShape(Capsule())
-                }
-                .padding(.top, 14)
-
-                // 籤詩紙(紅雙框直式)
-                fortunePaper
-                    .padding(.top, 12)
-                    .entrance(index: 1)
-
-                Text("籤詩由 AI 依你的持股與市場資訊生成\n僅供情緒陪伴與資訊參考,不構成投資建議")
-                    .font(.system(size: 11, design: .rounded))
-                    .foregroundColor(AppColor.inkFaint)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(5)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 16)
-
-                // 重抽(測試用):依當下持股重新求一支籤
-                if let onReplay {
-                    Button {
-                        HapticManager.shared.triggerSelection()
-                        onReplay()
-                    } label: {
-                        Text("重抽一次 (測試)")
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
-                            .foregroundColor(AppColor.inkQuaternary)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 14)
-                            .background(Color.black.opacity(0.03))
-                            .clipShape(Capsule())
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 8)
-                }
+            // 滴黑雨/滴金雨:只在大凶/大吉出現(z1,在籤紙後)
+            if intensity >= 3 {
+                FortuneRainLayer(theme: theme)
+                    .allowsHitTesting(false)
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 40)
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    header
+                        .padding(.top, 18)
+
+                    parchment
+                        .padding(.top, 22)
+                        .entrance(index: 1)
+
+                    Text("籤詩由 AI 依你的持股與市場資訊生成\n僅供情緒陪伴與資訊參考,不構成投資建議")
+                        .font(.system(size: 10.5, design: .rounded))
+                        .foregroundColor(Color(hex: "7A5A52"))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(5)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 18)
+
+                    // 重抽(測試用):依當下持股重新求一支籤
+                    if let onReplay {
+                        Button {
+                            HapticManager.shared.triggerSelection()
+                            onReplay()
+                        } label: {
+                            Text("重抽一次 (測試)")
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
+                                .foregroundColor(Color(hex: "9C8A66"))
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 14)
+                                .background(Color.white.opacity(0.06))
+                                .clipShape(Capsule())
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 10)
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 28)
+            }
+
+            // 黑煙/金光自籤紙內緩緩漂出(z3,在籤紙前;數量隨強度)
+            FortunePuffLayer(theme: theme, count: 2 + intensity)
+                .allowsHitTesting(false)
         }
     }
 
-    // ── 籤詩紙 ───────────────────────────────────────────────
+    // ── 標題區:發光書法籤等 + 副標 ─────────────────────────────
 
-    private var fortunePaper: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // 籤頭:安心籤 · 第 N 籤 + 籤等大字
-            VStack(spacing: 6) {
-                Text("安心籤 · \(fortune.stickLabel)")
-                    .font(.system(size: 13, weight: .bold, design: .serif))
-                    .kerning(2)
-                    .foregroundColor(AppColor.inkTertiary)
-
-                // 籤等大字:吉背後透金光、凶背後透黑煙(墊在字下,不影響字的清晰度)
-                Text(fortune.overallLevel.label)
-                    .font(.system(size: 52, weight: .heavy, design: .serif))
-                    .foregroundColor(fortune.overallLevel.textColor)
-                    .background(levelAura)
-
-                Text(fortune.levelNote)
-                    .font(.system(size: 14, weight: .bold, design: .serif))
-                    .kerning(1)
-                    .foregroundColor(AppColor.inkSecondary)
-
-                // 六級對照列(目前籤等高亮)
-                HStack(spacing: 5) {
-                    ForEach(FortuneLevel.allCases.reversed(), id: \.self) { level in
-                        Text(level.label)
-                            .font(.system(size: 10, weight: .bold, design: .rounded))
-                            .foregroundColor(level == fortune.overallLevel ? .white : level.textColor.opacity(0.55))
-                            .padding(.vertical, 4)
-                            .padding(.horizontal, 7)
-                            .background(level == fortune.overallLevel ? level.textColor : level.bgTint.opacity(0.6))
-                            .clipShape(Capsule())
-                    }
-                }
-                .padding(.top, 8)
+    private var header: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(fortuneDateTextResult())
+                    .font(.system(size: 12, design: .rounded))
+                    .foregroundColor(theme.subtitleColor.opacity(0.85))
+                Spacer()
+                Text("今日已抽 · 明天可再抽")
+                    .font(.system(size: 10.5, weight: .bold, design: .rounded))
+                    .foregroundColor(theme.subtitleColor)
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 10)
+                    .background(Color.white.opacity(0.06))
+                    .clipShape(Capsule())
             }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 22)
 
-            paperDivider.padding(.top, 18)
+            // 籤等大字:104 級發光書法,後方血紅/金色光暈呼吸
+            GlowingLevelTitle(text: fortune.overallLevel.label, theme: theme)
+                .padding(.top, 12)
+
+            Text("今日綜合運勢 · \(fortune.overallLevel.levelHint)")
+                .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                .kerning(5)
+                .foregroundColor(theme.subtitleColor)
+                .padding(.top, 10)
+        }
+    }
+
+    // ── 老籤紙(parchment slip:舊紙 + 雙框 + 標頭橫幅 + 三欄位) ──
+
+    private var parchment: some View {
+        VStack(spacing: 13) {
+            // 標頭橫幅「安心籤 · 第N籤」
+            Text("安心籤 · \(fortune.stickLabel)")
+                .font(.system(size: 13, weight: .bold, design: .serif))
+                .kerning(4)
+                .foregroundColor(theme.bannerText)
+                .padding(.vertical, 4)
+                .padding(.horizontal, 18)
+                .background(theme.primary)
 
             // 欄位一:持股與狀態
             if !fortune.holdings.isEmpty {
                 sectionTitle("持股與狀態")
-                VStack(spacing: 9) {
-                    ForEach(fortune.holdings) { holding in
+                VStack(spacing: 0) {
+                    ForEach(Array(fortune.holdings.enumerated()), id: \.element.id) { index, holding in
                         HStack(spacing: 10) {
-                            IndustryAvatar(name: holding.name, industry: "")
-                                .frame(width: 34, height: 34)
-                            VStack(alignment: .leading, spacing: 1) {
+                            VStack(alignment: .leading, spacing: 2) {
                                 Text(holding.name)
                                     .font(.system(size: 14, weight: .bold, design: .rounded))
-                                    .foregroundColor(AppColor.inkPrimary)
+                                    .foregroundColor(Color(hex: "3A2A1E"))
                                 Text(holding.comment)
                                     .font(.system(size: 11, design: .rounded))
-                                    .foregroundColor(AppColor.inkTertiary)
+                                    .foregroundColor(Color(hex: "8A7458"))
                                     .lineLimit(2)
                             }
                             Spacer()
                             Text(holding.level.label)
-                                .font(.system(size: 12, weight: .heavy, design: .serif))
-                                .foregroundColor(holding.level.textColor)
-                                .padding(.vertical, 4)
-                                .padding(.horizontal, 10)
-                                .background(holding.level.bgTint)
-                                .clipShape(Capsule())
+                                .font(BrushFont.brush(22))
+                                .foregroundColor(holding.level.paperInk(auspiciousTheme: theme.isAuspicious))
+                        }
+                        .padding(.vertical, 7)
+                        .padding(.horizontal, 2)
+
+                        if index < fortune.holdings.count - 1 {
+                            Rectangle()
+                                .fill(theme.primary.opacity(0.18))
+                                .frame(height: 1)
                         }
                     }
                 }
-                .padding(.top, 12)
-                .padding(.horizontal, 18)
 
-                paperDivider.padding(.top, 16)
+                paperDivider
             }
 
             // 欄位二:說明
             sectionTitle("說明")
             Text(fortune.summary)
                 .font(.system(size: 13, design: .rounded))
-                .foregroundColor(AppColor.inkSecondary)
-                .lineSpacing(7)
+                .foregroundColor(Color(hex: "4A3A2A"))
+                .lineSpacing(8)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, 10)
-                .padding(.horizontal, 18)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
+            // 「今天的節奏」列(設計稿的結論膠囊位;文案依禁字規則用既有 stance)
             HStack(spacing: 8) {
                 Text("今天的節奏")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                    .foregroundColor(AppColor.inkTertiary)
-                Text(fortune.stance)
-                    .font(.system(size: 12, weight: .heavy, design: .rounded))
-                    .foregroundColor(fortune.overallLevel.textColor)
+                    .font(.system(size: 11.5, weight: .bold, design: .rounded))
+                    .foregroundColor(theme.primary)
                     .padding(.vertical, 4)
-                    .padding(.horizontal, 10)
-                    .background(fortune.overallLevel.bgTint)
+                    .padding(.horizontal, 8)
+                    .background(theme.primary.opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                Text(fortune.stance)
+                    .font(.system(size: 12, weight: .heavy, design: .serif))
+                    .foregroundColor(theme.bannerText)
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 12)
+                    .background(theme.primary)
                     .clipShape(Capsule())
                 Spacer()
             }
-            .padding(.top, 10)
-            .padding(.horizontal, 18)
 
             Text(fortune.stanceNote)
-                .font(.system(size: 11, design: .rounded))
-                .foregroundColor(AppColor.inkTertiary)
+                .font(.system(size: 11.5, design: .rounded))
+                .foregroundColor(Color(hex: "5A4633"))
                 .lineSpacing(5)
-                .padding(.top, 4)
-                .padding(.horizontal, 18)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            paperDivider.padding(.top, 16)
+            paperDivider
 
             // 欄位三:注意事項
             sectionTitle("注意事項")
@@ -180,77 +188,70 @@ struct FortuneResultView: View {
                 ForEach(Array(fortune.notices.enumerated()), id: \.offset) { _, notice in
                     HStack(alignment: .top, spacing: 8) {
                         Circle()
-                            .fill(AppColor.amberNumber)
+                            .fill(theme.bulletColor)
                             .frame(width: 5, height: 5)
                             .padding(.top, 6)
                         Text(notice)
-                            .font(.system(size: 12, design: .rounded))
-                            .foregroundColor(AppColor.inkSecondary)
-                            .lineSpacing(5)
+                            .font(.system(size: 12.5, design: .rounded))
+                            .foregroundColor(Color(hex: "4A3A2A"))
+                            .lineSpacing(6)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
-            .padding(.top, 12)
-            .padding(.horizontal, 18)
-            .padding(.bottom, 22)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(Color(hex: "FFFDF8"))
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        // 外框依籤等變化:吉 = 金光流轉,凶 = 黑煙繚繞(取代原紅雙框)
-        .overlay(FortunePaperFrame(level: fortune.overallLevel))
-        .shadow(
-            color: fortune.overallLevel.isAuspicious
-                ? Color(hex: "E8B84C").opacity(0.35)
-                : Color(hex: "1A1D1B").opacity(0.35),
-            radius: 14, x: 0, y: 8
+        .padding(.top, 14)
+        .padding(.bottom, 16)
+        .padding(.horizontal, 12)
+        // 紅/金雙框(外 2px + 內 1px)
+        .overlay(
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                .strokeBorder(theme.primary, lineWidth: 2)
         )
-    }
-
-    /// 籤等大字背後的光暈/煙霧(以 background 疊在字下,不改變版面)
-    @ViewBuilder
-    private var levelAura: some View {
-        if fortune.overallLevel.isAuspicious {
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            Color(hex: "FFE28C").opacity(0.85),
-                            Color(hex: "FFD66E").opacity(0.35),
-                            .clear,
-                        ],
-                        center: .center, startRadius: 6, endRadius: 85
-                    )
-                )
-                .frame(width: 170, height: 170)
-        } else {
+        .overlay(
+            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                .strokeBorder(theme.primary.opacity(0.55), lineWidth: 1)
+                .padding(4)
+        )
+        .padding(7)
+        // 舊紙:漸層 + 兩處污漬
+        .background(
             ZStack {
-                ForEach(0..<3, id: \.self) { index in
-                    Circle()
-                        .fill(Color(hex: "3A3F3C").opacity(0.28))
-                        .frame(width: 110, height: 110)
-                        .blur(radius: 18)
-                        .offset(x: CGFloat([0, -34, 36][index]),
-                                y: CGFloat([0, 14, -10][index]))
-                }
+                LinearGradient(
+                    colors: [theme.paperTop, theme.paperMid, theme.paperBottom],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                )
+                Circle()
+                    .fill(theme.primary.opacity(0.05))
+                    .frame(width: 120, height: 120)
+                    .blur(radius: 18)
+                    .offset(x: -80, y: -110)
+                Circle()
+                    .fill(theme.primary.opacity(0.06))
+                    .frame(width: 90, height: 90)
+                    .blur(radius: 16)
+                    .offset(x: 95, y: 130)
             }
-        }
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .shadow(color: Color.black.opacity(0.6), radius: 20, x: 0, y: 14)
+        .shadow(color: theme.isAuspicious ? Color(hex: "D6A850").opacity(0.25) : .clear,
+                radius: 22)
     }
 
     private func sectionTitle(_ title: String) -> some View {
-        Text("「\(title)」")
-            .font(.system(size: 14, weight: .heavy, design: .serif))
-            .kerning(2)
-            .foregroundColor(AppColor.inkPrimary)
-            .padding(.top, 14)
-            .padding(.horizontal, 18)
+        Text(title)
+            .font(.system(size: 13.5, weight: .bold, design: .serif))
+            .kerning(3)
+            .foregroundColor(theme.primary)
+            .frame(maxWidth: .infinity)
     }
 
     private var paperDivider: some View {
         Rectangle()
-            .fill(Color(hex: "C97F7F").opacity(0.25))
-            .frame(height: 1)
-            .padding(.horizontal, 18)
+            .fill(theme.primary.opacity(0.35))
+            .frame(height: 1.5)
     }
 }
 
@@ -262,158 +263,129 @@ private func fortuneDateTextResult() -> String {
     return "\(formatter.string(from: Date())) · 週\(week)"
 }
 
-// MARK: - 籤詩紙外框(吉 = 金光流轉,凶 = 黑煙繚繞;皆保留內細框的籤紙語彙)
-struct FortunePaperFrame: View {
-    let level: FortuneLevel
-    @State private var spin = 0.0
-    @State private var breathing = false
+// MARK: - 發光書法籤等大字(flick 明滅 + 後方 emberGlow 呼吸)
+
+struct GlowingLevelTitle: View {
+    let text: String
+    let theme: FortuneTheme
+    @State private var flicking = false
+    @State private var glowing = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        ZStack {
-            if level.isAuspicious {
-                // 柔光暈:框外一圈金霧
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(Color(hex: "FFD66E").opacity(breathing ? 0.85 : 0.5), lineWidth: 5)
-                    .blur(radius: 6)
-
-                // 金光流轉外框:角度漸層繞著框慢慢轉
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(
-                        AngularGradient(
-                            colors: [
-                                Color(hex: "C89040"), Color(hex: "FFF3C4"),
-                                Color(hex: "D9A264"), Color(hex: "FFE9A8"),
-                                Color(hex: "C89040"),
-                            ],
-                            center: .center, angle: .degrees(spin)
-                        ),
-                        lineWidth: 2.5
+        Text(text)
+            .font(BrushFont.brush(96))
+            .kerning(8)
+            .foregroundColor(theme.titleColor)
+            .shadow(color: theme.titleGlowStrong, radius: flicking && !reduceMotion ? 26 : 18)
+            .shadow(color: theme.titleGlowSoft, radius: flicking && !reduceMotion ? 54 : 40)
+            .background(
+                // emberGlow:標題後方光暈呼吸
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [theme.emberGlow, .clear],
+                            center: .center, startRadius: 8, endRadius: 150
+                        )
                     )
-
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .strokeBorder(Color(hex: "D9A264").opacity(0.5), lineWidth: 1)
-                    .padding(5)
-            } else {
-                // 黑煙繚繞:框外一圈煙霧緩慢呼吸
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(Color(hex: "2E3230").opacity(breathing ? 0.7 : 0.35), lineWidth: 7)
-                    .blur(radius: 9)
-
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [Color(hex: "3A3F3C"), Color(hex: "6E7370"), Color(hex: "2E3230")],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 2.5
-                    )
-
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .strokeBorder(Color(hex: "5C6360").opacity(0.4), lineWidth: 1)
-                    .padding(5)
+                    .frame(width: 300, height: 300)
+                    .blur(radius: glowing && !reduceMotion ? 26 : 18)
+                    .opacity(glowing || reduceMotion ? 1 : 0.55)
+            )
+            .animation(.easeInOut(duration: 3.4).repeatForever(autoreverses: true), value: flicking)
+            .animation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true), value: glowing)
+            .onAppear {
+                flicking = true
+                glowing = true
             }
-        }
-        .onAppear {
-            guard !reduceMotion else { return }
-            withAnimation(.linear(duration: 6).repeatForever(autoreverses: false)) {
-                spin = 360
+    }
+}
+
+// MARK: - 滴黑雨/滴金雨(大凶/大吉限定:細雨絲交錯落下)
+
+struct FortuneRainLayer: View {
+    let theme: FortuneTheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    // (x 比例, 寬, 長, 時長, 延遲)
+    private let streaks: [(CGFloat, CGFloat, CGFloat, Double, Double)] = [
+        (0.08, 2, 110, 1.6, 0.0), (0.22, 3, 140, 1.9, 0.5),
+        (0.34, 2, 100, 1.4, 1.1), (0.47, 2, 120, 2.1, 0.2),
+        (0.60, 3, 150, 1.7, 0.8), (0.72, 2, 105, 2.3, 1.4),
+        (0.84, 2, 130, 1.5, 0.4), (0.94, 3, 115, 2.0, 1.0),
+    ]
+
+    var body: some View {
+        if reduceMotion {
+            EmptyView()
+        } else {
+            GeometryReader { geo in
+                ZStack {
+                    ForEach(Array(streaks.enumerated()), id: \.offset) { _, streak in
+                        RainStreak(
+                            color: theme.rainColor,
+                            width: streak.1, length: streak.2,
+                            duration: streak.3, delay: streak.4,
+                            x: geo.size.width * streak.0,
+                            screenHeight: geo.size.height
+                        )
+                    }
+                }
             }
-            withAnimation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true)) {
-                breathing = true
-            }
+            .ignoresSafeArea()
         }
     }
 }
 
-// MARK: - 13c · 結果頁頂部狀態條(金光 glowPulse / 黑煙二態,強度隨籤等)
-struct FortuneTopBar: View {
-    let level: FortuneLevel
-    let fortune: FortuneResult
-    @State private var pulsing = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+/// 單條雨絲:自畫面頂端落下,循環
+struct RainStreak: View {
+    let color: Color
+    let width: CGFloat
+    let length: CGFloat
+    let duration: Double
+    let delay: Double
+    let x: CGFloat
+    let screenHeight: CGFloat
 
-    private var subtitle: String {
-        let counts = Dictionary(grouping: fortune.holdings, by: { $0.level.isAuspicious })
-        let up = counts[true]?.count ?? 0
-        let total = fortune.holdings.count
-        if total == 0 { return "把持股加進來,籤詩會更貼近你" }
-        return "\(total) 檔中 \(up) 檔偏多 · \(level.levelHint)"
-    }
+    @State private var falling = false
 
     var body: some View {
-        HStack(spacing: 12) {
+        Rectangle()
+            .fill(
+                LinearGradient(colors: [.clear, color], startPoint: .top, endPoint: .bottom)
+            )
+            .frame(width: width, height: length)
+            .position(x: x, y: falling ? screenHeight + length : -length)
+            .animation(
+                .linear(duration: duration).delay(delay).repeatForever(autoreverses: false),
+                value: falling
+            )
+            .onAppear { falling = true }
+    }
+}
+
+// MARK: - 黑煙/金光自籤紙內漂出(drift:放大、上飄、淡出)
+
+struct FortunePuffLayer: View {
+    let theme: FortuneTheme
+    let count: Int
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        if reduceMotion {
+            EmptyView()
+        } else {
             ZStack {
-                if level.isAuspicious {
-                    // 金光:溫暖光暈,強度隨籤等
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Color(hex: "FFE296").opacity(0.9), Color(hex: "E4B384").opacity(0.25)],
-                                center: .center, startRadius: 2, endRadius: 24
-                            )
-                        )
-                        .scaleEffect(pulsing && !reduceMotion ? 1.0 + 0.08 * Double(level.revealIntensity) : 0.92)
-                        .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: pulsing)
-                    Image(systemName: "sun.max.fill")
-                        .font(.system(size: 18))
-                        .foregroundColor(Color(hex: "B0813F"))
-                } else {
-                    // 黑煙:低飽和灰黑,不閃爍
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Color(hex: "5C5850").opacity(0.5), Color(hex: "3A3733").opacity(0.15)],
-                                center: .center, startRadius: 2, endRadius: 24
-                            )
-                        )
-                        .scaleEffect(pulsing && !reduceMotion ? 1.05 : 0.95)
-                        .animation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true), value: pulsing)
-                    Image(systemName: "smoke.fill")
-                        .font(.system(size: 18))
-                        .foregroundColor(Color(hex: "5C5850"))
+                ForEach(0..<count, id: \.self) { index in
+                    DriftWisp(
+                        color: theme.puffColor,
+                        size: 44 + CGFloat((index * 9) % 26),
+                        xOffset: CGFloat([-46, 38, -8, 62, -70, 14][index % 6]),
+                        duration: 7.0 + Double(index % 4) * 0.8,
+                        delay: Double(index) * 1.1
+                    )
                 }
             }
-            .frame(width: 44, height: 44)
-
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 8) {
-                    Text(level.label)
-                        .font(.system(size: 17, weight: .heavy, design: .serif))
-                        .foregroundColor(level.textColor)
-                    Text(level.topBarNote)
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
-                        .foregroundColor(AppColor.inkSecondary)
-                }
-                Text(subtitle)
-                    .font(.system(size: 11, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundColor(AppColor.inkTertiary)
-            }
-            Spacer()
-        }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 14)
-        .background(level.bgTint.opacity(0.55))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(level.textColor.opacity(0.25), lineWidth: 1)
-        )
-        .onAppear { pulsing = true }
-    }
-}
-
-extension FortuneLevel {
-    /// 13c 副標的短語
-    var levelHint: String {
-        switch self {
-        case .daikichi: return "大方向順風"
-        case .kichi: return "整體安穩"
-        case .shokichi: return "穩中帶光"
-        case .shokyo: return "短線有雜音"
-        case .kyo: return "今天逆風"
-        case .daikyo: return "先別做決定"
         }
     }
 }

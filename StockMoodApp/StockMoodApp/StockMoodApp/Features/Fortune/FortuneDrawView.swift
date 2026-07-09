@@ -1,17 +1,21 @@
 import SwiftUI
 
-// MARK: - 每日御神籤主頁(12a 入口 / 12b 搖籤 / 13 綜合籤等 / 12c 籤詩)
+// MARK: - 每日御神籤主頁(14a 入口 / 14b 搖籤 / 14c·14d 籤詩結果)
+// 第十二輪最終方向:暗場沉浸 · 老籤紙 · 發光書法 · 煙/光自籤內漂出
 struct FortuneDrawView: View {
     @StateObject private var viewModel = FortuneViewModel()
 
     var body: some View {
         NavigationView {
             ZStack {
-                AppColor.background.edgesIgnoringSafeArea(.all)
+                // 全程深色暗場,避免階段切換時閃白
+                Color(hex: "0C0805").ignoresSafeArea()
 
                 switch viewModel.phase {
                 case .loading:
                     ProgressView("正在準備籤筒...")
+                        .tint(Color(hex: "C99A4A"))
+                        .foregroundColor(Color(hex: "B7A57E"))
                 case .entry:
                     FortuneEntryView(viewModel: viewModel)
                         .transition(.opacity)
@@ -19,19 +23,13 @@ struct FortuneDrawView: View {
                     FortuneShakeView(isRevealing: viewModel.phase == .revealing,
                                      fortune: viewModel.fortune)
                         .transition(.opacity)
-                case .levelReveal:
-                    if let fortune = viewModel.fortune {
-                        FortuneLevelRevealView(fortune: fortune) {
-                            viewModel.proceedToResult()
-                        }
-                        .transition(.opacity)
-                    }
                 case .result:
                     if let fortune = viewModel.fortune {
                         FortuneResultView(fortune: fortune) {
                             viewModel.replayCeremony()
                         }
-                        .transition(.opacity)
+                        // 淡入 + 上移展開籤詩(README 抽籤流程)
+                        .transition(.opacity.combined(with: .offset(y: 26)))
                     }
                 }
             }
@@ -47,8 +45,7 @@ struct FortuneDrawView: View {
         case .entry: return 1
         case .shaking: return 2
         case .revealing: return 3
-        case .levelReveal: return 4
-        case .result: return 5
+        case .result: return 4
         }
     }
 }
@@ -62,95 +59,158 @@ func fortuneDateText() -> String {
     return "\(formatter.string(from: Date())) · 週\(week)"
 }
 
-// MARK: - 頁頭(「今日運勢籤」serif 26 + 副標)
-struct FortuneHeader: View {
-    let subtitle: String
+// MARK: - 暗場背景(14a/14b:琥珀暗場 + 呼吸光暈)
+
+struct FortuneDarkStage: View {
+    @State private var glowing = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(spacing: 6) {
-            Text("今日運勢籤")
-                .font(.system(size: 26, weight: .bold, design: .serif))
-                .kerning(3)
-                .foregroundColor(AppColor.inkPrimary)
-            Text(subtitle)
-                .font(.system(size: 13, design: .rounded))
-                .foregroundColor(AppColor.inkTertiary)
+        ZStack {
+            RadialGradient(
+                colors: [Color(hex: "231A10"), Color(hex: "120C06"), Color(hex: "080503")],
+                center: UnitPoint(x: 0.5, y: 0.42), startRadius: 0, endRadius: 620
+            )
+            .ignoresSafeArea()
+
+            // emberGlow:中央琥珀色光暈呼吸(4.5s)
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [Color(hex: "C99A4A").opacity(0.22), .clear],
+                        center: .center, startRadius: 10, endRadius: 230
+                    )
+                )
+                .frame(width: 460, height: 460)
+                .blur(radius: glowing ? 26 : 18)
+                .opacity(glowing || reduceMotion ? 1.0 : 0.55)
+                .animation(.easeInOut(duration: 4.5).repeatForever(autoreverses: true), value: glowing)
+                .position(x: UIScreen.main.bounds.width / 2,
+                          y: UIScreen.main.bounds.height * 0.42)
         }
+        .onAppear { glowing = true }
     }
 }
 
-// MARK: - 12a · 搖籤入口(籤筒待機微晃 rock ±2.5° 3.2s,錨點筒底)
+/// 一縷微光/煙氣:自下往上漂散(drift),入口與搖籤共用
+struct DriftWisp: View {
+    let color: Color
+    let size: CGFloat
+    let xOffset: CGFloat
+    let duration: Double
+    let delay: Double
+
+    @State private var rising = false
+
+    var body: some View {
+        Circle()
+            .fill(color)
+            .frame(width: size, height: size)
+            .blur(radius: 12)
+            .scaleEffect(rising ? 2.1 : 0.5)
+            .opacity(rising ? 0 : 0.5)
+            .position(x: UIScreen.main.bounds.width / 2 + xOffset,
+                      y: UIScreen.main.bounds.height * (rising ? 0.18 : 0.52))
+            .animation(
+                .easeIn(duration: duration).delay(delay).repeatForever(autoreverses: false),
+                value: rising
+            )
+            .onAppear { rising = true }
+    }
+}
+
+// MARK: - 14a · 求籤入口(暗場 + 暗紅籤筒 + 金 CTA)
+
 struct FortuneEntryView: View {
     @ObservedObject var viewModel: FortuneViewModel
     @State private var rocking = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(spacing: 0) {
-            FortuneHeader(subtitle: "\(fortuneDateText()) · 依你的持股求籤")
-                .padding(.top, 24)
+        ZStack {
+            FortuneDarkStage()
 
-            Spacer()
+            if !reduceMotion {
+                DriftWisp(color: Color(hex: "E9C77E").opacity(0.35), size: 46,
+                          xOffset: -60, duration: 7.5, delay: 0)
+                DriftWisp(color: Color(hex: "C99A4A").opacity(0.3), size: 38,
+                          xOffset: 52, duration: 8.5, delay: 2.4)
+            }
 
-            // 光暈背景圈 + 籤筒
-            ZStack {
-                Circle()
-                    .fill(Color(hex: "7B7FD4").opacity(0.08))
-                    .frame(width: 280, height: 280)
-                Circle()
-                    .fill(Color(hex: "7B7FD4").opacity(0.09))
-                    .frame(width: 200, height: 200)
+            VStack(spacing: 0) {
+                // 標題「今日求籤」:發光書法(毛筆楷書 40 金色光暈)
+                Text("今日求籤")
+                    .font(BrushFont.brush(40))
+                    .kerning(8)
+                    .foregroundColor(Color(hex: "E9C77E"))
+                    .shadow(color: Color(hex: "E9C77E").opacity(0.55), radius: 14)
+                    .shadow(color: Color(hex: "A9772F").opacity(0.4), radius: 30)
+                    .padding(.top, 30)
 
-                FortuneTubeView()
+                Text("\(fortuneDateText()) · 依你的持股問運勢")
+                    .font(.system(size: 12.5, design: .rounded))
+                    .foregroundColor(Color(hex: "9C8A66"))
+                    .padding(.top, 10)
+
+                Spacer()
+
+                OmikujiTubeView()
                     .rotationEffect(.degrees(rocking && !reduceMotion ? 2.5 : -2.5),
                                     anchor: UnitPoint(x: 0.5, y: 0.92))
-                    .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: rocking)
+                    .animation(.easeInOut(duration: 1.7).repeatForever(autoreverses: true), value: rocking)
                     .onAppear { rocking = true }
+
+                Text("誠心搖動籤筒\n抽出今日持股的吉凶籤詩")
+                    .font(.system(size: 13.5, design: .rounded))
+                    .foregroundColor(Color(hex: "B7A57E"))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(8)
+                    .padding(.top, 28)
+
+                if viewModel.hasError {
+                    Text(viewModel.errorMessage)
+                        .font(.system(size: 12, design: .rounded))
+                        .foregroundColor(Color(hex: "D6301F"))
+                        .padding(.top, 10)
+                }
+
+                Spacer()
+
+                // 主 CTA「搖 籤 問 卜」:金色漸層
+                Button {
+                    HapticManager.shared.triggerImpact(style: .medium)
+                    Task { await viewModel.shakeAndDraw() }
+                } label: {
+                    Text("搖 籤 問 卜")
+                        .font(.system(size: 17, weight: .heavy, design: .serif))
+                        .kerning(3)
+                        .foregroundColor(Color(hex: "2A1908"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(hex: "C99A4A"), Color(hex: "A2762E")],
+                                startPoint: .top, endPoint: .bottom
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .shadow(color: Color(hex: "96641E").opacity(0.4), radius: 13, x: 0, y: 12)
+                }
+                .buttonStyle(PressScaleButtonStyle())
+
+                Text("每日一籤 · 收盤後 14:30 更新")
+                    .font(.system(size: 11.5, design: .rounded))
+                    .foregroundColor(Color(hex: "7C6C4E"))
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
             }
-            .frame(width: 300, height: 290)
-
-            Text("搖一搖籤筒,抽出今天的安心籤\n看看持股的運勢,和該注意的事")
-                .font(.system(size: 14, design: .rounded))
-                .foregroundColor(AppColor.inkSecondary)
-                .multilineTextAlignment(.center)
-                .lineSpacing(6)
-                .padding(.top, 30)
-
-            if viewModel.hasError {
-                Text(viewModel.errorMessage)
-                    .font(.system(size: 12, design: .rounded))
-                    .foregroundColor(AppColor.roseStrong)
-                    .padding(.top, 10)
-            }
-
-            Button {
-                HapticManager.shared.triggerImpact(style: .medium)
-                Task { await viewModel.shakeAndDraw() }
-            } label: {
-                Text("開始搖籤")
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 54)
-                    .background(AppColor.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                    .shadow(color: AppColor.primary.opacity(0.3), radius: 12, x: 0, y: 10)
-            }
-            .buttonStyle(PressScaleButtonStyle())
-            .padding(.top, 18)
-
-            Text("每天一支 · 收盤後 14:30 更新")
-                .font(.system(size: 12, design: .rounded))
-                .foregroundColor(AppColor.inkFaint)
-                .padding(.top, 10)
-
-            Spacer()
+            .padding(.horizontal, 28)
         }
-        .padding(.horizontal, 28)
     }
 }
 
-// MARK: - 12b · 搖籤動畫(筒身傾斜 26° + shake ±13° 0.55s;籤支彈出後光/煙從籤旁長出)
+// MARK: - 14b · 搖籤中(筒身傾斜 24° + 高頻搖動;籤支彈出後光/煙長出)
+
 struct FortuneShakeView: View {
     let isRevealing: Bool
     let fortune: FortuneResult?
@@ -159,61 +219,68 @@ struct FortuneShakeView: View {
 
     var body: some View {
         ZStack {
+            FortuneDarkStage()
+
+            // 灰白煙氣自筒口向上漂散
+            if !reduceMotion {
+                DriftWisp(color: Color(hex: "D8CBB2").opacity(0.28), size: 40,
+                          xOffset: -18, duration: 6.0, delay: 0)
+                DriftWisp(color: Color(hex: "CFC2A8").opacity(0.22), size: 32,
+                          xOffset: 30, duration: 7.2, delay: 1.6)
+                DriftWisp(color: Color(hex: "E4D8BE").opacity(0.18), size: 26,
+                          xOffset: 0, duration: 8.0, delay: 3.0)
+            }
+
             VStack(spacing: 0) {
-                FortuneHeader(subtitle: fortuneDateText())
-                    .padding(.top, 24)
-
-                Spacer()
-
-                ZStack {
-                    Circle()
-                        .fill(Color(hex: "7B7FD4").opacity(0.08))
-                        .frame(width: 280, height: 280)
-
-                    // 筒 + 籤支(同一座標系,傾斜與搖動一起作用)
-                    ZStack(alignment: .top) {
-                        // 籤支「十四」:從筒口彈出
-                        if isRevealing, let fortune {
-                            FortuneStickView(numberText: stickDigits(fortune))
-                                .offset(y: -64)
-                                .transition(.offset(y: 90).combined(with: .opacity))
-                                .zIndex(0)
-                        }
-
-                        FortuneTubeView()
-                            .zIndex(1)
-                    }
-                    .frame(width: 160, height: 236)
-                    .rotationEffect(
-                        .degrees(shaking && !isRevealing && !reduceMotion ? 13 : (isRevealing ? 0 : -13)),
-                        anchor: UnitPoint(x: 0.5, y: 0.78)
-                    )
-                    .animation(
-                        isRevealing ? .spring(response: 0.5, dampingFraction: 0.8)
-                                    : .easeInOut(duration: 0.275).repeatForever(autoreverses: true),
-                        value: shaking
-                    )
-                    .rotationEffect(.degrees(isRevealing || reduceMotion ? 0 : 26))
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isRevealing)
-                }
-                .frame(width: 300, height: 320)
-
                 Text(isRevealing ? "籤來了" : "搖籤中…")
-                    .font(.system(size: 19, weight: .bold, design: .serif))
-                    .kerning(4)
-                    .foregroundColor(Color(hex: "4A4770"))
-                    .padding(.top, 40)
+                    .font(BrushFont.brush(30))
+                    .kerning(6)
+                    .foregroundColor(Color(hex: "E4C079"))
+                    .shadow(color: Color(hex: "E4C079").opacity(0.55), radius: 12)
+                    .padding(.top, 46)
 
-                Text(isRevealing ? "正在為你展開今天的運勢" : "正在依你的持股與今日市場求籤")
-                    .font(.system(size: 13, design: .rounded))
-                    .foregroundColor(AppColor.inkTertiary)
-                    .padding(.top, 8)
+                Text(isRevealing ? "正在為你展開今天的籤詩" : "正依你的持股與今日市場求卜")
+                    .font(.system(size: 12.5, design: .rounded))
+                    .foregroundColor(Color(hex: "9C8A66"))
+                    .padding(.top, 10)
 
                 Spacer()
+
+                // 筒 + 籤支(同一座標系,傾斜與搖動一起作用)
+                ZStack(alignment: .top) {
+                    if isRevealing, let fortune {
+                        FortuneStickView(numberText: stickDigits(fortune))
+                            .offset(y: -62)
+                            .transition(.offset(y: 90).combined(with: .opacity))
+                            .zIndex(0)
+                    }
+
+                    OmikujiTubeView()
+                        .zIndex(1)
+                }
+                .frame(width: 150, height: 230)
+                .rotationEffect(
+                    .degrees(shaking && !isRevealing && !reduceMotion ? 13 : (isRevealing ? 0 : -13)),
+                    anchor: UnitPoint(x: 0.5, y: 0.8)
+                )
+                .animation(
+                    isRevealing ? .spring(response: 0.5, dampingFraction: 0.8)
+                                : .easeInOut(duration: 0.25).repeatForever(autoreverses: true),
+                    value: shaking
+                )
+                .rotationEffect(.degrees(isRevealing || reduceMotion ? 0 : 24))
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isRevealing)
+                .padding(.top, 30)
+
+                Spacer()
+
+                FortuneLoadingDots()
+                    .opacity(isRevealing ? 0 : 1)
+                    .padding(.bottom, 60)
             }
             .padding(.horizontal, 28)
 
-            // 光/煙從籤支旁慢慢長出,再籠罩整個畫面(接 13a/13b)
+            // 光/煙從籤支旁慢慢長出,再籠罩整個畫面(接 14c/14d)
             if isRevealing, let fortune {
                 StickBloomEffect(level: fortune.overallLevel)
                     .allowsHitTesting(false)
@@ -234,73 +301,97 @@ struct FortuneShakeView: View {
     }
 }
 
-// MARK: - 籤筒(設計稿 redline:160×236,藍紫筒身 + 金領口 + 直式標籤)
-struct FortuneTubeView: View {
+/// 三顆載入點(floaty 交錯)
+struct FortuneLoadingDots: View {
+    @State private var bouncing = false
+    private let colors = ["D6A850", "B98E3E", "8A6A2E"]
+
+    var body: some View {
+        HStack(spacing: 10) {
+            ForEach(Array(colors.enumerated()), id: \.offset) { index, hex in
+                Circle()
+                    .fill(Color(hex: hex))
+                    .frame(width: 8, height: 8)
+                    .offset(y: bouncing ? -6 : 2)
+                    .animation(
+                        .easeInOut(duration: 0.6)
+                            .repeatForever(autoreverses: true)
+                            .delay(Double(index) * 0.18),
+                        value: bouncing
+                    )
+            }
+        }
+        .onAppear { bouncing = true }
+    }
+}
+
+// MARK: - 御神籤筒(14a redline:150×230,暗漆紅黑筒身 + 金色筒蓋 + 直式標籤)
+
+struct OmikujiTubeView: View {
     var body: some View {
         ZStack(alignment: .top) {
-            // 筒身:漸層 160° #8589DC→#5B5FA8,R20/26
+            // 筒身:暗漆紅黑漸層 160°
             UnevenRoundedRectangle(cornerRadii: .init(
-                topLeading: 20, bottomLeading: 26, bottomTrailing: 26, topTrailing: 20
+                topLeading: 18, bottomLeading: 24, bottomTrailing: 24, topTrailing: 18
             ), style: .continuous)
             .fill(
                 LinearGradient(
-                    colors: [Color(hex: "8589DC"), Color(hex: "5B5FA8")],
+                    colors: [Color(hex: "4A1712"), Color(hex: "230B08")],
                     startPoint: .topLeading, endPoint: .bottomTrailing
                 )
             )
-            .frame(width: 160, height: 210)
+            .frame(width: 150, height: 204)
             .overlay(alignment: .bottom) {
                 // 底部金色飾條
                 Rectangle()
-                    .fill(Color(hex: "E4B384").opacity(0.55))
-                    .frame(height: 8)
-                    .padding(.bottom, 20)
+                    .fill(Color(hex: "CFA05A").opacity(0.5))
+                    .frame(height: 7)
+                    .padding(.bottom, 18)
             }
-            .shadow(color: Color(hex: "5B5FA8").opacity(0.32), radius: 25, x: 0, y: 24)
+            .shadow(color: Color.black.opacity(0.55), radius: 22, x: 0, y: 20)
             .padding(.top, 26)
 
-            // 領口:金色 #E4B384→#D9A264,含筒口
+            // 筒蓋:金色漸層,含筒口
             UnevenRoundedRectangle(cornerRadii: .init(
-                topLeading: 14, bottomLeading: 8, bottomTrailing: 8, topTrailing: 14
+                topLeading: 12, bottomLeading: 7, bottomTrailing: 7, topTrailing: 12
             ), style: .continuous)
             .fill(
                 LinearGradient(
-                    colors: [Color(hex: "E4B384"), Color(hex: "D9A264")],
+                    colors: [Color(hex: "CFA05A"), Color(hex: "A9772F")],
                     startPoint: .top, endPoint: .bottom
                 )
             )
-            .frame(width: 144, height: 34)
+            .frame(width: 136, height: 32)
             .overlay(
-                // 筒口
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color(hex: "8A6A3F"))
-                    .frame(width: 26, height: 12)
-                    .offset(y: 0)
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(Color(hex: "5A3A14"))
+                    .frame(width: 24, height: 11)
             )
-            .shadow(color: Color(hex: "786446").opacity(0.25), radius: 7, x: 0, y: 6)
+            .shadow(color: Color.black.opacity(0.35), radius: 7, x: 0, y: 6)
 
-            // 直式標籤「安心籤」
-            VStack(spacing: 8) {
+            // 直式標籤「安心籤」:書法紅字 on 老紙
+            VStack(spacing: 7) {
                 ForEach(Array("安心籤".map(String.init).enumerated()), id: \.offset) { _, char in
                     Text(char)
-                        .font(.system(size: 22, weight: .bold, design: .serif))
-                        .foregroundColor(Color(hex: "4A4770"))
+                        .font(BrushFont.brush(21))
+                        .foregroundColor(Color(hex: "7A1E14"))
                 }
             }
-            .frame(width: 56, height: 126)
-            .background(Color(hex: "FBF8F1"))
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .frame(width: 52, height: 118)
+            .background(Color(hex: "EFE3C2"))
+            .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(Color(hex: "E4B384"), lineWidth: 1.5)
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .strokeBorder(Color(hex: "A9772F"), lineWidth: 1.5)
             )
-            .padding(.top, 62)
+            .padding(.top, 60)
         }
-        .frame(width: 160, height: 236)
+        .frame(width: 150, height: 230)
     }
 }
 
 // MARK: - 彈出的籤支(18×100 奶白木片,紅頭直式數字)
+
 struct FortuneStickView: View {
     let numberText: String
 
@@ -310,7 +401,7 @@ struct FortuneStickView: View {
             VStack(spacing: 1) {
                 ForEach(Array(numberText.map(String.init).enumerated()), id: \.offset) { _, char in
                     Text(char)
-                        .font(.system(size: 10, weight: .bold, design: .serif))
+                        .font(BrushFont.brush(10))
                         .foregroundColor(Color(hex: "FBF8F1"))
                 }
             }
@@ -319,7 +410,7 @@ struct FortuneStickView: View {
                 UnevenRoundedRectangle(cornerRadii: .init(
                     topLeading: 7, bottomLeading: 0, bottomTrailing: 0, topTrailing: 7
                 ))
-                .fill(Color(hex: "C97F7F"))
+                .fill(Color(hex: "7A1E14"))
             )
 
             Spacer(minLength: 0)
@@ -329,26 +420,28 @@ struct FortuneStickView: View {
             UnevenRoundedRectangle(cornerRadii: .init(
                 topLeading: 9, bottomLeading: 5, bottomTrailing: 5, topTrailing: 9
             ))
-            .fill(Color(hex: "FBF8F1"))
+            .fill(Color(hex: "F5EBD2"))
         )
         .overlay(
             UnevenRoundedRectangle(cornerRadii: .init(
                 topLeading: 9, bottomLeading: 5, bottomTrailing: 5, topTrailing: 9
             ))
-            .strokeBorder(Color(hex: "E0D6C2"), lineWidth: 1.5)
+            .strokeBorder(Color(hex: "D9C7A0"), lineWidth: 1.5)
         )
-        .shadow(color: Color(hex: "2B2824").opacity(0.18), radius: 9, x: 0, y: 8)
+        .shadow(color: Color.black.opacity(0.35), radius: 9, x: 0, y: 8)
     }
 }
 
-// MARK: - 光/煙從籤支旁長出 → 籠罩畫面(revealing 階段,約 1.8s)
+// MARK: - 開籤瞬間:光/煙從籤支旁長出 → 籠罩畫面(revealing 階段,約 1.8s)
+// 強度隨六級籤等遞增(README 特效強度階梯)
+
 struct StickBloomEffect: View {
     let level: FortuneLevel
     @State private var bloomed = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// 籤支約在畫面中央偏上(籤筒頂 -64 再上一截)
-    private let anchor = UnitPoint(x: 0.5, y: 0.32)
+    /// 籤支約在畫面中央偏上
+    private let anchor = UnitPoint(x: 0.5, y: 0.34)
 
     var body: some View {
         if reduceMotion {
@@ -357,33 +450,34 @@ struct StickBloomEffect: View {
             GeometryReader { geo in
                 let origin = CGPoint(x: geo.size.width * anchor.x,
                                      y: geo.size.height * anchor.y)
+                let intensity = abs(level.revealIntensity)   // 1–3
                 ZStack {
                     if level.isAuspicious {
-                        // 金光:從籤旁一小圈,慢慢亮開籠罩
+                        // 金光:從籤旁一小圈亮開;強度越高越亮越大
                         Circle()
                             .fill(
                                 RadialGradient(
                                     colors: [
-                                        Color(hex: "FFECAA").opacity(0.95),
-                                        Color(hex: "FFCE5C").opacity(0.55),
-                                        Color(hex: "FFE296").opacity(0.0),
+                                        Color(hex: "FFECAA").opacity(0.55 + 0.15 * Double(intensity)),
+                                        Color(hex: "F0C860").opacity(0.35 + 0.08 * Double(intensity)),
+                                        Color(hex: "C89628").opacity(0.0),
                                     ],
                                     center: .center, startRadius: 4, endRadius: 220
                                 )
                             )
                             .frame(width: 440, height: 440)
-                            .scaleEffect(bloomed ? 4.2 : 0.12)
+                            .scaleEffect(bloomed ? 2.6 + 0.8 * CGFloat(intensity) : 0.12)
                             .opacity(bloomed ? 1 : 0.4)
                             .position(origin)
                     } else {
-                        // 黑煙:從籤旁一縷,慢慢湧出籠罩(低飽和、不閃爍)
-                        ForEach(0..<4, id: \.self) { index in
+                        // 黑煙:從籤旁一縷湧出;強度越高煙越多越濃
+                        ForEach(0..<(1 + intensity), id: \.self) { index in
                             Circle()
                                 .fill(
                                     RadialGradient(
                                         colors: [
-                                            Color(hex: "2E3230").opacity(0.85),
-                                            Color(hex: "1A1D1B").opacity(0.45),
+                                            Color(hex: "1E1512").opacity(0.6 + 0.1 * Double(intensity)),
+                                            Color(hex: "0E0705").opacity(0.4),
                                             .clear,
                                         ],
                                         center: .center, startRadius: 4, endRadius: 160
@@ -391,10 +485,10 @@ struct StickBloomEffect: View {
                                 )
                                 .frame(width: 320, height: 320)
                                 .blur(radius: 14)
-                                .scaleEffect(bloomed ? 4.0 : 0.15)
+                                .scaleEffect(bloomed ? 3.2 + 0.5 * CGFloat(intensity) : 0.15)
                                 .opacity(bloomed ? 0.9 : 0.3)
-                                .position(x: origin.x + CGFloat([0, -30, 34, -12][index]),
-                                          y: origin.y + CGFloat([0, 22, 14, -18][index]))
+                                .position(x: origin.x + CGFloat([0, -30, 34, -12][index % 4]),
+                                          y: origin.y + CGFloat([0, 22, 14, -18][index % 4]))
                                 .animation(.easeIn(duration: 1.7).delay(Double(index) * 0.12), value: bloomed)
                         }
                     }
