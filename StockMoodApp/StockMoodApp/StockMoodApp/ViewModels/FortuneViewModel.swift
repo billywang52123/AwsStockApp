@@ -27,9 +27,12 @@ class FortuneViewModel: ObservableObject {
         self.container = container ?? .shared
     }
 
-    /// 重看開籤儀式:回到入口再搖一次;後端每日冪等,回的是同一支籤
+    /// 重抽(測試用):回到入口,下一次搖籤帶 force,後端會依「當下持股」重新求一支
+    private var forceNextDraw = false
+
     func replayCeremony() {
         guard phase == .result else { return }
+        forceNextDraw = true
         withAnimation(.easeOut(duration: 0.25)) { phase = .entry }
     }
 
@@ -61,7 +64,8 @@ class FortuneViewModel: ObservableObject {
 
         async let minimumShake: Void = Task.sleep(for: .seconds(2.4))
         do {
-            let result = try await container.fortuneService.drawFortune()
+            let result = try await container.fortuneService.drawFortune(force: forceNextDraw)
+            forceNextDraw = false
             try? await minimumShake
             fortune = result
             HapticManager.shared.triggerNotification(type: .success)

@@ -143,6 +143,24 @@ def test_draw_is_idempotent_per_day(client, db_session):
     assert today["stick_number"] == first["stick_number"]
 
 
+def test_force_redraw_uses_current_holdings(client, db_session):
+    """force=true:丟棄今日籤,依「當下」持股重新計算(重抽測試用)。"""
+    first = client.post("/api/fortune/draw").json()["data"]
+    assert first["holdings"] == []          # 無持股時求得
+
+    seed_portfolio(db_session)
+    same = client.post("/api/fortune/draw").json()["data"]
+    assert same["already_drawn"] is True    # 不帶 force 仍回同一支
+    assert same["holdings"] == []
+
+    redrawn = client.post("/api/fortune/draw?force=true").json()["data"]
+    assert redrawn["already_drawn"] is False
+    assert len(redrawn["holdings"]) == 3    # 重抽後反映當下持股
+
+    today = client.get("/api/fortune/today").json()["data"]
+    assert len(today["holdings"]) == 3      # 今日籤已被新的取代
+
+
 def test_no_banned_words(client, db_session):
     seed_portfolio(db_session)
     data = client.post("/api/fortune/draw").json()["data"]

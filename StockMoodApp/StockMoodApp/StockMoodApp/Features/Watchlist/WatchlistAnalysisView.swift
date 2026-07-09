@@ -70,6 +70,10 @@ struct AnalysisSegmentedControl<Segment: Hashable>: View {
 struct WatchlistAnalysisSection: View {
     @ObservedObject var viewModel: AnalysisViewModel
 
+    // 空清單時直接從分析頁加入觀察股(共用 11c 的加入 sheet)
+    @StateObject private var watchlistVM = WatchlistViewModel()
+    @State private var showAddSheet = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if !viewModel.watchlists.isEmpty {
@@ -126,8 +130,46 @@ struct WatchlistAnalysisSection: View {
                 .font(.system(size: 13, design: .rounded))
                 .foregroundColor(AppColor.inkTertiary)
                 .multilineTextAlignment(.center)
+
+            Button {
+                HapticManager.shared.triggerImpact(style: .light)
+                Task { await openAddSheet() }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                    Text("加入觀察股")
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                }
+                .foregroundColor(.white)
+                .padding(.vertical, 11)
+                .padding(.horizontal, 22)
+                .background(AppColor.primary)
+                .clipShape(Capsule())
+                .shadow(color: AppColor.primary.opacity(0.3), radius: 8, x: 0, y: 6)
+            }
+            .buttonStyle(PressScaleButtonStyle())
+            .padding(.top, 6)
         }
         .frame(maxWidth: .infinity)
+        .sheet(isPresented: $showAddSheet, onDismiss: {
+            Task { await viewModel.load() }
+        }) {
+            AddWatchStockSheet(viewModel: watchlistVM)
+        }
+    }
+
+    /// 選定目標清單(目前篩選的清單優先)後開加入 sheet;一份清單都沒有時先建預設清單
+    private func openAddSheet() async {
+        await watchlistVM.loadIndex()
+        let target = watchlistVM.watchlists.first(where: { $0.id == viewModel.watchFilterId })
+            ?? watchlistVM.watchlists.first
+        if let target {
+            await watchlistVM.select(target)
+            showAddSheet = true
+        } else if await watchlistVM.create(name: "我的觀察清單", color: nil) {
+            showAddSheet = true
+        }
     }
 
     // 清單篩選 chips:「全部」+ 各清單

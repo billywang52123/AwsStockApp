@@ -113,10 +113,14 @@ class FortuneService:
 
     # ── 12b 抽籤(每天一支) ──────────────────────────────────
 
-    def draw(self, user_id: str = "demo-user") -> dict:
+    def draw(self, user_id: str = "demo-user", force: bool = False) -> dict:
         existing = self._get_today_row(user_id)
         if existing:
-            return self._to_dict(existing, already_drawn=True)
+            if not force:
+                return self._to_dict(existing, already_drawn=True)
+            # force 重抽(測試用):丟棄今日籤,依當下持股重新計算
+            self.db.delete(existing)
+            self.db.flush()
 
         holdings = _load_holdings(self.db, user_id)
         market_change = get_live_market_change(self.db)

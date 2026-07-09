@@ -57,7 +57,8 @@ protocol DailySummaryServiceProtocol {
 
 /// 每日御神籤(spec 第十輪 12a–12d,取代原每日抽卡)
 protocol FortuneServiceProtocol {
-    func drawFortune() async throws -> FortuneResult
+    /// force = true:丟棄今日籤,依當下持股重新求一支(重抽測試用)
+    func drawFortune(force: Bool) async throws -> FortuneResult
     func getTodayFortune() async throws -> FortuneResult?
 }
 

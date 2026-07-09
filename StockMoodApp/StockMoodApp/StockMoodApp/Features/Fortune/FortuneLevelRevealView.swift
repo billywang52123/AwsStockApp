@@ -21,9 +21,8 @@ struct FortuneLevelRevealView: View {
                 Text("綜 合 籤 等")
                     .font(.system(size: 15, weight: .bold, design: .serif))
                     .kerning(6)
-                    .foregroundColor(level.isAuspicious ? Color(hex: "5A4410") : Color(hex: "8A8F8C"))
-                    .shadow(color: level.isAuspicious ? Color(hex: "FFF0BE").opacity(0.9) : .clear,
-                            radius: 8, x: 0, y: 1)
+                    .foregroundColor(level.isAuspicious ? Color(hex: "FFF1C8") : Color(hex: "C7CCC9"))
+                    .shadow(color: Color.black.opacity(0.45), radius: 3, x: 0, y: 1)
                     .padding(.top, 96)
 
                 Spacer()
@@ -41,15 +40,15 @@ struct FortuneLevelRevealView: View {
                 Text(fortune.levelNote)
                     .font(.system(size: 15, weight: .bold, design: .rounded))
                     .kerning(2)
-                    .foregroundColor(level.isAuspicious ? Color(hex: "6A4E10") : Color(hex: "9AA09D"))
-                    .shadow(color: level.isAuspicious ? Color(hex: "FFF4C8").opacity(0.9) : .clear,
-                            radius: 6, x: 0, y: 1)
+                    .foregroundColor(level.isAuspicious ? Color(hex: "FFF6DA") : Color(hex: "C7CCC9"))
+                    .shadow(color: Color.black.opacity(0.5), radius: 3, x: 0, y: 1)
                     .padding(.top, 22)
 
                 Text(holdingsSubtitle)
-                    .font(.system(size: 12.5, design: .rounded))
+                    .font(.system(size: 12.5, weight: .semibold, design: .rounded))
                     .monospacedDigit()
-                    .foregroundColor(level.isAuspicious ? Color(hex: "7A5F1E") : Color(hex: "71776E"))
+                    .foregroundColor(level.isAuspicious ? Color(hex: "F3DFA6") : Color(hex: "9AA09D"))
+                    .shadow(color: Color.black.opacity(0.4), radius: 2, x: 0, y: 1)
                     .padding(.top, 12)
 
                 Spacer()
@@ -79,10 +78,11 @@ struct FortuneLevelRevealView: View {
                 }
                 .buttonStyle(PressScaleButtonStyle())
                 .padding(.horizontal, 28)
-                .padding(.bottom, 40)
+                .padding(.bottom, 24)
             }
         }
-        .ignoresSafeArea()
+        // 背景滿版,但內容尊重底部 safe area,CTA 不會被浮動 tab bar 蓋住
+        .ignoresSafeArea(edges: .top)
     }
 
     private var holdingsSubtitle: String {

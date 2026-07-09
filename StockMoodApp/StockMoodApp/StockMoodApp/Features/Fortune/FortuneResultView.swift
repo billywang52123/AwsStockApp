@@ -41,13 +41,13 @@ struct FortuneResultView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.top, 16)
 
-                // 重看儀式(同一支籤,不重抽)
+                // 重抽(測試用):依當下持股重新求一支籤
                 if let onReplay {
                     Button {
                         HapticManager.shared.triggerSelection()
                         onReplay()
                     } label: {
-                        Text("重看開籤動畫 (測試)")
+                        Text("重抽一次 (測試)")
                             .font(.system(size: 12, weight: .bold, design: .rounded))
                             .foregroundColor(AppColor.inkQuaternary)
                             .padding(.vertical, 8)
@@ -75,9 +75,11 @@ struct FortuneResultView: View {
                     .kerning(2)
                     .foregroundColor(AppColor.inkTertiary)
 
+                // 籤等大字:吉背後透金光、凶背後透黑煙(墊在字下,不影響字的清晰度)
                 Text(fortune.overallLevel.label)
                     .font(.system(size: 52, weight: .heavy, design: .serif))
                     .foregroundColor(fortune.overallLevel.textColor)
+                    .background(levelAura)
 
                 Text(fortune.levelNote)
                     .font(.system(size: 14, weight: .bold, design: .serif))
@@ -195,17 +197,44 @@ struct FortuneResultView: View {
         }
         .background(Color(hex: "FFFDF8"))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        // 紅雙框:外框 + 內細框(籤詩紙語彙)
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(Color(hex: "C97F7F"), lineWidth: 2)
+        // 外框依籤等變化:吉 = 金光流轉,凶 = 黑煙繚繞(取代原紅雙框)
+        .overlay(FortunePaperFrame(level: fortune.overallLevel))
+        .shadow(
+            color: fortune.overallLevel.isAuspicious
+                ? Color(hex: "E8B84C").opacity(0.35)
+                : Color(hex: "1A1D1B").opacity(0.35),
+            radius: 14, x: 0, y: 8
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color(hex: "C97F7F").opacity(0.45), lineWidth: 1)
-                .padding(5)
-        )
-        .shadow(color: Color(hex: "786446").opacity(0.1), radius: 12, x: 0, y: 8)
+    }
+
+    /// 籤等大字背後的光暈/煙霧(以 background 疊在字下,不改變版面)
+    @ViewBuilder
+    private var levelAura: some View {
+        if fortune.overallLevel.isAuspicious {
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color(hex: "FFE28C").opacity(0.85),
+                            Color(hex: "FFD66E").opacity(0.35),
+                            .clear,
+                        ],
+                        center: .center, startRadius: 6, endRadius: 85
+                    )
+                )
+                .frame(width: 170, height: 170)
+        } else {
+            ZStack {
+                ForEach(0..<3, id: \.self) { index in
+                    Circle()
+                        .fill(Color(hex: "3A3F3C").opacity(0.28))
+                        .frame(width: 110, height: 110)
+                        .blur(radius: 18)
+                        .offset(x: CGFloat([0, -34, 36][index]),
+                                y: CGFloat([0, 14, -10][index]))
+                }
+            }
+        }
     }
 
     private func sectionTitle(_ title: String) -> some View {
@@ -231,6 +260,70 @@ private func fortuneDateTextResult() -> String {
     formatter.dateFormat = "M 月 d 日"
     let week = ["日", "一", "二", "三", "四", "五", "六"][Calendar.current.component(.weekday, from: Date()) - 1]
     return "\(formatter.string(from: Date())) · 週\(week)"
+}
+
+// MARK: - 籤詩紙外框(吉 = 金光流轉,凶 = 黑煙繚繞;皆保留內細框的籤紙語彙)
+struct FortunePaperFrame: View {
+    let level: FortuneLevel
+    @State private var spin = 0.0
+    @State private var breathing = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        ZStack {
+            if level.isAuspicious {
+                // 柔光暈:框外一圈金霧
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(Color(hex: "FFD66E").opacity(breathing ? 0.85 : 0.5), lineWidth: 5)
+                    .blur(radius: 6)
+
+                // 金光流轉外框:角度漸層繞著框慢慢轉
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(
+                        AngularGradient(
+                            colors: [
+                                Color(hex: "C89040"), Color(hex: "FFF3C4"),
+                                Color(hex: "D9A264"), Color(hex: "FFE9A8"),
+                                Color(hex: "C89040"),
+                            ],
+                            center: .center, angle: .degrees(spin)
+                        ),
+                        lineWidth: 2.5
+                    )
+
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(Color(hex: "D9A264").opacity(0.5), lineWidth: 1)
+                    .padding(5)
+            } else {
+                // 黑煙繚繞:框外一圈煙霧緩慢呼吸
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(Color(hex: "2E3230").opacity(breathing ? 0.7 : 0.35), lineWidth: 7)
+                    .blur(radius: 9)
+
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color(hex: "3A3F3C"), Color(hex: "6E7370"), Color(hex: "2E3230")],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 2.5
+                    )
+
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(Color(hex: "5C6360").opacity(0.4), lineWidth: 1)
+                    .padding(5)
+            }
+        }
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.linear(duration: 6).repeatForever(autoreverses: false)) {
+                spin = 360
+            }
+            withAnimation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true)) {
+                breathing = true
+            }
+        }
+    }
 }
 
 // MARK: - 13c · 結果頁頂部狀態條(金光 glowPulse / 黑煙二態,強度隨籤等)
