@@ -27,4 +27,5 @@ class FortuneRead(BaseModel):
     stance: str                # 今天的節奏(偏向觀望 / 平常心…)
     stance_note: str
     notices: List[str]         # 「注意事項」
-    already_drawn: bool        # 今日已抽(前端顯示「明天可再抽」)
+    already_drawn: bool        # 本時段已抽(前端顯示下一時段開放時間)
+    session: str = "day"       # day = 日盤籤(13:30 起)/ night = 夜盤籤(次日 05:00 起)

@@ -146,7 +146,7 @@ struct FortuneEntryView: View {
                     .shadow(color: Color(hex: "FFFAEB").opacity(0.5), radius: 0, x: 0, y: 1)
                     .padding(.top, 30)
 
-                Text("\(fortuneDateText()) · 依你的持股問運勢")
+                Text("\(fortuneDateText()) · \(FortuneSession.current().label) · 依你的持股問運勢")
                     .font(.system(size: 12.5, design: .rounded))
                     .foregroundColor(Color(hex: "9C8A66"))
                     .padding(.top, 10)
@@ -197,7 +197,7 @@ struct FortuneEntryView: View {
                 }
                 .buttonStyle(PressScaleButtonStyle())
 
-                Text("每日一籤 · 收盤後 14:30 更新")
+                Text("日盤 13:30 · 夜盤次日 05:00 · 各一支")
                     .font(.system(size: 11.5, design: .rounded))
                     .foregroundColor(Color(hex: "7C6C4E"))
                     .padding(.top, 12)

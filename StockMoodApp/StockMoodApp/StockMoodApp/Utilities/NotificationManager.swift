@@ -28,9 +28,10 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     }
     
     func scheduleReminder(setting: ReminderSetting) {
-        // Cancel existing notifications
-        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-        
+        // 只取消自己的每日提醒;removeAll 會連抽籤通知一起清掉
+        UNUserNotificationCenter.current()
+            .removePendingNotificationRequests(withIdentifiers: ["com.stockmoodapp.dailyreminder"])
+
         guard setting.enabled else { return }
         
         let content = UNMutableNotificationContent()
@@ -79,6 +80,57 @@ class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
     }
     
+    // MARK: - 抽籤通知(日間收盤 13:30 / 夜間收盤次日 05:00,皆台灣時間)
+
+    private static let fortuneDayCloseId = "com.stockmoodapp.fortune.dayclose"
+    private static let fortuneNightCloseId = "com.stockmoodapp.fortune.nightclose"
+
+    func scheduleFortuneReminders(dayClose: Bool, nightClose: Bool) {
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(
+            withIdentifiers: [Self.fortuneDayCloseId, Self.fortuneNightCloseId]
+        )
+        let taipei = TimeZone(identifier: "Asia/Taipei")
+
+        if dayClose {
+            let content = UNMutableNotificationContent()
+            content.title = "日間收盤 · 求籤時間到"
+            content.body = "台股收盤了,來搖一支今日安心籤,看看持股的運勢與注意事項。"
+            content.sound = .default
+
+            var comps = DateComponents()
+            comps.hour = 13
+            comps.minute = 30
+            comps.timeZone = taipei
+            center.add(UNNotificationRequest(
+                identifier: Self.fortuneDayCloseId,
+                content: content,
+                trigger: UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)
+            )) { error in
+                if let error { print("Failed to schedule day-close fortune reminder: \(error)") }
+            }
+        }
+
+        if nightClose {
+            let content = UNMutableNotificationContent()
+            content.title = "夜間收盤 · 求籤時間到"
+            content.body = "美股也收盤了,起床先搖一支安心籤,看看今天的市場氛圍。"
+            content.sound = .default
+
+            var comps = DateComponents()
+            comps.hour = 5
+            comps.minute = 0
+            comps.timeZone = taipei
+            center.add(UNNotificationRequest(
+                identifier: Self.fortuneNightCloseId,
+                content: content,
+                trigger: UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)
+            )) { error in
+                if let error { print("Failed to schedule night-close fortune reminder: \(error)") }
+            }
+        }
+    }
+
     func triggerTestNotification() {
         let content = UNMutableNotificationContent()
         content.title = "股票情緒陪伴 (測試推播)"

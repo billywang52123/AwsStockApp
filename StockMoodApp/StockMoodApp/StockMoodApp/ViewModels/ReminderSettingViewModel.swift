@@ -12,6 +12,10 @@ class ReminderSettingViewModel: ObservableObject {
     @Published var showPermissionAlert = false
     @Published var hasError = false
     @Published var errorMessage = ""
+
+    // 抽籤通知(日間收盤 13:30 / 夜間收盤次日 05:00,台灣時間)
+    @Published var fortuneDayClose = AppPreferenceStore.shared.fortuneDayCloseNotifyEnabled
+    @Published var fortuneNightClose = AppPreferenceStore.shared.fortuneNightCloseNotifyEnabled
     
     private let container: DependencyContainer
     
@@ -84,6 +88,48 @@ class ReminderSettingViewModel: ObservableObject {
         }
     }
     
+    // MARK: - 抽籤通知
+
+    func toggleFortuneDayClose(_ on: Bool) {
+        setFortuneNotify(day: on, night: fortuneNightClose)
+    }
+
+    func toggleFortuneNightClose(_ on: Bool) {
+        setFortuneNotify(day: fortuneDayClose, night: on)
+    }
+
+    private func setFortuneNotify(day: Bool, night: Bool) {
+        // 關閉不需要權限;開啟前先要通知授權,被拒就跳權限提示
+        let apply: (Bool, Bool) -> Void = { [weak self] day, night in
+            guard let self else { return }
+            self.fortuneDayClose = day
+            self.fortuneNightClose = night
+            AppPreferenceStore.shared.fortuneDayCloseNotifyEnabled = day
+            AppPreferenceStore.shared.fortuneNightCloseNotifyEnabled = night
+            NotificationManager.shared.scheduleFortuneReminders(dayClose: day, nightClose: night)
+            HapticManager.shared.triggerNotification(type: .success)
+        }
+
+        let turningOn = (day && !fortuneDayClose) || (night && !fortuneNightClose)
+        guard turningOn else {
+            apply(day, night)
+            return
+        }
+        NotificationManager.shared.requestAuthorization { [weak self] granted in
+            guard let self else { return }
+            Task { @MainActor in
+                if granted {
+                    apply(day, night)
+                } else {
+                    // 還原 toggle 並提示去系統設定開權限
+                    self.fortuneDayClose = AppPreferenceStore.shared.fortuneDayCloseNotifyEnabled
+                    self.fortuneNightClose = AppPreferenceStore.shared.fortuneNightCloseNotifyEnabled
+                    self.showPermissionAlert = true
+                }
+            }
+        }
+    }
+
     func sendTestNotification() {
         NotificationManager.shared.checkPermission { granted in
             Task { @MainActor in
