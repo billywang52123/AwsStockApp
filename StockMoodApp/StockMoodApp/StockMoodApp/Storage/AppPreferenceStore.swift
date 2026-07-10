@@ -90,6 +90,23 @@ class AppPreferenceStore {
         UserDefaults.standard.removeObject(forKey: userScopedKey(faceIDLockKey))
     }
 
+    // MARK: - 抽籤通知(日間/夜間收盤,per-user)
+
+    private let fortuneDayNotifyKey = "com.stockmoodapp.fortuneNotify.dayClose"
+    private let fortuneNightNotifyKey = "com.stockmoodapp.fortuneNotify.nightClose"
+
+    /// 日間收盤求籤通知(台灣時間 13:30)
+    var fortuneDayCloseNotifyEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: userScopedKey(fortuneDayNotifyKey)) }
+        set { UserDefaults.standard.set(newValue, forKey: userScopedKey(fortuneDayNotifyKey)) }
+    }
+
+    /// 夜間收盤求籤通知(次日台灣時間 05:00)
+    var fortuneNightCloseNotifyEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: userScopedKey(fortuneNightNotifyKey)) }
+        set { UserDefaults.standard.set(newValue, forKey: userScopedKey(fortuneNightNotifyKey)) }
+    }
+
     // Per-user: a different account signing in on this device goes through
     // onboarding (scenario + portfolio input) with its own data
     var isOnboardingCompleted: Bool {

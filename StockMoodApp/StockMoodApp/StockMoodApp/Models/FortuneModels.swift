@@ -14,6 +14,32 @@ struct FortuneResult: Codable, Hashable {
     let stanceNote: String
     let notices: [String]           // 「注意事項」
     let alreadyDrawn: Bool
+    let session: String?            // day = 日盤籤 / night = 夜盤籤(舊版後端沒有此欄)
+
+    var sessionType: FortuneSession { FortuneSession(rawValue: session ?? "day") ?? .day }
+}
+
+/// 抽籤時段:日盤(台股 13:30 收盤後)/ 夜盤(美股收盤,次日 05:00 起)
+enum FortuneSession: String {
+    case day
+    case night
+
+    var label: String { self == .day ? "日盤籤" : "夜盤籤" }
+
+    /// 結果頁「已抽」pill:提示下一時段的開放時間
+    var drawnNote: String {
+        self == .day ? "日盤籤已抽 · 夜盤 05:00 開放" : "夜盤籤已抽 · 日盤 13:30 開放"
+    }
+
+    /// 現在時段(台灣時間):13:30 起~次日 05:00 日盤;05:00~13:30 夜盤
+    static func current(now: Date = Date()) -> FortuneSession {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Taipei") ?? .current
+        let comps = calendar.dateComponents([.hour, .minute], from: now)
+        let minutes = (comps.hour ?? 0) * 60 + (comps.minute ?? 0)
+        if minutes >= 13 * 60 + 30 || minutes < 5 * 60 { return .day }
+        return .night
+    }
 }
 
 struct FortuneHolding: Codable, Hashable, Identifiable {

@@ -8,8 +8,9 @@
 """
 import json
 import random
-from datetime import date
-from typing import List, Optional
+from datetime import date, datetime, time, timedelta
+from typing import List, Optional, Tuple
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
@@ -17,6 +18,33 @@ from sqlalchemy.orm import Session
 from app.models.fortune import FortuneResultModel
 from app.services.services import get_live_market_change, run_async
 from app.services.portfolio_analysis_service import _load_holdings, _Holding
+
+TAIPEI = ZoneInfo("Asia/Taipei")
+
+# 時段邊界(台灣時間):台股收盤 13:30 起抽日盤籤;美股收盤次日 05:00 起抽夜盤籤
+DAY_OPEN = time(13, 30)
+NIGHT_OPEN = time(5, 0)
+
+
+def _now_taipei() -> datetime:
+    """時間來源抽成函數,測試可 monkeypatch 固定時刻。"""
+    return datetime.now(TAIPEI)
+
+
+def current_session(now: Optional[datetime] = None) -> Tuple[date, str]:
+    """現在可抽的 (日期, 時段)。
+
+    - 13:30 ~ 次日 05:00 → 當日「日盤籤」(跨午夜仍算前一日的日盤)
+    - 05:00 ~ 13:30     → 當日「夜盤籤」(反映前一晚美股收盤後的氛圍)
+    """
+    now = now or _now_taipei()
+    t = now.time()
+    if t < NIGHT_OPEN:
+        return now.date() - timedelta(days=1), "day"
+    if t < DAY_OPEN:
+        return now.date(), "night"
+    return now.date(), "day"
+
 
 # 六級籤等(數值越大越吉)
 LEVELS = ["大凶", "凶", "小凶", "小吉", "吉", "大吉"]
@@ -87,10 +115,17 @@ class FortuneService:
 
     # ── 查詢 ─────────────────────────────────────────────────
 
-    def _get_today_row(self, user_id: str) -> Optional[FortuneResultModel]:
+    def _get_session_row(self, user_id: str, trade_date: date,
+                         session: str) -> Optional[FortuneResultModel]:
+        # 舊資料的 session 為 NULL,視同日盤
+        if session == "day":
+            session_cond = (FortuneResultModel.session == "day") | (FortuneResultModel.session.is_(None))
+        else:
+            session_cond = FortuneResultModel.session == session
         return self.db.scalars(select(FortuneResultModel).where(and_(
             FortuneResultModel.user_id == user_id,
-            FortuneResultModel.trade_date == date.today(),
+            FortuneResultModel.trade_date == trade_date,
+            session_cond,
         ))).first()
 
     def _to_dict(self, row: FortuneResultModel, already_drawn: bool) -> dict:
@@ -105,20 +140,24 @@ class FortuneService:
             "stance_note": row.stance_note,
             "notices": json.loads(row.notices_json),
             "already_drawn": already_drawn,
+            "session": row.session or "day",
         }
 
     def get_today(self, user_id: str = "demo-user") -> Optional[dict]:
-        row = self._get_today_row(user_id)
+        """目前時段的籤;還沒抽回 None(前端顯示搖籤入口)。"""
+        trade_date, session = current_session()
+        row = self._get_session_row(user_id, trade_date, session)
         return self._to_dict(row, already_drawn=True) if row else None
 
-    # ── 12b 抽籤(每天一支) ──────────────────────────────────
+    # ── 12b 抽籤(日盤/夜盤各一支) ────────────────────────────
 
     def draw(self, user_id: str = "demo-user", force: bool = False) -> dict:
-        existing = self._get_today_row(user_id)
+        trade_date, session = current_session()
+        existing = self._get_session_row(user_id, trade_date, session)
         if existing:
             if not force:
                 return self._to_dict(existing, already_drawn=True)
-            # force 重抽(測試用):丟棄今日籤,依當下持股重新計算
+            # force 重抽(測試用):丟棄本時段籤,依當下持股重新計算
             self.db.delete(existing)
             self.db.flush()
 
@@ -155,7 +194,8 @@ class FortuneService:
 
         row = FortuneResultModel(
             user_id=user_id,
-            trade_date=date.today(),
+            trade_date=trade_date,
+            session=session,
             stick_number=random.randint(1, 100),
             overall_level=overall,
             level_note=LEVEL_NOTES[overall],

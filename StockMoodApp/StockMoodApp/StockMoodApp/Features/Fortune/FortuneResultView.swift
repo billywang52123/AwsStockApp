@@ -78,7 +78,7 @@ struct FortuneResultView: View {
                     .font(.system(size: 12, design: .rounded))
                     .foregroundColor(theme.subtitleColor.opacity(0.85))
                 Spacer()
-                Text("今日已抽 · 明天可再抽")
+                Text(fortune.sessionType.drawnNote)
                     .font(.system(size: 10.5, weight: .bold, design: .rounded))
                     .foregroundColor(theme.subtitleColor)
                     .padding(.vertical, 4)

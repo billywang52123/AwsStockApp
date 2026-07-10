@@ -150,6 +150,39 @@ struct ReminderSettingView: View {
                         }
                     }
                     
+                    // 抽籤通知(依收盤時間提醒來求籤)
+                    Section(
+                        header: Text("抽籤通知").font(.system(.footnote, design: .rounded)),
+                        footer: Text("依收盤時間提醒你來求籤;測試期間隨時打開 App 都能抽。")
+                            .font(.system(.caption2, design: .rounded))
+                    ) {
+                        Toggle(isOn: Binding(
+                            get: { viewModel.fortuneDayClose },
+                            set: { viewModel.toggleFortuneDayClose($0) }
+                        )) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("日間收盤求籤")
+                                Text("台灣時間下午 1:30")
+                                    .font(.system(.caption, design: .rounded))
+                                    .foregroundColor(AppColor.textSecondary)
+                            }
+                        }
+                        .tint(AppColor.primary)
+
+                        Toggle(isOn: Binding(
+                            get: { viewModel.fortuneNightClose },
+                            set: { viewModel.toggleFortuneNightClose($0) }
+                        )) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("夜間收盤求籤")
+                                Text("次日凌晨 05:00")
+                                    .font(.system(.caption, design: .rounded))
+                                    .foregroundColor(AppColor.textSecondary)
+                            }
+                        }
+                        .tint(AppColor.primary)
+                    }
+
                     Section(header: Text("推播功能測試").font(.system(.footnote, design: .rounded)), footer: Text("點擊將在 1 秒後發送一則本地測試通知，可用於驗證通知權限與顯示效果。")) {
                         Button(action: {
                             viewModel.sendTestNotification()

@@ -18,11 +18,13 @@ _COLUMNS = [
     ("portfolio_items", "status", "VARCHAR DEFAULT 'active'"),
     ("portfolio_items", "source", "VARCHAR DEFAULT 'manual'"),
     ("portfolio_items", "updated_at", "TIMESTAMP"),
+    ("fortune_results", "session", "VARCHAR DEFAULT 'day'"),
 ]
 
 _BACKFILLS = [
     "UPDATE portfolio_items SET status = 'active' WHERE status IS NULL",
     "UPDATE portfolio_items SET source = 'manual' WHERE source IS NULL",
+    "UPDATE fortune_results SET session = 'day' WHERE session IS NULL",
 ]
 
 

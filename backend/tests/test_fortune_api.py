@@ -19,7 +19,10 @@ from app.models.stock import Stock
 from app.models.stock_daily_price import StockDailyPrice
 from app.models.market_index import MarketIndexDaily
 from app.models.portfolio import PortfolioItem
-from app.services.fortune_service import _level_value, _chinese_number, LEVELS
+from app.services import fortune_service
+from app.services.fortune_service import (
+    _level_value, _chinese_number, current_session, LEVELS, TAIPEI,
+)
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
@@ -78,6 +81,20 @@ def seed_portfolio(db):
     db.commit()
 
 
+@pytest.fixture()
+def day_session(monkeypatch):
+    """固定在 14:00(日盤時段),測試不受實際跑的時刻影響。"""
+    from datetime import datetime
+    monkeypatch.setattr(fortune_service, "_now_taipei",
+                        lambda: datetime(2026, 7, 10, 14, 0, tzinfo=TAIPEI))
+
+
+def _freeze(monkeypatch, hour, minute=0, day=10):
+    from datetime import datetime
+    monkeypatch.setattr(fortune_service, "_now_taipei",
+                        lambda: datetime(2026, 7, day, hour, minute, tzinfo=TAIPEI))
+
+
 # ── 規則單元:六級對映與中文數字 ─────────────────────────────
 
 def test_level_value_thresholds():
@@ -98,13 +115,13 @@ def test_chinese_number():
 
 # ── /fortune ─────────────────────────────────────────────────
 
-def test_today_before_draw_is_null(client):
+def test_today_before_draw_is_null(client, day_session):
     response = client.get("/api/fortune/today")
     assert response.status_code == 200
     assert response.json()["data"] is None
 
 
-def test_draw_fortune_structure(client, db_session):
+def test_draw_fortune_structure(client, day_session, db_session):
     seed_portfolio(db_session)
     response = client.post("/api/fortune/draw")
     assert response.status_code == 201
@@ -131,7 +148,7 @@ def test_draw_fortune_structure(client, db_session):
     assert data["overall_level"] in ("小吉", "吉")
 
 
-def test_draw_is_idempotent_per_day(client, db_session):
+def test_draw_is_idempotent_per_day(client, day_session, db_session):
     seed_portfolio(db_session)
     first = client.post("/api/fortune/draw").json()["data"]
     second = client.post("/api/fortune/draw").json()["data"]
@@ -143,7 +160,7 @@ def test_draw_is_idempotent_per_day(client, db_session):
     assert today["stick_number"] == first["stick_number"]
 
 
-def test_force_redraw_uses_current_holdings(client, db_session):
+def test_force_redraw_uses_current_holdings(client, day_session, db_session):
     """force=true:丟棄今日籤,依「當下」持股重新計算(重抽測試用)。"""
     first = client.post("/api/fortune/draw").json()["data"]
     assert first["holdings"] == []          # 無持股時求得
@@ -161,7 +178,7 @@ def test_force_redraw_uses_current_holdings(client, db_session):
     assert len(today["holdings"]) == 3      # 今日籤已被新的取代
 
 
-def test_no_banned_words(client, db_session):
+def test_no_banned_words(client, day_session, db_session):
     seed_portfolio(db_session)
     data = client.post("/api/fortune/draw").json()["data"]
     all_text = data["summary"] + data["stance"] + data["stance_note"] \
@@ -171,15 +188,62 @@ def test_no_banned_words(client, db_session):
         assert banned not in all_text, f"籤詩文字出現禁字:{banned}"
 
 
-def test_draw_without_holdings(client):
+def test_draw_without_holdings(client, day_session):
     data = client.post("/api/fortune/draw").json()["data"]
     assert data["overall_level"] == "小吉"
     assert data["holdings"] == []
     assert len(data["summary"]) > 0
 
 
-def test_user_isolation(client, db_session):
+def test_user_isolation(client, day_session, db_session):
     seed_portfolio(db_session)
     client.post("/api/fortune/draw")
     other = client.get("/api/fortune/today", headers={"X-User-Id": "someone-else"})
     assert other.json()["data"] is None
+
+
+# ── 日盤 / 夜盤 各一支 ────────────────────────────────────────
+
+def test_current_session_windows():
+    from datetime import datetime, date as ddate
+    # 13:30 起 → 當日日盤;跨午夜到 05:00 前仍是前一日的日盤
+    assert current_session(datetime(2026, 7, 10, 13, 30, tzinfo=TAIPEI)) == (ddate(2026, 7, 10), "day")
+    assert current_session(datetime(2026, 7, 10, 23, 50, tzinfo=TAIPEI)) == (ddate(2026, 7, 10), "day")
+    assert current_session(datetime(2026, 7, 11, 4, 59, tzinfo=TAIPEI)) == (ddate(2026, 7, 10), "day")
+    # 05:00(美股收盤)起 → 當日夜盤,直到 13:30
+    assert current_session(datetime(2026, 7, 11, 5, 0, tzinfo=TAIPEI)) == (ddate(2026, 7, 11), "night")
+    assert current_session(datetime(2026, 7, 11, 13, 29, tzinfo=TAIPEI)) == (ddate(2026, 7, 11), "night")
+
+
+def test_day_and_night_sessions_draw_separately(client, db_session, monkeypatch):
+    """日盤抽一支後,到夜盤時段可再抽新的一支;各時段內冪等。"""
+    seed_portfolio(db_session)
+
+    # 7/10 14:00 抽日盤籤
+    _freeze(monkeypatch, hour=14, day=10)
+    day_draw = client.post("/api/fortune/draw").json()["data"]
+    assert day_draw["session"] == "day"
+    assert day_draw["already_drawn"] is False
+
+    # 同一晚 23:00 還是同一支日盤籤
+    _freeze(monkeypatch, hour=23, day=10)
+    same = client.post("/api/fortune/draw").json()["data"]
+    assert same["already_drawn"] is True
+    assert same["stick_number"] == day_draw["stick_number"]
+
+    # 次日 03:00(05:00 前)仍屬前一日日盤,today 回同一支
+    _freeze(monkeypatch, hour=3, day=11)
+    today = client.get("/api/fortune/today").json()["data"]
+    assert today["stick_number"] == day_draw["stick_number"]
+
+    # 次日 06:00 進入夜盤時段:還沒抽 → today 為 null,可抽新的一支
+    _freeze(monkeypatch, hour=6, day=11)
+    assert client.get("/api/fortune/today").json()["data"] is None
+    night_draw = client.post("/api/fortune/draw").json()["data"]
+    assert night_draw["session"] == "night"
+    assert night_draw["already_drawn"] is False
+
+    # 夜盤時段內冪等
+    night_again = client.post("/api/fortune/draw").json()["data"]
+    assert night_again["already_drawn"] is True
+    assert night_again["stick_number"] == night_draw["stick_number"]
