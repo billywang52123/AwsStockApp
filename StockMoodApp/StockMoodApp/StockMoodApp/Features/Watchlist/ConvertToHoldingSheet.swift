@@ -9,12 +9,13 @@ struct ConvertToHoldingSheet: View {
     var onConverted: (ConvertResult) -> Void = { _ in }
 
     @Environment(\.dismiss) private var dismiss
-    @State private var lots = 1          // 張數(1 張 = 1,000 股)
-    @State private var oddShares = 0     // 零股
+    @State private var lots = 1              // 張數(1 張 = 1,000 股)
+    @State private var oddSharesText = ""    // 零股:直接輸入(有人只買 10 股)
     @State private var priceText = ""
     @State private var isSubmitting = false
     @State private var showCheck = false
 
+    private var oddShares: Int { Int(oddSharesText) ?? 0 }
     private var totalShares: Int { lots * 1000 + oddShares }
 
     private var estimatedValueWan: Double? {
@@ -52,10 +53,10 @@ struct ConvertToHoldingSheet: View {
                 }
                 .padding(.top, 18)
 
-                // 張數 / 零股 雙 stepper
+                // 張數 stepper + 零股直接輸入
                 HStack(spacing: 12) {
                     stepperBox(label: "張數", note: "1 張 = 1,000 股", value: $lots, step: 1, range: 0...999)
-                    stepperBox(label: "零股", note: "股", value: $oddShares, step: 100, range: 0...999)
+                    oddSharesBox
                 }
                 .padding(.top, 20)
 
@@ -198,6 +199,39 @@ struct ConvertToHoldingSheet: View {
                     value.wrappedValue = min(range.upperBound, value.wrappedValue + step)
                 }
             }
+        }
+        .padding(.vertical, 14)
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
+        .background(AppColor.bgInset)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
+    // 零股欄:直接輸入 0–999 股(零股交易常見 10 股、37 股等任意數)
+    private var oddSharesBox: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 4) {
+                Text("零股")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundColor(AppColor.inkTertiary)
+                Text("股,直接輸入")
+                    .font(.system(size: 10, design: .rounded))
+                    .foregroundColor(AppColor.inkFaint)
+            }
+
+            TextField("0", text: $oddSharesText)
+                .font(.system(size: 26, weight: .heavy, design: .rounded))
+                .monospacedDigit()
+                .foregroundColor(AppColor.inkPrimary)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, minHeight: 32)
+                .onChange(of: oddSharesText) { _, newValue in
+                    // 只收數字,上限 999(滿 1,000 股請用張數)
+                    var filtered = String(newValue.filter(\.isNumber).prefix(3))
+                    if let n = Int(filtered), n > 999 { filtered = "999" }
+                    if filtered != newValue { oddSharesText = filtered }
+                }
         }
         .padding(.vertical, 14)
         .padding(.horizontal, 16)

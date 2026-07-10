@@ -126,6 +126,23 @@ def test_sell_all_exits_and_restore(client):
     assert holding["avg_price"] == pytest.approx(900.0)
 
 
+def test_re_add_after_exit_creates_new_holding(client):
+    """全部賣出(清倉)後用「新增持股」重新加入同一檔,要建新列並重新顯示;
+    修掉 add_item 冪等判斷回傳被隱藏清倉列、導致新增沒反應的 bug."""
+    _seed(client)
+    resp = client.post("/api/portfolio/holdings/2330/sell",
+                       json={"shares": 3000, "price": 1000})
+    assert resp.json()["data"]["exited"] is True
+    assert client.get("/api/portfolio/holdings/2330").status_code == 404
+
+    # 重新新增同一檔(iOS 新增持股走的端點)
+    _seed(client, symbol="2330", shares=500, cost=980.0)
+
+    holding = _holding(client)
+    assert holding["total_shares"] == 500
+    assert holding["avg_price"] == pytest.approx(980.0)
+
+
 # ---- 覆蓋 ---------------------------------------------------------------------
 
 def test_override_replaces_shares_keeps_avg(client):

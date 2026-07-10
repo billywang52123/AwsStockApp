@@ -49,10 +49,10 @@ struct FortuneResultView: View {
                         } label: {
                             Text("重抽一次 (測試)")
                                 .font(.system(size: 12, weight: .bold, design: .rounded))
-                                .foregroundColor(Color(hex: "9C8A66"))
+                                .foregroundColor(Color(hex: "7A6748"))
                                 .padding(.vertical, 8)
                                 .padding(.horizontal, 14)
-                                .background(Color.white.opacity(0.06))
+                                .background(Color.black.opacity(0.04))
                                 .clipShape(Capsule())
                         }
                         .frame(maxWidth: .infinity)
@@ -83,7 +83,7 @@ struct FortuneResultView: View {
                     .foregroundColor(theme.subtitleColor)
                     .padding(.vertical, 4)
                     .padding(.horizontal, 10)
-                    .background(Color.white.opacity(0.06))
+                    .background(Color.black.opacity(0.05))
                     .clipShape(Capsule())
             }
 
