@@ -40,8 +40,14 @@ class PortfolioRepository:
         return list(self.db.scalars(stmt).all())
         
     def add_item(self, item: PortfolioItem) -> PortfolioItem:
+        # 冪等判斷只看「未清倉」的列:同檔全部賣出(status=exited)後重新加入,
+        # 要建新的 active 列;回傳被隱藏的清倉列會讓「新增持股」看起來沒反應
         stmt = select(PortfolioItem).where(
-            and_(PortfolioItem.user_id == item.user_id, PortfolioItem.symbol == item.symbol)
+            and_(
+                PortfolioItem.user_id == item.user_id,
+                PortfolioItem.symbol == item.symbol,
+                (PortfolioItem.status.is_(None)) | (PortfolioItem.status != "exited"),
+            )
         )
         existing = self.db.scalars(stmt).first()
         if existing:

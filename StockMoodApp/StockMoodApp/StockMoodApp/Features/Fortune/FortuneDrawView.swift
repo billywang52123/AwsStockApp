@@ -8,14 +8,14 @@ struct FortuneDrawView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // 全程深色暗場,避免階段切換時閃白
-                Color(hex: "0C0805").ignoresSafeArea()
+                // 全程米黃暖紙底,避免階段切換時色調跳動
+                Color(hex: "E6DABE").ignoresSafeArea()
 
                 switch viewModel.phase {
                 case .loading:
                     ProgressView("正在準備籤筒...")
-                        .tint(Color(hex: "C99A4A"))
-                        .foregroundColor(Color(hex: "B7A57E"))
+                        .tint(Color(hex: "A2762E"))
+                        .foregroundColor(Color(hex: "7A6748"))
                 case .entry:
                     FortuneEntryView(viewModel: viewModel)
                         .transition(.opacity)
@@ -59,7 +59,7 @@ func fortuneDateText() -> String {
     return "\(formatter.string(from: Date())) · 週\(week)"
 }
 
-// MARK: - 暗場背景(14a/14b:琥珀暗場 + 呼吸光暈)
+// MARK: - 暖紙舞台(14a/14b:米黃暖紙底 + 琥珀呼吸光暈)
 
 struct FortuneDarkStage: View {
     @State private var glowing = false
@@ -68,7 +68,7 @@ struct FortuneDarkStage: View {
     var body: some View {
         ZStack {
             RadialGradient(
-                colors: [Color(hex: "231A10"), Color(hex: "120C06"), Color(hex: "080503")],
+                colors: [Color(hex: "F1E8D2"), Color(hex: "E6DABE"), Color(hex: "D9CBA8")],
                 center: UnitPoint(x: 0.5, y: 0.42), startRadius: 0, endRadius: 620
             )
             .ignoresSafeArea()
@@ -77,7 +77,7 @@ struct FortuneDarkStage: View {
             Circle()
                 .fill(
                     RadialGradient(
-                        colors: [Color(hex: "C99A4A").opacity(0.22), .clear],
+                        colors: [Color(hex: "CE963C").opacity(0.28), .clear],
                         center: .center, startRadius: 10, endRadius: 230
                     )
                 )
@@ -131,20 +131,19 @@ struct FortuneEntryView: View {
             FortuneDarkStage()
 
             if !reduceMotion {
-                DriftWisp(color: Color(hex: "E9C77E").opacity(0.35), size: 46,
+                DriftWisp(color: Color(hex: "D2AA6E").opacity(0.22), size: 46,
                           xOffset: -60, duration: 7.5, delay: 0)
-                DriftWisp(color: Color(hex: "C99A4A").opacity(0.3), size: 38,
+                DriftWisp(color: Color(hex: "D2AA6E").opacity(0.2), size: 38,
                           xOffset: 52, duration: 8.5, delay: 2.4)
             }
 
             VStack(spacing: 0) {
-                // 標題「今日求籤」:發光書法(毛筆楷書 40 金色光暈)
+                // 標題「今日求籤」:深金書法 + 淺色浮雕(暖紙底)
                 Text("今日求籤")
                     .font(BrushFont.brush(40))
                     .kerning(8)
-                    .foregroundColor(Color(hex: "E9C77E"))
-                    .shadow(color: Color(hex: "E9C77E").opacity(0.55), radius: 14)
-                    .shadow(color: Color(hex: "A9772F").opacity(0.4), radius: 30)
+                    .foregroundColor(Color(hex: "8A5A18"))
+                    .shadow(color: Color(hex: "FFFAEB").opacity(0.5), radius: 0, x: 0, y: 1)
                     .padding(.top, 30)
 
                 Text("\(fortuneDateText()) · 依你的持股問運勢")
@@ -162,7 +161,7 @@ struct FortuneEntryView: View {
 
                 Text("誠心搖動籤筒\n抽出今日持股的吉凶籤詩")
                     .font(.system(size: 13.5, design: .rounded))
-                    .foregroundColor(Color(hex: "B7A57E"))
+                    .foregroundColor(Color(hex: "7A6748"))
                     .multilineTextAlignment(.center)
                     .lineSpacing(8)
                     .padding(.top, 28)
@@ -221,13 +220,13 @@ struct FortuneShakeView: View {
         ZStack {
             FortuneDarkStage()
 
-            // 灰白煙氣自筒口向上漂散
+            // 深褐墨煙自筒口向上漂散(暖紙底上呈墨暈感)
             if !reduceMotion {
-                DriftWisp(color: Color(hex: "D8CBB2").opacity(0.28), size: 40,
+                DriftWisp(color: Color(hex: "5F5242").opacity(0.32), size: 40,
                           xOffset: -18, duration: 6.0, delay: 0)
-                DriftWisp(color: Color(hex: "CFC2A8").opacity(0.22), size: 32,
+                DriftWisp(color: Color(hex: "695A48").opacity(0.3), size: 32,
                           xOffset: 30, duration: 7.2, delay: 1.6)
-                DriftWisp(color: Color(hex: "E4D8BE").opacity(0.18), size: 26,
+                DriftWisp(color: Color(hex: "5A4E40").opacity(0.3), size: 26,
                           xOffset: 0, duration: 8.0, delay: 3.0)
             }
 
@@ -235,8 +234,8 @@ struct FortuneShakeView: View {
                 Text(isRevealing ? "籤來了" : "搖籤中…")
                     .font(BrushFont.brush(30))
                     .kerning(6)
-                    .foregroundColor(Color(hex: "E4C079"))
-                    .shadow(color: Color(hex: "E4C079").opacity(0.55), radius: 12)
+                    .foregroundColor(Color(hex: "8A5A18"))
+                    .shadow(color: Color(hex: "FFFAEB").opacity(0.5), radius: 0, x: 0, y: 1)
                     .padding(.top, 46)
 
                 Text(isRevealing ? "正在為你展開今天的籤詩" : "正依你的持股與今日市場求卜")
@@ -453,14 +452,14 @@ struct StickBloomEffect: View {
                 let intensity = abs(level.revealIntensity)   // 1–3
                 ZStack {
                     if level.isAuspicious {
-                        // 金光:從籤旁一小圈亮開;強度越高越亮越大
+                        // 金光:從籤旁一小圈亮開;淺底上用深金,強度越高越濃越大
                         Circle()
                             .fill(
                                 RadialGradient(
                                     colors: [
-                                        Color(hex: "FFECAA").opacity(0.55 + 0.15 * Double(intensity)),
-                                        Color(hex: "F0C860").opacity(0.35 + 0.08 * Double(intensity)),
-                                        Color(hex: "C89628").opacity(0.0),
+                                        Color(hex: "E8C05C").opacity(0.45 + 0.12 * Double(intensity)),
+                                        Color(hex: "C89628").opacity(0.3 + 0.08 * Double(intensity)),
+                                        Color(hex: "966E14").opacity(0.0),
                                     ],
                                     center: .center, startRadius: 4, endRadius: 220
                                 )

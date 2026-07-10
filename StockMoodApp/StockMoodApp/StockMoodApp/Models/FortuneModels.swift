@@ -74,7 +74,8 @@ enum FortuneLevel: String, Codable, CaseIterable {
     }
 }
 
-// MARK: - 14c/14d 頁面主題(大凶紅黑系 / 大吉金棕系,中間級別跟隨吉凶方向)
+// MARK: - 14c/14d 頁面主題(2026-07 配色定調:米黃暖紙底,非黑底)
+// 大凶米黃紙 + 血紅書法 / 大吉金黃紙 + 深金書法;墨煙黑雨落在紙面呈「墨暈」感。
 
 struct FortuneTheme {
     let isAuspicious: Bool
@@ -83,20 +84,20 @@ struct FortuneTheme {
         self.isAuspicious = level.isAuspicious
     }
 
-    // 深色背景(radial 由內而外)
-    var bgInner: Color { Color(hex: isAuspicious ? "2A1C08" : "1A0605") }
-    var bgMid: Color { Color(hex: isAuspicious ? "160E04" : "0C0403") }
-    var bgOuter: Color { Color(hex: isAuspicious ? "0A0602" : "050202") }
+    // 暖紙背景(radial 由內而外;略深於籤紙以突顯籤紙)
+    var bgInner: Color { Color(hex: isAuspicious ? "EFE2C0" : "E7D9BC") }
+    var bgMid: Color { Color(hex: isAuspicious ? "E3D3AA" : "DBCCA9") }
+    var bgOuter: Color { Color(hex: isAuspicious ? "D6C48E" : "CDBC94") }
 
-    // 標題書法字與光暈
-    var titleColor: Color { Color(hex: isAuspicious ? "F0C860" : "D6301F") }
+    // 標題書法字與光暈(金色已調深以在米黃底上維持對比)
+    var titleColor: Color { Color(hex: isAuspicious ? "C0891A" : "D6301F") }
     var titleGlowStrong: Color {
-        isAuspicious ? Color(hex: "F0C860").opacity(0.95) : Color(hex: "D6301F").opacity(0.9)
+        isAuspicious ? Color(hex: "C89628").opacity(0.6) : Color(hex: "D6301F").opacity(0.9)
     }
     var titleGlowSoft: Color {
-        isAuspicious ? Color(hex: "C89628").opacity(0.85) : Color(hex: "96140C").opacity(0.8)
+        isAuspicious ? Color(hex: "966E14").opacity(0.4) : Color(hex: "96140C").opacity(0.8)
     }
-    var subtitleColor: Color { Color(hex: isAuspicious ? "C2A968" : "B8756A") }
+    var subtitleColor: Color { Color(hex: isAuspicious ? "9E7526" : "9A4438") }
 
     // 老籤紙
     var paperTop: Color { Color(hex: isAuspicious ? "EFE4C4" : "E7DABB") }
@@ -110,12 +111,12 @@ struct FortuneTheme {
     /// 注意事項圓點
     var bulletColor: Color { Color(hex: isAuspicious ? "B8860E" : "B0261B") }
 
-    // 特效(雨絲/煙光)
+    // 特效(雨絲/煙光;金光在淺底上用深金)
     var rainColor: Color {
-        isAuspicious ? Color(hex: "F5DA8C").opacity(0.75) : Color(hex: "0E0505").opacity(0.75)
+        isAuspicious ? Color(hex: "F0CD78").opacity(0.7) : Color(hex: "0E0505").opacity(0.75)
     }
     var puffColor: Color {
-        isAuspicious ? Color(hex: "FFE39B").opacity(0.5) : Color(hex: "241C1A").opacity(0.5)
+        isAuspicious ? Color(hex: "D29E34").opacity(0.55) : Color(hex: "241C1A").opacity(0.5)
     }
     var emberGlow: Color {
         isAuspicious ? Color(hex: "E6B446").opacity(0.42) : Color(hex: "B0261B").opacity(0.4)
