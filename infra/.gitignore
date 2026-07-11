@@ -2,3 +2,6 @@
 cdk.out/
 __pycache__/
 *.pyc
+
+synth_out.txt
+cdk_err.txt
