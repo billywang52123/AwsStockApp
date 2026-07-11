@@ -13,6 +13,13 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8080"
     OPENAI_API_KEY: str = ""
 
+    # --- AWS / Bedrock ---
+    AWS_REGION: str = "us-east-1"
+    # us-east-1 需先在 Bedrock console 開通此模型存取權
+    BEDROCK_VISION_MODEL_ID: str = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+    # 若設定,啟動時由 Secrets Manager 抓 RDS 憑證組出 DATABASE_URL(見 aws_secrets.py)
+    DB_SECRET_ARN: Optional[str] = None
+
     # --- Auth / session tokens ---
     # HS256 secret for the session JWTs we issue. Empty = random per-process
     # secret (dev only; every restart logs everyone out). Set in production.
