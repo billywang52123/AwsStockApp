@@ -15,8 +15,11 @@ class Settings(BaseSettings):
 
     # --- AWS / Bedrock ---
     AWS_REGION: str = "us-east-1"
-    # us-east-1 需先在 Bedrock console 開通此模型存取權
-    BEDROCK_VISION_MODEL_ID: str = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+    # us-east-1 需先在 Bedrock console 開通此模型存取權。
+    # 用跨區 inference profile 形式(us. 前綴)。注意 Bedrock 模型會 EOL,
+    # 過期會回 ResourceNotFoundException("model version has reached end of life"),
+    # 屆時改成當時可用的視覺模型即可(可用 env BEDROCK_VISION_MODEL_ID 覆寫)。
+    BEDROCK_VISION_MODEL_ID: str = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
     # 若設定,啟動時由 Secrets Manager 抓 RDS 憑證組出 DATABASE_URL(見 aws_secrets.py)
     DB_SECRET_ARN: Optional[str] = None
 
