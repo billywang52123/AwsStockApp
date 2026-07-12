@@ -29,4 +29,4 @@ class NetworkStack(Stack):
         self.service_sg = ec2.SecurityGroup(
             self, "ServiceSg", vpc=self.vpc, description="StockMood ECS Express service"
         )
-        self.db_sg.add_ingress_rule(self.service_sg, ec2.Port.tcp(5432), "ECS Express -> RDS")
+        self.db_sg.add_ingress_rule(self.service_sg, ec2.Port.tcp(5432), "ECS Express to RDS 5432")
