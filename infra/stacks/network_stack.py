@@ -7,11 +7,13 @@ class NetworkStack(Stack):
     def __init__(self, scope: Construct, cid: str, **kwargs) -> None:
         super().__init__(scope, cid, **kwargs)
 
+        # nat_gateways=0:ECS Express 的 task 跑在 public 子網(走 IGW 對外),
+        # RDS 在 isolated 子網(不對外),app 私有子網目前無人使用 —— NAT 純浪費成本。
         self.vpc = ec2.Vpc(
             self,
             "StockMoodVpc",
             max_azs=2,
-            nat_gateways=1,
+            nat_gateways=0,
             subnet_configuration=[
                 ec2.SubnetConfiguration(name="public", subnet_type=ec2.SubnetType.PUBLIC, cidr_mask=24),
                 ec2.SubnetConfiguration(name="app", subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS, cidr_mask=24),
