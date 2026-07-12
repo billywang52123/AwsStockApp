@@ -18,9 +18,6 @@
 #
 set -euo pipefail
 
-# 避免 Git Bash(MSYS)把 /aws/... 之類參數改寫成 Windows 路徑
-export MSYS_NO_PATHCONV=1
-
 PROFILE="${1:-${AWS_PROFILE:-dev}}"
 REGION="${AWS_REGION:-us-east-1}"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
