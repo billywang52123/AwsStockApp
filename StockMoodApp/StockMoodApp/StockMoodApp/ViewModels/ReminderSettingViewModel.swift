@@ -13,6 +13,10 @@ class ReminderSettingViewModel: ObservableObject {
     @Published var hasError = false
     @Published var errorMessage = ""
 
+    // 遠端推播測試(打 POST /push-devices,顯示 active / pending / 404 / 401)
+    @Published var remotePushTesting = false
+    @Published var remotePushResult: String?
+
     // 抽籤通知(日間收盤 13:30 / 夜間收盤次日 05:00,台灣時間)
     @Published var fortuneDayClose = AppPreferenceStore.shared.fortuneDayCloseNotifyEnabled
     @Published var fortuneNightClose = AppPreferenceStore.shared.fortuneNightCloseNotifyEnabled
@@ -76,6 +80,8 @@ class ReminderSettingViewModel: ObservableObject {
                     if granted {
                         self.enabled = true
                         self.saveSettings()
+                        // 使用者開啟推播 → 向 APNs 註冊以取得 device token 上傳後端
+                        PushDeviceService.shared.registerForRemoteNotificationsIfPermitted()
                     } else {
                         self.enabled = false
                         self.showPermissionAlert = true
@@ -127,6 +133,18 @@ class ReminderSettingViewModel: ObservableObject {
                     self.showPermissionAlert = true
                 }
             }
+        }
+    }
+
+    /// 測試遠端推播鏈路:向 APNs 註冊並把 token 打到後端,顯示回傳狀態。
+    func sendRemotePushTest() {
+        remotePushTesting = true
+        remotePushResult = nil
+        Task { @MainActor in
+            let message = await PushDeviceService.shared.runRemotePushDiagnostic()
+            self.remotePushResult = message
+            self.remotePushTesting = false
+            HapticManager.shared.triggerNotification(type: .success)
         }
     }
 

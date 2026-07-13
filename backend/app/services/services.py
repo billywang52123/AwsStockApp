@@ -313,20 +313,23 @@ class PortfolioService:
                 "name": stock.name if stock else item.symbol,
                 "cost_price": float(item.cost_price) if item.cost_price is not None else None,
                 "shares": item.shares,
+                "broker": item.broker,
                 "created_at": item.created_at
             })
         return results
         
-    def add_item(self, symbol: str, cost_price: Optional[float] = None, shares: Optional[int] = None, user_id: str = "demo-user"):
+    def add_item(self, symbol: str, cost_price: Optional[float] = None, shares: Optional[int] = None,
+                 broker: Optional[str] = None, user_id: str = "demo-user"):
         # Make sure stock exists or create default
         stock = self.stock_repo.get_stock(symbol)
         name = stock.name if stock else symbol
-        
+
         item = PortfolioItem(
             user_id=user_id,
             symbol=symbol,
             cost_price=cost_price,
-            shares=shares
+            shares=shares,
+            broker=broker,
         )
         saved = self.repo.add_item(item)
         return {
@@ -335,6 +338,7 @@ class PortfolioService:
             "name": name,
             "cost_price": float(saved.cost_price) if saved.cost_price is not None else None,
             "shares": saved.shares,
+            "broker": saved.broker,
             "created_at": saved.created_at
         }
         

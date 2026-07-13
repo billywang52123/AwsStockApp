@@ -22,10 +22,14 @@ struct ImportCandidate: Identifiable {
 @MainActor
 class ImportMergeViewModel: ObservableObject {
     @Published var candidates: [ImportCandidate]
-    /// 這次截圖的來源券商;辨識不出時為 nil → chip 變必選(amber)
+    /// 這次截圖的來源券商 — 一律由用戶主動選定後才有值。
+    /// 影像辨識的券商不一定準確,所以只當建議(detectedBroker),不自動採用;
+    /// 在用戶選擇前維持 nil → brokerRequired 為 true、CTA 鎖住。
     @Published var broker: String? {
         didSet { resetDefaults() }
     }
+    /// 影像辨識推測的券商,僅作為 chip/選單裡的建議,不直接寫入 broker
+    let detectedBroker: String?
     @Published var actions: [String: MergeAction] = [:]
     @Published var isSubmitting = false
     @Published var errorMessage: String?
@@ -42,14 +46,16 @@ class ImportMergeViewModel: ObservableObject {
             ImportCandidate(symbol: $0.symbol, name: $0.name, shares: $0.shares,
                             cost: $0.cost, existing: bySymbol[$0.symbol])
         }
-        self.broker = detectedBroker
+        self.detectedBroker = detectedBroker
+        // 無條件要求用戶確認券商:辨識結果只當建議,不直接採用
+        self.broker = nil
         resetDefaults()
     }
 
     var duplicates: [ImportCandidate] { candidates.filter(\.isDuplicate) }
     var newOnes: [ImportCandidate] { candidates.filter { !$0.isDuplicate } }
 
-    /// 辨識不出券商時必須先補選,才能決定「同券商取代 / 不同券商加總」
+    /// 一律要求用戶主動選定券商(辨識不一定準確),才能決定「同券商取代 / 不同券商加總」
     var brokerRequired: Bool { broker == nil }
 
     /// 該檔現有持股中,是否已有「這次來源券商」的分帳

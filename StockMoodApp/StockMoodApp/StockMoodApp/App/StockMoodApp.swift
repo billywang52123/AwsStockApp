@@ -45,6 +45,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        // 若通知權限已授權，啟動時就向 APNs 註冊，讓 token 保持最新。
+        PushDeviceService.shared.registerForRemoteNotificationsIfPermitted()
+
         // Configure GoogleSignIn with client ID from GoogleService-Info.plist
         guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
               let plist = NSDictionary(contentsOfFile: path),
@@ -65,5 +68,24 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         options: [UIApplication.OpenURLOptionsKey: Any] = [:]
     ) -> Bool {
         return GIDSignIn.sharedInstance.handle(url)
+    }
+
+    // MARK: - Remote Push (APNs)
+
+    /// Apple 成功回傳 APNs device token。轉成 hex 字串後交給後端註冊。
+    func application(
+        _ application: UIApplication,
+        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+        let token = deviceToken.map { String(format: "%02x", $0) }.joined()
+        print("📶 APNs device token: \(token)")
+        PushDeviceService.shared.handleNewToken(token)
+    }
+
+    func application(
+        _ application: UIApplication,
+        didFailToRegisterForRemoteNotificationsWithError error: Error
+    ) {
+        print("⚠️ APNs 註冊失敗：\(error.localizedDescription)")
     }
 }

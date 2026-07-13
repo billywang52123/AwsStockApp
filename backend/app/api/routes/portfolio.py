@@ -17,7 +17,7 @@ def get_portfolio_items(db: Session = Depends(get_db), user_id: str = Depends(ge
 @router.post("/items", response_model=ApiResponse[PortfolioItemRead], status_code=status.HTTP_201_CREATED)
 def add_portfolio_item(item: PortfolioItemCreate, db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     service = PortfolioService(db)
-    saved = service.add_item(item.symbol, item.cost_price, item.shares, user_id=user_id)
+    saved = service.add_item(item.symbol, item.cost_price, item.shares, broker=item.broker, user_id=user_id)
     db.commit()
 
     from app.services.services import AchievementService

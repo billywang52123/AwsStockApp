@@ -21,4 +21,7 @@ class HoldingActivityModel(Base):
     realized_pnl: Mapped[float | None] = mapped_column(Float, nullable=True)
     # Aggregated avg price after this activity — lets deletes 回算 the reverse
     avg_price_after: Mapped[float | None] = mapped_column(Float, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    # naive UTC(和 portfolio_items 一致,見該檔案說明)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )

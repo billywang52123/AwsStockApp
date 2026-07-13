@@ -183,7 +183,7 @@ struct ReminderSettingView: View {
                         .tint(AppColor.primary)
                     }
 
-                    Section(header: Text("推播功能測試").font(.system(.footnote, design: .rounded)), footer: Text("點擊將在 1 秒後發送一則本地測試通知，可用於驗證通知權限與顯示效果。")) {
+                    Section(header: Text("推播功能測試").font(.system(.footnote, design: .rounded)), footer: Text("「測試通知」發送本地通知，驗證權限與顯示。「測試遠端推播」向 APNs 取得 token 並上傳後端，顯示註冊狀態（active／pending／404／401），需實機。")) {
                         Button(action: {
                             viewModel.sendTestNotification()
                         }) {
@@ -194,6 +194,31 @@ struct ReminderSettingView: View {
                                     .foregroundColor(AppColor.textPrimary)
                                     .font(.system(.body, design: .rounded))
                             }
+                        }
+
+                        Button(action: {
+                            viewModel.sendRemotePushTest()
+                        }) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "antenna.radiowaves.left.and.right")
+                                    .foregroundColor(AppColor.primary)
+                                Text("測試遠端推播 (APNs → 後端)")
+                                    .foregroundColor(AppColor.textPrimary)
+                                    .font(.system(.body, design: .rounded))
+                                Spacer()
+                                if viewModel.remotePushTesting {
+                                    ProgressView()
+                                }
+                            }
+                        }
+                        .disabled(viewModel.remotePushTesting)
+
+                        if let result = viewModel.remotePushResult {
+                            Text(result)
+                                .font(.system(.footnote, design: .rounded))
+                                .foregroundColor(AppColor.textSecondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .textSelection(.enabled)
                         }
                     }
                     
