@@ -18,9 +18,26 @@ Phase 1 上雲:核心 FastAPI 跑在 **Amazon ECS Express Mode**(App Runner 2026
 AWS_PROFILE=dev ./deploy.sh
 ```
 
+### iOS 推播(SNS APNs)
+
+CloudFormation 不支援 `AWS::SNS::PlatformApplication`，因此由 `deploy.sh` 以 CLI
+建立/維護 `APNS_SANDBOX` 與 `APNS` 兩個 Platform Application（名稱 `StockMood`，
+token-based auth，同一把 `.p8` 通用），並把 ARN 經 CDK context 注入
+ECS 的 IAM 權限與環境變數：
+
+- repo 內有 `docs/AuthKey_*.p8` 時自動使用（Key ID 取自檔名；Team ID 預設 `8D8DJA42AA`）
+- 可用 `APNS_SIGNING_KEY_PATH` / `APNS_KEY_ID` / `APNS_TEAM_ID` / `APNS_BUNDLE_ID`
+  （預設 `Wbilly.StockMoodApp`）覆寫
+- Platform Application 已存在時自動撈 ARN 沿用；也可直接以
+  `SNS_APNS_SANDBOX_ARN` / `SNS_APNS_ARN` 指定略過偵測
+
+未設定 SNS 時，`POST /api/push-devices` 仍會先將 APNs device token
+綁定登入使用者並存入 RDS，狀態為 `pending_sns_configuration`；SNS 就緒後重新註冊，
+後端會建立 SNS EndpointArn，狀態改為 `active`。
+
 `deploy.sh` 依序做:venv → `cdk bootstrap` → 建 service-linked roles → deploy Network/Data →
-填 app 密鑰 → build+push 映像(podman/docker)→ deploy ECS Express → 強制滾動 → 印出 endpoint。
-全部步驟**冪等**,可重複執行。
+填 app 密鑰 → SNS APNs Platform Application → build+push 映像(podman/docker)→
+deploy ECS Express → 強制滾動 → 印出 endpoint。全部步驟**冪等**,可重複執行。
 
 ## 前置需求
 

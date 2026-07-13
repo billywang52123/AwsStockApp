@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     BEDROCK_VISION_MODEL_ID: str = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
     # 若設定,啟動時由 Secrets Manager 抓 RDS 憑證組出 DATABASE_URL(見 aws_secrets.py)
     DB_SECRET_ARN: Optional[str] = None
+    # SNS Mobile Push platform applications. Leave empty to persist APNs tokens
+    # first and synchronize them after SNS is configured.
+    SNS_APNS_SANDBOX_PLATFORM_APPLICATION_ARN: str = ""
+    SNS_APNS_PLATFORM_APPLICATION_ARN: str = ""
 
     # --- Auth / session tokens ---
     # HS256 secret for the session JWTs we issue. Empty = random per-process

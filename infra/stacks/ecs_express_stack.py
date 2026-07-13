@@ -55,6 +55,25 @@ class EcsExpressStack(Stack):
         ))
         db.secret.grant_read(task_role)
 
+        sns_apns_sandbox_arn = self.node.try_get_context("sns_apns_sandbox_arn") or ""
+        sns_apns_arn = self.node.try_get_context("sns_apns_arn") or ""
+        sns_platform_arns = [arn for arn in (sns_apns_sandbox_arn, sns_apns_arn) if arn]
+        if sns_platform_arns:
+            # SNS 對 mobile-push 的 endpoint 操作一律以「platform application ARN」
+            # (arn:...:app/PLATFORM/NAME) 判斷授權,而非個別的 endpoint ARN——即使
+            # 呼叫時傳的是 EndpointArn。若把 Set/Get/DeleteEndpoint 限縮到
+            # endpoint/.../* 資源,IAM 永遠比對不到,SetEndpointAttributes 會回
+            # AuthorizationError(app ARN)。故全部授權在 app ARN 上。
+            task_role.add_to_policy(iam.PolicyStatement(
+                actions=[
+                    "sns:CreatePlatformEndpoint",
+                    "sns:GetEndpointAttributes",
+                    "sns:SetEndpointAttributes",
+                    "sns:DeleteEndpoint",
+                ],
+                resources=sns_platform_arns,
+            ))
+
         # service_sg 由 Network stack 建立並已授權連 RDS(避免依賴環)。
         # ECS Express 由子網型別決定 ALB 對外與否:public 子網 → internet-facing ALB
         # (iOS 要能連)。task 落在 public 子網會取得 public IP,但仍受 service_sg 保護
@@ -85,6 +104,8 @@ class EcsExpressStack(Stack):
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="ALLOWED_ORIGINS", value="*"),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="SEED_ON_START", value="true"),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="ALLOW_LEGACY_HEADER_AUTH", value="True"),
+                    ecs.CfnExpressGatewayService.KeyValuePairProperty(name="SNS_APNS_SANDBOX_PLATFORM_APPLICATION_ARN", value=sns_apns_sandbox_arn),
+                    ecs.CfnExpressGatewayService.KeyValuePairProperty(name="SNS_APNS_PLATFORM_APPLICATION_ARN", value=sns_apns_arn),
                 ],
                 secrets=[
                     ecs.CfnExpressGatewayService.SecretProperty(
