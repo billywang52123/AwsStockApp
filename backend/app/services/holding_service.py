@@ -22,7 +22,10 @@ from app.models.stock import Stock
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    # naive UTC:欄位是 naive DateTime,DB 讀回也是 naive。若這裡回 tz-aware,
+    # 同一個 request 內「剛寫入、尚未 round-trip」的值會被序列化成帶 +00:00 的
+    # ISO 字串,和 GET 讀回的 naive 形式不一致,曾讓 iOS decode 失敗。
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def weighted_average(pairs: List[tuple]) -> Optional[float]:

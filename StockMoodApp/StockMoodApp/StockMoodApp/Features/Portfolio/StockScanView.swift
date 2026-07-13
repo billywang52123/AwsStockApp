@@ -27,7 +27,8 @@ private struct ScanAPIStock: Codable {
 
 // MARK: - Stock Scan View (Real Camera + Photo Library + GPT-4o-mini OCR)
 struct StockScanSimulatorView: View {
-    let onImport: ([ScannedStockResult]) -> Void
+    /// 回傳辨識到的持股,以及推測的來源券商(僅建議,手動頁仍要用戶確認)
+    let onImport: ([ScannedStockResult], _ detectedBroker: String?) -> Void
     /// 走 9d 合併流程完成時呼叫(已直接寫入後端,不經過手動編輯頁)
     var onMergeCompleted: (() -> Void)? = nil
     @Environment(\.dismiss) var dismiss
@@ -491,7 +492,7 @@ struct StockScanSimulatorView: View {
                 shares: stock.shares ?? ""
             )
         }
-        onImport(results)
+        onImport(results, scannedBroker)
     }
 
     // MARK: - 9d 匯入合併決策

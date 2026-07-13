@@ -21,7 +21,11 @@ class PortfolioItem(Base):
     status: Mapped[str | None] = mapped_column(String, nullable=True, default="active")
     # manual | import(截圖/對帳單匯入)
     source: Mapped[str | None] = mapped_column(String, nullable=True, default="manual")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    # naive UTC:欄位是 naive DateTime,寫入端也存 naive,避免同一 request 內
+    # 剛建立的 lot 被序列化成帶 +00:00 的 ISO 字串(和 DB 讀回的 naive 形式不一致)。
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
     updated_at: Mapped[datetime | None] = mapped_column(
-        DateTime, nullable=True, default=lambda: datetime.now(timezone.utc)
+        DateTime, nullable=True, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
     )

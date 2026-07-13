@@ -10,9 +10,18 @@ class PortfolioInputViewModel: ObservableObject {
     @Published var selectedStocks: [Stock] = []
     @Published var costPrices: [String: String] = [:]
     @Published var shares: [String: String] = [:]
+    /// 這批持股所屬券商(手動可選填、圖片匯入時必填);nil = 未選
+    @Published var broker: String?
+    /// 影像辨識推測的券商,只當建議(不一定準確),不自動採用
+    @Published var detectedBroker: String?
+    /// 這批持股是否來自圖片匯入 → 券商變必選(辨識不可靠,一律要用戶確認)
+    @Published var importedFromScan = false
     @Published var isLoading = false
     @Published var hasError = false
     @Published var errorMessage = ""
+
+    /// 圖片匯入一律要求先選定券商;純手動新增則為選填
+    var brokerRequired: Bool { importedFromScan && broker == nil }
     
     private let container: DependencyContainer
     private var cancellables = Set<AnyCancellable>()
@@ -118,6 +127,7 @@ class PortfolioInputViewModel: ObservableObject {
                 name: stock.name,
                 costPrice: costVal,
                 shares: sharesVal,
+                broker: broker,
                 createdAt: Date()
             )
             do {

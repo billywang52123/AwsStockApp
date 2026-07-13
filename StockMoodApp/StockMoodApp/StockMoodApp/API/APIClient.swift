@@ -41,10 +41,32 @@ enum APIError: Error, LocalizedError {
 // MARK: - API Client
 class APIClient {
     static let shared = APIClient()
-    
+
+    /// Date formats we accept from the backend, tried in order. Covers both
+    /// timezone-aware ISO strings (e.g. `...+00:00` / `...Z`, produced when the
+    /// server returns a freshly-written UTC datetime before it round-trips
+    /// through the naive DB column) and the naive form read back from the DB.
+    /// `ZZZZZ` matches both a numeric offset and `Z`.
+    /// en_US_POSIX + UTC:沒鎖 locale 的 DateFormatter 會跟著裝置的 12/24
+    /// 小時制與曆法設定走,部分用戶會解析失敗。
+    static let dateFormatters: [DateFormatter] = [
+        "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZZZZ",  // 帶時區的微秒(加買/賣出回傳的即時值)
+        "yyyy-MM-dd'T'HH:mm:ssZZZZZ",         // 帶時區、無小數秒
+        "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",       // naive 微秒(DB 讀回)
+        "yyyy-MM-dd'T'HH:mm:ss",              // naive、無小數秒
+        "yyyy-MM-dd",                          // 純日期
+    ].map { format in
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.dateFormat = format
+        return formatter
+    }
+
+
     // Default to production; can be overridden for local development / UI tests
     // via UserDefaults key "api_base_url"(e.g. launch argument: -api_base_url http://localhost:8000/api)
-    var baseURL = UserDefaults.standard.string(forKey: "api_base_url") ?? "https://stock.wbilly.com/api"
+    var baseURL = UserDefaults.standard.string(forKey: "api_base_url") ?? "https://st-2f8caae5711f455a9318dbe4a15ec9a2.ecs.us-east-1.on.aws/api"
     
     private init() {}
     
@@ -73,36 +95,12 @@ class APIClient {
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        // Handle Python's ISO dates or customized datetime parses.
-        // en_US_POSIX + UTC:沒鎖 locale 的 DateFormatter 會跟著裝置的
-        // 12/24 小時制與曆法設定走,部分用戶會解析失敗。
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(identifier: "UTC")
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
-
-        let secondaryFormatter = DateFormatter()
-        secondaryFormatter.locale = Locale(identifier: "en_US_POSIX")
-        secondaryFormatter.timeZone = TimeZone(identifier: "UTC")
-        secondaryFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-
-        let dateOnlyFormatter = DateFormatter()
-        dateOnlyFormatter.locale = Locale(identifier: "en_US_POSIX")
-        dateOnlyFormatter.timeZone = TimeZone(identifier: "UTC")
-        dateOnlyFormatter.dateFormat = "yyyy-MM-dd"
-        
         decoder.dateDecodingStrategy = .custom { decoder -> Date in
             let container = try decoder.singleValueContainer()
             let dateStr = try container.decode(String.self)
-            
-            if let date = formatter.date(from: dateStr) {
-                return date
-            }
-            if let date = secondaryFormatter.date(from: dateStr) {
-                return date
-            }
-            if let date = dateOnlyFormatter.date(from: dateStr) {
-                return date
+
+            for formatter in APIClient.dateFormatters {
+                if let date = formatter.date(from: dateStr) { return date }
             }
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date string \(dateStr)")
         }

@@ -78,11 +78,16 @@ struct ImportMergeView: View {
 
     private var sourceChip: some View {
         Menu {
+            // 辨識到券商時,提供一鍵採用(仍是用戶主動確認的動作)
+            if let detected = viewModel.detectedBroker {
+                Button("採用辨識結果:\(detected)") { viewModel.broker = detected }
+                Divider()
+            }
             ForEach(TaiwanBrokers.common, id: \.self) { name in
                 Button(name) { viewModel.broker = name }
             }
             Button("其他券商…") {
-                customBrokerText = viewModel.broker ?? ""
+                customBrokerText = viewModel.broker ?? viewModel.detectedBroker ?? ""
                 showCustomBrokerInput = true
             }
         } label: {
@@ -98,6 +103,16 @@ struct ImportMergeView: View {
                         .fontWeight(.bold)
                         .foregroundColor(AppColor.inkPrimary))
                         .font(.system(size: 12, design: .rounded))
+                } else if let detected = viewModel.detectedBroker {
+                    // 有辨識結果,但仍要用戶確認(辨識不一定準確)
+                    (Text("辨識為 ")
+                        .foregroundColor(AppColor.amberStrong)
+                     + Text(detected)
+                        .fontWeight(.bold)
+                        .foregroundColor(AppColor.amberStrong)
+                     + Text(",請確認來源")
+                        .foregroundColor(AppColor.amberStrong))
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
                 } else {
                     Text("辨識不出券商,請先選擇來源")
                         .font(.system(size: 12, weight: .semibold, design: .rounded))
