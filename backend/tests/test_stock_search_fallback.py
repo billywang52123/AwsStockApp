@@ -1,6 +1,9 @@
-"""股票搜尋 Yahoo fallback 測試:本地沒有的台股代號自動驗證入庫。"""
+"""股票搜尋 CMoney fallback 測試:本地沒有的台股代號自動驗證入庫。
+
+模擬情境下唯一資料源是 CMoney:代號必須在模擬日有收盤價才視為存在,
+名稱優先 CMoney 目錄(raw_07),再退證交所目錄,最後用代號。
+"""
 import sys
-from datetime import date
 from pathlib import Path
 
 import pytest
@@ -17,8 +20,9 @@ from app.db.base import Base
 from app.db.database import get_db
 from app.models.stock import Stock
 from app.models.stock_daily_price import StockDailyPrice
-from app.services.yahoo_finance_service import YahooFinanceService
+from app.services import services as services_module
 from app.services import stock_directory_service
+from app.services.cmoney_service import effective_trade_date
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
@@ -57,21 +61,17 @@ def client(db_session):
 
 @pytest.fixture()
 def fake_sources(monkeypatch):
-    """假 Yahoo(2603 有價、其他沒有)+ 假證交所目錄(2603=長榮/航運)。"""
-    calls = {"live": [], "name": []}
+    """假 CMoney(2603 有模擬日收盤、其他沒有)+ 假證交所目錄(2603=長榮/航運)。"""
+    calls = {"live": []}
 
-    def fake_live(symbol):
+    def fake_live(db, symbol):
         calls["live"].append(symbol)
         if symbol == "2603":
             return {"close_price": 194.5, "change_percent": 1.2, "volume": 12345}
         return None
 
-    def fake_display_name(symbol):
-        calls["name"].append(symbol)
-        return "Evergreen Marine ETF" if symbol == "2603" else None
-
-    monkeypatch.setattr(YahooFinanceService, "fetch_live_price", staticmethod(fake_live))
-    monkeypatch.setattr(YahooFinanceService, "fetch_display_name", staticmethod(fake_display_name))
+    monkeypatch.setattr(services_module, "fetch_sim_price", fake_live)
+    monkeypatch.setattr(services_module, "fetch_sim_profile", lambda db, symbol: None)
     monkeypatch.setattr(stock_directory_service, "_cache",
                         {"loaded_at": 0.0, "by_symbol": {}})
     monkeypatch.setattr(stock_directory_service, "_load_directory",
@@ -79,28 +79,28 @@ def fake_sources(monkeypatch):
     return calls
 
 
-def test_local_hit_does_not_call_yahoo(client, fake_sources):
+def test_local_hit_does_not_call_cmoney(client, fake_sources):
     data = client.get("/api/stocks/search?keyword=2330").json()["data"]
     assert [s["symbol"] for s in data] == ["2330"]
     assert fake_sources["live"] == []
 
 
-def test_unknown_symbol_imported_from_yahoo(client, db_session, fake_sources):
+def test_unknown_symbol_imported_from_cmoney(client, db_session, fake_sources):
     data = client.get("/api/stocks/search?keyword=2603").json()["data"]
     assert len(data) == 1
     assert data[0]["symbol"] == "2603"
-    assert data[0]["name"] == "長榮"          # 證交所中文簡稱優先
+    assert data[0]["name"] == "長榮"          # CMoney 目錄查無 → 證交所中文簡稱
     assert data[0]["industry"] == "航運"
 
-    # 已入庫:第二次搜尋直接命中本地,不再打 Yahoo
+    # 已入庫:第二次搜尋直接命中本地,不再查 CMoney
     fake_sources["live"].clear()
     again = client.get("/api/stocks/search?keyword=2603").json()["data"]
     assert [s["symbol"] for s in again] == ["2603"]
     assert fake_sources["live"] == []
 
-    # 今日價格同步寫入快取
+    # 今日(14:30 換日)價格同步寫入快取
     price = db_session.query(StockDailyPrice).filter_by(
-        symbol="2603", trade_date=date.today()).first()
+        symbol="2603", trade_date=effective_trade_date()).first()
     assert price is not None and price.close_price == pytest.approx(194.5)
 
     # 入庫後即可加進觀察清單(先前會 404)
@@ -109,9 +109,24 @@ def test_unknown_symbol_imported_from_yahoo(client, db_session, fake_sources):
                        json={"symbol": "2603"}).status_code == 200
 
 
-def test_directory_miss_falls_back_to_yahoo_name(client, fake_sources, monkeypatch):
-    # 目錄查不到 → 用 Yahoo 英文名;名稱含 ETF → 產業標 ETF
+def test_cmoney_directory_name_preferred(client, fake_sources, monkeypatch):
+    # CMoney 目錄有名稱/產業 → 優先於證交所目錄
+    monkeypatch.setattr(
+        services_module, "fetch_sim_profile",
+        lambda db, symbol: {"name": "長榮海運", "industry": "航運業"} if symbol == "2603" else None,
+    )
+    data = client.get("/api/stocks/search?keyword=2603").json()["data"]
+    assert data[0]["name"] == "長榮海運"
+    assert data[0]["industry"] == "航運業"
+
+
+def test_directory_miss_etf_heuristic(client, fake_sources, monkeypatch):
+    # 兩邊目錄都查不到 → 用 CMoney 名稱;名稱含 ETF → 產業標 ETF
     monkeypatch.setattr(stock_directory_service, "_load_directory", lambda: {})
+    monkeypatch.setattr(
+        services_module, "fetch_sim_profile",
+        lambda db, symbol: {"name": "Evergreen Marine ETF", "industry": None},
+    )
     data = client.get("/api/stocks/search?keyword=2603").json()["data"]
     assert data[0]["name"] == "Evergreen Marine ETF"
     assert data[0]["industry"] == "ETF"
@@ -122,7 +137,7 @@ def test_invalid_symbol_returns_empty(client, fake_sources):
     assert fake_sources["live"] == ["9999"]
 
 
-def test_non_symbol_keyword_skips_yahoo(client, fake_sources):
+def test_non_symbol_keyword_skips_cmoney(client, fake_sources):
     assert client.get("/api/stocks/search?keyword=聯發科").json()["data"] == []
     assert client.get("/api/stocks/search?keyword=26").json()["data"] == []
     assert fake_sources["live"] == []

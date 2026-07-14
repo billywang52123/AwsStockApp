@@ -10,7 +10,9 @@ from app.models.card_result import CardResultModel
 from app.models.stock import Stock
 from app.models.stock_daily_price import StockDailyPrice
 from app.models.market_index import MarketIndexDaily
-from app.services.yahoo_finance_service import YahooFinanceService
+from app.services.cmoney_service import (
+    effective_trade_date, fetch_sim_price, fetch_sim_market, fetch_sim_profile,
+)
 from app.calculators.anxiety_score_calculator import AnxietyScoreCalculator, AnxietyScoreInput, AnxietyScoreOutput
 from app.calculators.card_draw_engine import CardDrawEngine
 from typing import List, Optional
@@ -45,11 +47,9 @@ def run_async(coro):
         return loop.run_until_complete(coro)
 
 def get_live_market_change(db: Session) -> float:
-    """
-    Checks if TAIEX market index daily price is cached in DB for today.
-    If not, queries Yahoo Finance, saves to DB, and returns the change percent.
-    """
-    today = date.today()
+    """今日(14:30 換日)的 TAIEX 漲跌:DB 有快取直接用;
+    沒有就以 CMoney 模擬日的大盤 proxy(市值比重加權漲幅)補上並存檔。"""
+    today = effective_trade_date()
     stmt = select(MarketIndexDaily).where(
         and_(MarketIndexDaily.index_code == "TAIEX", MarketIndexDaily.trade_date == today)
     )
@@ -58,7 +58,7 @@ def get_live_market_change(db: Session) -> float:
         return float(existing.change_percent)
 
     # Cache miss (or poisoned NaN cache — refetch to self-heal)
-    live_data = YahooFinanceService.fetch_live_price("TAIEX")
+    live_data = fetch_sim_market(db)
     if live_data:
         if existing:
             existing.close_price = live_data["close_price"]
@@ -129,7 +129,7 @@ class StockService:
         if results:
             return results
 
-        # 本地資料庫沒有 + 長得像台股代號 → 用 Yahoo 驗證後自動入庫
+        # 本地資料庫沒有 + 長得像台股代號 → 用 CMoney 模擬資料驗證後自動入庫
         symbol = keyword.strip()
         if symbol.isdigit() and 4 <= len(symbol) <= 6:
             imported = self._import_unknown_symbol(symbol)
@@ -138,26 +138,28 @@ class StockService:
         return results
 
     def _import_unknown_symbol(self, symbol: str) -> Optional[Stock]:
-        """驗證代號存在(Yahoo 有價格)後寫進 stocks 表,之後可加持股/觀察清單。
+        """驗證代號存在(CMoney 模擬日有價格)後寫進 stocks 表,之後可加持股/觀察清單。
+        不在 CMoney 300 檔內的代號視為不存在(模擬情境沒有它的任何數據)。
 
-        名稱優先用證交所/櫃買目錄的中文簡稱(含產業);目錄查不到
-        (例如 ETF)才退回 Yahoo 的英文名,再不行就先用代號。"""
-        live = YahooFinanceService.fetch_live_price(symbol)
+        名稱優先 CMoney 目錄(raw_07),再退證交所/櫃買目錄,最後用代號。"""
+        db = self.repo.db
+        live = fetch_sim_price(db, symbol)
         if not live:
             return None
 
         from app.services.stock_directory_service import lookup_tw_stock
-        profile = lookup_tw_stock(symbol) or {}
-        name = profile.get("name") or YahooFinanceService.fetch_display_name(symbol) or symbol
-        # 目錄只收公司,查不到但名稱帶 ETF 的視為 ETF(產業曝險歸類用)
-        industry = profile.get("industry") or ("ETF" if "etf" in name.lower() else None)
+        cm_profile = fetch_sim_profile(db, symbol) or {}
+        tw_profile = lookup_tw_stock(symbol) or {}
+        name = cm_profile.get("name") or tw_profile.get("name") or symbol
+        # 目錄查不到但名稱帶 ETF 的視為 ETF(產業曝險歸類用)
+        industry = cm_profile.get("industry") or tw_profile.get("industry") \
+            or ("ETF" if "etf" in name.lower() else None)
 
-        db = self.repo.db
         stock = Stock(symbol=symbol, name=name, market="TW", industry=industry)
         db.add(stock)
 
         # 順手寫入今日價格快取,搜尋結果馬上有現價可看
-        today = date.today()
+        today = effective_trade_date()
         stmt = select(StockDailyPrice).where(
             and_(StockDailyPrice.symbol == symbol, StockDailyPrice.trade_date == today)
         )
@@ -175,7 +177,7 @@ class StockService:
     def ai_screen(self, query: str) -> dict:
         """AI 找股(觀察清單「加入觀察股」用):自然語言條件 → 已驗證的台股名單。
 
-        GPT 給的名單逐檔用本地 stocks 表 / Yahoo 驗證,查無此代號的直接丟掉,
+        GPT 給的名單逐檔用本地 stocks 表 / CMoney 模擬資料驗證,查無此代號的直接丟掉,
         確保回傳的每一檔都能直接加入觀察清單;GPT 離線時退回主題式名單。"""
         query = (query or "").strip()
         if not query:
@@ -236,9 +238,9 @@ class StockService:
         # 1. Check local DB cache first
         cached = self.repo.get_daily_price(symbol)
         
-        # 2. Check if we have a cached price for today
+        # 2. Check if we have a cached price for today (14:30 換日)
         #    (帶 NaN 的當日快取視同 miss,重抓一次自癒)
-        today = date.today()
+        today = effective_trade_date()
         if (
             cached
             and cached.trade_date == today
@@ -246,9 +248,9 @@ class StockService:
             and is_finite_number(cached.change_percent)
         ):
             return cached
-            
-        # 3. Cache miss: Fetch from Yahoo Finance
-        live_data = YahooFinanceService.fetch_live_price(symbol)
+
+        # 3. Cache miss: 補 CMoney 模擬日收盤
+        live_data = fetch_sim_price(self.repo.db, symbol)
         if live_data:
             db = self.repo.db
             stmt = select(StockDailyPrice).where(

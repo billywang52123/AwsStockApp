@@ -37,11 +37,15 @@ def open_pack(db: Session = Depends(get_db), user_id: str = Depends(get_current_
 def get_pack_shelf(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     """卡包架(15j):每檔持股一包 + 歷史卡片圖鑑。"""
     service = DailyPackService(db)
-    return ApiResponse(success=True, data=service.get_shelf(user_id))
+    shelf = service.get_shelf(user_id)
+    db.commit()   # CMoney 模擬日同步(冪等)可能寫入 public 表
+    return ApiResponse(success=True, data=shelf)
 
 
 @router.get("/weekly-checkup", response_model=ApiResponse[WeeklyCheckupRead])
 def get_weekly_checkup(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     """週末體檢(15k):AI 本週誠實度對帳,說中沒說中都照實呈現。"""
     service = DailyPackService(db)
-    return ApiResponse(success=True, data=service.get_weekly_checkup(user_id))
+    checkup = service.get_weekly_checkup(user_id)
+    db.commit()   # CMoney 模擬日同步(冪等)可能寫入 public 表
+    return ApiResponse(success=True, data=checkup)

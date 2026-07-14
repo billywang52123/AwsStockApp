@@ -1,17 +1,16 @@
 """NaN 防護回歸測試。
 
-背景:台股開盤初期 Yahoo 的當日列常帶 NaN,NaN 一路流進回應後
-會被 pydantic 序列化成 null,導致 iOS 端非 optional 欄位解碼失敗
+背景:壞掉的當日價格列(NaN)一路流進回應後會被 pydantic 序列化成 null,
+導致 iOS 端非 optional 欄位解碼失敗
 (2026-07-09 正式區 /portfolio/analysis total_market_value: null 事件)。
+資料源已全面改為 CMoney raw 表(全 text 欄位),防線移到 cmoney_service._f。
 """
 import math
 import sys
-from datetime import date
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
@@ -31,7 +30,7 @@ from app.models.market_index import MarketIndexDaily
 from app.models.portfolio import PortfolioItem
 from app.schemas.analysis_schema import PortfolioAnalysisRead
 from app.schemas.market_schema import MarketCompareResultRead
-from app.services.yahoo_finance_service import YahooFinanceService
+from app.services.cmoney_service import _f, effective_trade_date
 from app.services.services import is_finite_number, finite_or_zero
 from app.services.portfolio_analysis_service import _Holding
 
@@ -53,34 +52,17 @@ def test_finite_or_zero():
     assert finite_or_zero(None) == 0.0
 
 
-# ── Yahoo 抓價:NaN 視同沒抓到 ───────────────────────────────
+# ── CMoney raw 表解析:壞值(空字串/NaN/Infinity/非數字)一律 None ──
 
-def _mock_history(rows):
-    return pd.DataFrame(rows)
-
-
-def test_fetch_live_price_nan_close_returns_none():
-    hist = _mock_history([
-        {"Open": 100.0, "Close": 100.0, "Volume": 1000},
-        {"Open": float("nan"), "Close": float("nan"), "Volume": 0},
-    ])
-    with patch("app.services.yahoo_finance_service.yf.Ticker") as ticker_cls:
-        ticker_cls.return_value.history.return_value = hist
-        assert YahooFinanceService.fetch_live_price("2330") is None
-
-
-def test_fetch_live_price_nan_prev_close_falls_back_to_zero_change():
-    hist = _mock_history([
-        {"Open": 100.0, "Close": float("nan"), "Volume": 1000},
-        {"Open": 101.0, "Close": 102.0, "Volume": float("nan")},
-    ])
-    with patch("app.services.yahoo_finance_service.yf.Ticker") as ticker_cls:
-        ticker_cls.return_value.history.return_value = hist
-        data = YahooFinanceService.fetch_live_price("2330")
-    assert data is not None
-    assert data["close_price"] == 102.0
-    assert data["change_percent"] == 0.0
-    assert data["volume"] == 0
+def test_cmoney_field_parser_rejects_bad_values():
+    assert _f("102.5") == 102.5
+    assert _f(0) == 0.0
+    assert _f("") is None
+    assert _f(None) is None
+    assert _f("abc") is None
+    assert _f("NaN") is None
+    assert _f("Infinity") is None
+    assert _f(float("nan")) is None
 
 
 # ── 分析服務:NaN 價格/成本視為缺值,不污染加總 ──────────────
@@ -132,7 +114,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 def db_session():
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
-    today = date.today()
+    today = effective_trade_date()
     db.add_all([
         Stock(symbol="2330", name="台積電", market="TW", industry="半導體"),
         StockDailyPrice(symbol="2330", trade_date=today, close_price=980.0, change_percent=-1.2, volume=1000),
@@ -162,9 +144,9 @@ def client(db_session):
 
 
 def test_analysis_survives_bad_daily_price(client):
-    # 0056 的當日價已被污染,重抓也失敗 → 應以缺值處理而非回 null/500
+    # 0056 的當日價已被污染,CMoney 也查無 → 應以缺值處理而非回 null/500
     with patch(
-        "app.services.yahoo_finance_service.YahooFinanceService.fetch_live_price",
+        "app.services.services.fetch_sim_price",
         return_value=None,
     ):
         response = client.get("/api/portfolio/analysis")
@@ -206,7 +188,7 @@ def test_trade_rejects_absurd_shares(client):
 
 def test_market_compare_survives_bad_daily_price(client):
     with patch(
-        "app.services.yahoo_finance_service.YahooFinanceService.fetch_live_price",
+        "app.services.services.fetch_sim_price",
         return_value=None,
     ):
         response = client.get("/api/market/compare")

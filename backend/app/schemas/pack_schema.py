@@ -92,6 +92,18 @@ class CompanionCardData(BaseModel):
     day_count: int      # Day N(累計開包天數)
 
 
+class CommunityMeter(BaseModel):
+    """社群溫度計(股票同學會 raw_10):只顯示相對自身歷史基準的變化,
+    不顯示絕對多空比;固定附註「社群情緒 ≠ 買賣訊號」。"""
+    model_config = _NO_NAN
+
+    heat_percent: float
+    heat_text: str
+    sentiment_text: Optional[str] = None
+    note: str
+    chip: Optional[SourceChip] = None
+
+
 class WhyToday(BaseModel):
     """15a「今天為什麼值得看」卡。"""
     model_config = _NO_NAN
@@ -103,14 +115,16 @@ class WhyToday(BaseModel):
 class DailyPackRead(BaseModel):
     model_config = _NO_NAN
 
-    date_text: str               # 「2025/12/31 · 週三」
-    data_date: str               # footer 揭露用資料日期
+    date_text: str               # 「2026/07/14 · 週二」(真實日期)
+    data_date: str               # footer 揭露用「模擬交易日」(今天 − 1 年的 2025 日期)
+    data_source_note: str = ""   # 「CMoney 2025 模擬資料 · 模擬交易日 …」
     holdings_count: int
     total_value_text: str
     why_today: WhyToday
     fact: FactCardData
     inference: InferenceCardData
     companion: CompanionCardData
+    community: Optional[CommunityMeter] = None   # 15e 卡疊完成態的社群溫度計 widget
     opened: bool                 # 今日已看過開包動畫
 
 
