@@ -37,6 +37,18 @@ GOOGLE_ISSUERS = ("https://accounts.google.com", "accounts.google.com")
 _apple_jwk_client = PyJWKClient(APPLE_JWKS_URL)
 _google_jwk_client = PyJWKClient(GOOGLE_JWKS_URL)
 
+# --- Cognito ----------------------------------------------------------------
+# Derived from the user pool id + region; only wired up when a pool is set.
+if settings.COGNITO_USER_POOL_ID:
+    COGNITO_ISSUER = (
+        f"https://cognito-idp.{settings.AWS_REGION}.amazonaws.com/"
+        f"{settings.COGNITO_USER_POOL_ID}"
+    )
+    _cognito_jwk_client = PyJWKClient(f"{COGNITO_ISSUER}/.well-known/jwks.json")
+else:
+    COGNITO_ISSUER = ""
+    _cognito_jwk_client = None
+
 
 class TokenVerificationError(Exception):
     """A sign-in or session token failed verification."""
@@ -105,3 +117,44 @@ def verify_google_id_token(id_token: str) -> dict:
         audience=settings.GOOGLE_CLIENT_ID,
         issuer_check=lambda iss: iss in GOOGLE_ISSUERS,
     )
+
+
+# --- Cognito access / id tokens ---------------------------------------------
+
+def cognito_enabled() -> bool:
+    return _cognito_jwk_client is not None
+
+
+def verify_cognito_token(token: str) -> str:
+    """Verify a Cognito-issued JWT (access or id token) and return the user id.
+
+    Both token types are RS256, signed by the pool and issued by COGNITO_ISSUER.
+    - id token:     audience == app client id, token_use == "id"
+    - access token: no aud claim; client_id == app client id, token_use == "access"
+    """
+    if _cognito_jwk_client is None:
+        raise TokenVerificationError("cognito is not configured")
+    try:
+        signing_key = _cognito_jwk_client.get_signing_key_from_jwt(token)
+        claims = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["RS256"],
+            issuer=COGNITO_ISSUER,
+            options={"verify_aud": False},  # aud only present on id tokens; checked below
+        )
+    except jwt.PyJWTError as e:
+        raise TokenVerificationError(f"cognito token rejected: {e}") from e
+
+    token_use = claims.get("token_use")
+    client_id = settings.COGNITO_APP_CLIENT_ID
+    if client_id:
+        if token_use == "access" and claims.get("client_id") != client_id:
+            raise TokenVerificationError("cognito access token: client_id mismatch")
+        if token_use == "id" and claims.get("aud") != client_id:
+            raise TokenVerificationError("cognito id token: audience mismatch")
+
+    user_id = claims.get("sub")
+    if not user_id:
+        raise TokenVerificationError("cognito token has no subject")
+    return f"cognito-{user_id}"

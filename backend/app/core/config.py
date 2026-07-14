@@ -38,6 +38,14 @@ class Settings(BaseSettings):
     # Expected audiences when verifying sign-in tokens from Apple / Google.
     APPLE_BUNDLE_ID: str = "Wbilly.StockMoodApp"
     GOOGLE_CLIENT_ID: str = "155358777599-a0lp1l2leen45l2ak9h5p76bmlfiqtfo.apps.googleusercontent.com"
+
+    # --- Cognito (end-user auth) ---
+    # When COGNITO_USER_POOL_ID is set, the API accepts Cognito-issued JWTs
+    # (RS256, verified via the pool's JWKS). Issuer/JWKS are derived from the
+    # pool id + AWS_REGION. COGNITO_APP_CLIENT_ID is checked against the token's
+    # audience (id token) or client_id (access token).
+    COGNITO_USER_POOL_ID: str = ""
+    COGNITO_APP_CLIENT_ID: str = ""
     # Transition switch: accept the legacy unauthenticated X-User-Id header.
     # Flip to False once all shipped clients send Bearer tokens.
     ALLOW_LEGACY_HEADER_AUTH: bool = True
