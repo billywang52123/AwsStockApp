@@ -3,6 +3,8 @@ import SwiftUI
 struct PortfolioInputView: View {
     @StateObject private var viewModel = PortfolioInputViewModel()
     @State private var showScanSheet = false
+    @State private var showCustomBrokerInput = false
+    @State private var customBrokerText = ""
     @FocusState private var focusedField: String?
     let onCompletion: ([String]) -> Void
 
@@ -42,11 +44,14 @@ struct PortfolioInputView: View {
             // Pinned CTA
             if !viewModel.selectedStocks.isEmpty {
                 // 10d 就地說明:第一次交出持股資料的當下講清楚
-                TrustNote(text: "只需要代號和股數,均價可以之後再補;不會要你連券商帳號")
+                TrustNote(text: viewModel.brokerRequired
+                          ? "圖片辨識的券商不一定準確,請先選擇這批持股的來源券商"
+                          : "只需要代號和股數,均價可以之後再補;不會要你連券商帳號")
                     .padding(.horizontal, 24)
                     .padding(.top, 6)
 
                 AppButton(title: "確認持股", icon: "checkmark") {
+                    guard !viewModel.brokerRequired else { return }
                     focusedField = nil
                     Task {
                         await viewModel.savePortfolio()
@@ -54,6 +59,8 @@ struct PortfolioInputView: View {
                         onCompletion(symbols)
                     }
                 }
+                .disabled(viewModel.brokerRequired)
+                .opacity(viewModel.brokerRequired ? 0.4 : 1)
                 .padding(.horizontal, 24)
                 .padding(.top, 8)
                 .padding(.bottom, 12)
@@ -78,7 +85,10 @@ struct PortfolioInputView: View {
         }
         .sheet(isPresented: $showScanSheet) {
             StockScanSimulatorView(
-                onImport: { results in
+                onImport: { results, detectedBroker in
+                    // 圖片匯入 → 券商變必選(辨識不一定準確),detectedBroker 只當建議
+                    viewModel.importedFromScan = true
+                    viewModel.detectedBroker = detectedBroker
                     for item in results {
                         viewModel.addScannedStock(item.stock, cost: item.cost, shares: item.shares)
                     }
@@ -90,6 +100,14 @@ struct PortfolioInputView: View {
                     onCompletion([])
                 }
             )
+        }
+        .alert("輸入券商名稱", isPresented: $showCustomBrokerInput) {
+            TextField("例如 富邦證券", text: $customBrokerText)
+            Button("確定") {
+                let trimmed = customBrokerText.trimmingCharacters(in: .whitespaces)
+                if !trimmed.isEmpty { viewModel.broker = trimmed }
+            }
+            Button("取消", role: .cancel) {}
         }
     }
 
@@ -156,6 +174,73 @@ struct PortfolioInputView: View {
         .shadow(color: Color(hex: "786446").opacity(0.04), radius: 8, x: 0, y: 4)
     }
 
+    // MARK: - 券商選擇(手動選填、圖片匯入必填)
+
+    private var brokerChip: some View {
+        Menu {
+            if let detected = viewModel.detectedBroker {
+                Button("採用辨識結果:\(detected)") { viewModel.broker = detected }
+                Divider()
+            }
+            ForEach(TaiwanBrokers.common, id: \.self) { name in
+                Button(name) { viewModel.broker = name }
+            }
+            Button("其他券商…") {
+                customBrokerText = viewModel.broker ?? viewModel.detectedBroker ?? ""
+                showCustomBrokerInput = true
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "building.columns")
+                    .font(.system(size: 14))
+                    .foregroundColor(AppColor.primary)
+
+                if let broker = viewModel.broker {
+                    (Text("券商 ")
+                        .foregroundColor(AppColor.textSecondary)
+                     + Text(broker)
+                        .fontWeight(.bold)
+                        .foregroundColor(AppColor.textPrimary))
+                        .font(.system(size: 12, design: .rounded))
+                } else if viewModel.importedFromScan, let detected = viewModel.detectedBroker {
+                    (Text("辨識為 ")
+                        .foregroundColor(AppColor.amberStrong)
+                     + Text(detected)
+                        .fontWeight(.bold)
+                        .foregroundColor(AppColor.amberStrong)
+                     + Text(",請確認來源")
+                        .foregroundColor(AppColor.amberStrong))
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                } else if viewModel.importedFromScan {
+                    Text("辨識不出券商,請選擇來源")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundColor(AppColor.amberStrong)
+                } else {
+                    Text("選擇券商(選填)")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundColor(AppColor.textSecondary)
+                }
+
+                Spacer()
+
+                Text(viewModel.broker == nil ? "選券商" : "更換")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .foregroundColor(AppColor.primary)
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .background(AppColor.cardBackground)
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        viewModel.brokerRequired ? AppColor.amberBadge : Color(hex: "E3DFD4"),
+                        lineWidth: viewModel.brokerRequired ? 1.5 : 1
+                    )
+            )
+        }
+    }
+
     // MARK: - Selected stocks + cost/shares editor
 
     private var selectedSection: some View {
@@ -163,6 +248,8 @@ struct PortfolioInputView: View {
             Text("已選擇的持股 (\(viewModel.selectedStocks.count))")
                 .font(.system(size: 12, weight: .bold, design: .rounded))
                 .foregroundColor(AppColor.textSecondary)
+
+            brokerChip
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 90, maximum: 120))], alignment: .leading, spacing: 8) {
                 ForEach(viewModel.selectedStocks) { stock in

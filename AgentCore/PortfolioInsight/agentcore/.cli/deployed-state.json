@@ -1,0 +1,17 @@
+{
+  "targets": {
+    "default": {
+      "resources": {
+        "runtimes": {
+          "PortfolioInsight": {
+            "runtimeId": "PortfolioInsight_PortfolioInsight-Q7w6JZDwUi",
+            "runtimeArn": "arn:aws:bedrock-agentcore:us-east-1:475794918554:runtime/PortfolioInsight_PortfolioInsight-Q7w6JZDwUi",
+            "roleArn": "arn:aws:iam::475794918554:role/AgentCore-PortfolioInsigh-ApplicationAgentPortfolio-sJVfwVA1rVMG"
+          }
+        },
+        "stackName": "AgentCore-PortfolioInsight-default",
+        "deployHash": "c2a828f0efe26334"
+      }
+    }
+  }
+}

@@ -95,6 +95,8 @@ final class AuthService: ObservableObject {
 
         // credential.user is Apple's stable per-app user identifier
         AppPreferenceStore.shared.signIn(userId: "apple-\(credential.user)")
+        PushDeviceService.shared.registerForRemoteNotificationsIfPermitted()
+        PushDeviceService.shared.applyPendingRegistration()
         HapticManager.shared.triggerNotification(type: .success)
         isAuthenticating = false
         onSuccess()
@@ -183,6 +185,8 @@ final class AuthService: ObservableObject {
         // Google's stable subject id; fall back to email if the SDK didn't return one
         let stableId = userID ?? email ?? UUID().uuidString
         AppPreferenceStore.shared.signIn(userId: "google-\(stableId)")
+        PushDeviceService.shared.registerForRemoteNotificationsIfPermitted()
+        PushDeviceService.shared.applyPendingRegistration()
         HapticManager.shared.triggerNotification(type: .success)
         isAuthenticating = false
         onSuccess()
@@ -205,6 +209,7 @@ final class AuthService: ObservableObject {
             let body = GuestAuthRequest(guest_id: AppPreferenceStore.shared.currentUserId)
             let session: [String: String] = try await APIClient.shared.requestBody("/auth/guest", method: "POST", body: body)
             Self.storeSessionToken(from: session)
+            PushDeviceService.shared.applyPendingRegistration()
         } catch {
             print("AuthService: guest session registration skipped: \(error.localizedDescription)")
         }
@@ -242,6 +247,8 @@ final class AuthService: ObservableObject {
     /// 登出:清掉本機登入狀態與 session token,回登入頁。
     /// 雲端資料不動,重新登入同一帳號即可找回;訪客 id 也保留在裝置上。
     func signOut() {
+        // 先解除本裝置的推播註冊（需在清除 session token 前發出，才帶得到 Authorization）。
+        Task { await PushDeviceService.shared.unregisterCurrentDevice() }
         if GIDSignIn.sharedInstance.currentUser != nil {
             GIDSignIn.sharedInstance.signOut()
         }

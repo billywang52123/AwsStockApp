@@ -5,6 +5,7 @@ struct PortfolioItemCreateBody: Codable {
     let symbol: String
     let costPrice: Double?
     let shares: Int?
+    let broker: String?
 }
 
 struct ReminderSettingBody: Codable {
@@ -29,7 +30,8 @@ class RemotePortfolioService: PortfolioServiceProtocol {
         let bodyObj = PortfolioItemCreateBody(
             symbol: item.symbol,
             costPrice: item.costPrice,
-            shares: item.shares
+            shares: item.shares,
+            broker: item.broker
         )
         
         let encoder = JSONEncoder()

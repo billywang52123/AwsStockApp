@@ -10,16 +10,23 @@ from app.db.database import SessionLocal, Base, engine
 from app.services.csv_import_service import CSVImportService
 from app.services.services import PortfolioService
 
-def seed():
+def seed(force: bool = False) -> bool:
     # Make sure tables are created
     Base.metadata.create_all(bind=engine)
-    
+
     # Run migrations to add any missing columns before seeding
     from app.db.migrations import run_light_migrations
     run_light_migrations(engine)
-    
+
+    from app.models.stock import Stock
+
     db = SessionLocal()
     try:
+        # 冪等守衛:容器每次啟動都會跑 seed,已有資料就跳過,避免重複塞 demo 持股
+        if not force and db.query(Stock).count() > 0:
+            print("Stocks already present; skipping seed (idempotent).")
+            return False
+
         print("Seeding stock metadata...")
         stocks_csv = backend_dir / "data" / "stocks.csv"
         with open(stocks_csv, "rb") as f:
@@ -45,9 +52,11 @@ def seed():
         portfolio_service.add_item("2891", cost_price=38.0, shares=3000)
         db.commit()
         print("Successfully seeded demo portfolio holdings.")
-        
+        return True
+
     except Exception as e:
         print(f"Error during seeding: {e}")
+        return False
     finally:
         db.close()
 

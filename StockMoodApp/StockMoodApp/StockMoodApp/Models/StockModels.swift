@@ -36,14 +36,18 @@ struct PortfolioItem: Identifiable, Codable, Hashable {
     let name: String
     let costPrice: Double?
     let shares: Int?
+    /// 這筆持股所屬券商(手動新增/匯入時由用戶選定);nil = 未指定
+    let broker: String?
     let createdAt: Date
 
-    init(id: UUID, symbol: String, name: String, costPrice: Double?, shares: Int?, createdAt: Date) {
+    init(id: UUID, symbol: String, name: String, costPrice: Double?, shares: Int?,
+         broker: String? = nil, createdAt: Date) {
         self.id = id
         self.symbol = symbol
         self.name = name
         self.costPrice = costPrice
         self.shares = shares
+        self.broker = broker
         self.createdAt = createdAt
     }
 
@@ -55,6 +59,7 @@ struct PortfolioItem: Identifiable, Codable, Hashable {
         name = (try? container.decode(String.self, forKey: .name)) ?? symbol
         costPrice = try container.decodeIfPresent(Double.self, forKey: .costPrice)
         shares = try container.decodeIfPresent(Int.self, forKey: .shares)
+        broker = try container.decodeIfPresent(String.self, forKey: .broker)
         createdAt = try container.decode(Date.self, forKey: .createdAt)
     }
 }

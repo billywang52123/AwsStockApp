@@ -10,13 +10,15 @@ class PortfolioItemCreate(BaseModel):
     symbol: str
     cost_price: Optional[float] = Field(default=None, ge=0, le=10_000_000)
     shares: Optional[int] = Field(default=None, ge=0, le=1_000_000_000)
+    broker: Optional[str] = None
 
 class PortfolioItemRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: str
     symbol: str
     name: Optional[str] = None
     cost_price: Optional[float] = None
     shares: Optional[int] = None
+    broker: Optional[str] = None
     created_at: datetime

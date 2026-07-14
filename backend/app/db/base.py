@@ -8,3 +8,4 @@ from app.models.market_index import MarketIndexDaily
 from app.models.reminder import ReminderSettingModel
 from app.models.card_result import CardResultModel
 from app.models.holding_activity import HoldingActivityModel
+from app.models.push_device import PushDevice
