@@ -52,7 +52,7 @@ class _Holding:
         self.cost = float(item.cost_price) if is_finite_number(item.cost_price) else None
         self.close = float(price.close_price) if price and is_finite_number(price.close_price) else None
         self.change = float(price.change_percent) if price and is_finite_number(price.change_percent) else 0.0
-        self.price_date = price.trade_date if price else None
+        self.price_date = getattr(price, "trade_date", None) if price else None
 
         effective_price = self.close if self.close is not None else (self.cost or 0.0)
         self.market_value = effective_price * (self.shares or 0)
@@ -309,11 +309,22 @@ class StockInsightService:
         holding = next((h for h in holdings if h.symbol == symbol), None)
         if holding is None:
             # 未持有(觀察清單 11f 點入):同一套規則,但持倉視角換成觀察視角
-            return self._watch_insight_detail(symbol)
+            return self._watch_insight_detail(symbol, user_id)
 
         outlook, score = self._outlook(holding)
         market_change = get_live_market_change(self.db)
         signals = self._signals(holding, market_change)
+        _, data_date = self._signal_data_context(holding)
+        from app.services.investment_profile_service import InvestmentProfileService
+        personalization = InvestmentProfileService(self.db).personalized_stock_analysis(
+            user_id,
+            symbol=holding.symbol,
+            name=holding.name,
+            industry=holding.industry,
+            stock_change=holding.change,
+            market_change=market_change,
+            data_date=data_date,
+        )
 
         return {
             "symbol": holding.symbol,
@@ -325,9 +336,10 @@ class StockInsightService:
             "summary": self._summary(holding, market_change),
             "signals": signals,
             "plain_summary": self._plain_summary(holding, outlook),
+            "personalization": personalization,
         }
 
-    def _watch_insight_detail(self, symbol: str) -> Optional[dict]:
+    def _watch_insight_detail(self, symbol: str, user_id: str) -> Optional[dict]:
         """觀察股(未持有)的觀點詳情:價格/大盤訊號照舊,
         第三張「你的持倉」訊號卡換成觀察視角;查無此股回 None(404)。"""
         stock_repo = StockRepository(self.db)
@@ -360,6 +372,16 @@ class StockInsightService:
             "data_source": f"你的觀察清單 + {data_source}",
             "data_date": data_date,
         }
+        from app.services.investment_profile_service import InvestmentProfileService
+        personalization = InvestmentProfileService(self.db).personalized_stock_analysis(
+            user_id,
+            symbol=h.symbol,
+            name=h.name,
+            industry=h.industry,
+            stock_change=h.change,
+            market_change=market_change,
+            data_date=data_date,
+        )
 
         return {
             "symbol": h.symbol,
@@ -371,6 +393,7 @@ class StockInsightService:
             "summary": self._summary(h, market_change),
             "signals": signals,
             "plain_summary": self._plain_summary(h, outlook),
+            "personalization": personalization,
         }
 
     # ── 規則 ────────────────────────────────────────────────

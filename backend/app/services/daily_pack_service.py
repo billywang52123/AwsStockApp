@@ -182,6 +182,7 @@ class DailyPackService:
         # 分析完成 → 數字交給 AI 措辭(推論結論);失敗保留規則式
         self._apply_ai_texts(
             inference=inference,
+            user_id=user_id,
             holdings=holdings, weighted_change=weighted_change,
             market_change=market_change, community=community,
             flashcard=fact.get("flashcard"),
@@ -600,7 +601,7 @@ class DailyPackService:
 
     # ── 分析後交給 AI:數字算好 → AI 只負責措辭,禁字直接退回 ──
 
-    def _apply_ai_texts(self, inference: dict,
+    def _apply_ai_texts(self, inference: dict, user_id: str,
                         holdings: List[_Holding], weighted_change: float,
                         market_change: float, community: Optional[dict],
                         flashcard: Optional[dict]) -> None:
@@ -618,6 +619,11 @@ class DailyPackService:
             "community_heat_text": community["heat_text"] if community else None,
             "flashcard_event": flashcard["event_text"] if flashcard else None,
         }
+        try:
+            from app.services.investment_profile_service import InvestmentProfileService
+            metrics["user_prompt_context"] = InvestmentProfileService(self.db).prompt_context(user_id)["prompt_text"]
+        except Exception:
+            metrics["user_prompt_context"] = ""
         try:
             data = run_async(OpenAIService.fetch_pack_ai_text(metrics)) or {}
         except Exception:

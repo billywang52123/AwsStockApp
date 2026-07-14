@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from app.core.auth import get_current_user_id
 from app.db.database import get_db
 from app.schemas.common_schema import ApiResponse
 from app.schemas.stock_schema import StockRead, StockDailyPriceRead, AiScreenResult
@@ -50,7 +51,8 @@ def get_stock_summary(symbol: str, db: Session = Depends(get_db)):
     return ApiResponse(success=True, data=msg)
 
 @router.get("/{symbol}/ai-analysis", response_model=ApiResponse[str])
-def get_stock_ai_analysis(symbol: str, db: Session = Depends(get_db)):
+def get_stock_ai_analysis(symbol: str, db: Session = Depends(get_db),
+                          user_id: str = Depends(get_current_user_id)):
     service = StockService(db)
     stock = service.repo.get_stock(symbol)
     price = service.get_daily_price(symbol)
@@ -67,13 +69,16 @@ def get_stock_ai_analysis(symbol: str, db: Session = Depends(get_db)):
     
     from app.services.openai_service import OpenAIService
     from app.services.services import run_async
+    from app.services.investment_profile_service import InvestmentProfileService
+    user_context = InvestmentProfileService(db).prompt_context(user_id)["prompt_text"]
     
     analysis_text = run_async(
         OpenAIService.fetch_stock_analysis(
             symbol=symbol,
             name=name,
             close_price=close,
-            change_percent=change
+            change_percent=change,
+            user_context=user_context,
         )
     )
     

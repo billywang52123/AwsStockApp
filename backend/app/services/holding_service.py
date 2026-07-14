@@ -41,6 +41,11 @@ class HoldingService:
     def __init__(self, db: Session):
         self.db = db
 
+    def _snapshot_profile(self, user_id: str, trigger: str) -> None:
+        # 局部 import 避免持股服務與個人化服務初始化時形成循環依賴。
+        from app.services.investment_profile_service import InvestmentProfileService
+        InvestmentProfileService(self.db).capture_habit_snapshot(user_id, trigger)
+
     # ---- queries -----------------------------------------------------------
 
     def _active_lots(self, user_id: str, symbol: Optional[str] = None) -> List[PortfolioItem]:
@@ -162,6 +167,7 @@ class HoldingService:
 
         self.db.delete(activity)
         self.db.flush()
+        self._snapshot_profile(user_id, "holding_activity_deleted")
         return True
 
     # ---- lot helpers -------------------------------------------------------
@@ -208,6 +214,7 @@ class HoldingService:
         self.db.flush()
 
         self._log(user_id, symbol, "buy", shares, price, lot.broker)
+        self._snapshot_profile(user_id, "holding_buy")
         return {"holding": self.get_holding(user_id, symbol), "realized_pnl": None,
                 "realized_pnl_percent": None, "exited": False}
 
@@ -255,6 +262,7 @@ class HoldingService:
                 lot.updated_at = _now()
             self._log(user_id, symbol, "exit", 0, price, broker)
         self.db.flush()
+        self._snapshot_profile(user_id, "holding_sell")
 
         return {"holding": self.get_holding(user_id, symbol),
                 "realized_pnl": realized, "realized_pnl_percent": realized_pct,
@@ -290,6 +298,7 @@ class HoldingService:
                 self.db.delete(act)
         self._log(user_id, symbol, "restore", 0, None, None)
         self.db.flush()
+        self._snapshot_profile(user_id, "holding_restore")
         return {"holding": self.get_holding(user_id, symbol), "realized_pnl": None,
                 "realized_pnl_percent": None, "exited": False}
 
@@ -325,6 +334,7 @@ class HoldingService:
         new_total = sum(l.shares or 0 for l in lots)
         self._log(user_id, symbol, "override", new_total - old_total, None, broker)
         self.db.flush()
+        self._snapshot_profile(user_id, "holding_override")
         return {"holding": self.get_holding(user_id, symbol), "realized_pnl": None,
                 "realized_pnl_percent": None, "exited": False}
 
@@ -397,4 +407,6 @@ class HoldingService:
             updated_symbols.append(symbol)
 
         holdings = [h for h in (self.get_holding(user_id, s) for s in dict.fromkeys(updated_symbols)) if h]
+        if updated_symbols:
+            self._snapshot_profile(user_id, "holding_import")
         return {"updated_count": len(dict.fromkeys(updated_symbols)), "holdings": holdings}

@@ -334,6 +334,8 @@ class PortfolioService:
             broker=broker,
         )
         saved = self.repo.add_item(item)
+        from app.services.investment_profile_service import InvestmentProfileService
+        InvestmentProfileService(self.repo.db).capture_habit_snapshot(user_id, "holding_added")
         return {
             "id": saved.id,
             "symbol": saved.symbol,
@@ -345,7 +347,11 @@ class PortfolioService:
         }
         
     def delete_item(self, item_id: str, user_id: str = "demo-user") -> bool:
-        return self.repo.delete_item(item_id, user_id)
+        deleted = self.repo.delete_item(item_id, user_id)
+        if deleted:
+            from app.services.investment_profile_service import InvestmentProfileService
+            InvestmentProfileService(self.repo.db).capture_habit_snapshot(user_id, "holding_deleted")
+        return deleted
 
 class AnxietyScoreService:
     def __init__(self, db: Session):

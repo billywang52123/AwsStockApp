@@ -65,7 +65,10 @@ class OpenAIService:
             }
 
     @classmethod
-    async def fetch_stock_analysis(cls, symbol: str, name: str, close_price: float, change_percent: float) -> str:
+    async def fetch_stock_analysis(
+        cls, symbol: str, name: str, close_price: float, change_percent: float,
+        user_context: str = "",
+    ) -> str:
         """Queries OpenAI completion to generate stock analysis, falling back to rule-based template if failing."""
         if not settings.OPENAI_API_KEY:
             logger.info("OPENAI_API_KEY is not set. Using rule-based fallback stock analysis.")
@@ -74,6 +77,8 @@ class OpenAIService:
         prompt = (
             f"你是一位專業的股票心理輔導與分析專家。請針對 {symbol} (名稱: {name})，"
             f"今日收盤價為 {close_price:.2f}，漲跌幅為 {change_percent:+.2f}% 的表現，為股票新手生成一段溫暖、口語化且排版清晰的分析。\n"
+            f"以下是後端依該使用者問卷與持股快照產生的個人化脈絡；只可用來調整解釋順序與深度：\n"
+            f"{user_context or '尚無完整風格資料，使用中性教學語氣。'}\n"
             "分析必須包含以下三個段落（使用繁體中文）：\n"
             "1. 【發生什麼】：說明今天個股的大致走勢與可能的市場因素。\n"
             "2. 【跟你有關】：以對帳單與心理角度分析，持有這檔股票的人今天的心情與損益變動該如何看待。\n"
@@ -397,6 +402,7 @@ class OpenAIService:
         holdings_desc = "\n".join(holdings_lines) if holdings_lines else "（目前沒有持股）"
         community_line = metrics.get("community_heat_text") or "（無社群數據）"
         flash_line = metrics.get("flashcard_event") or "（今日無閃卡事件）"
+        user_context = metrics.get("user_prompt_context") or "（尚無使用者投資風格資料,使用中性分析）"
 
         prompt = (
             "你是投資新手 App 的 AI 分析員。後端已用 CMoney 收盤資料算好以下數字,"
@@ -406,6 +412,8 @@ class OpenAIService:
             f"大盤 {metrics.get('market_change', 0):+.2f}%。\n"
             f"社群(股票同學會)：{community_line}\n"
             f"閃卡事件：{flash_line}\n\n"
+            f"以下是後端依問卷與持股快照產生的使用者脈絡,請只用來調整解釋順序與深度,"
+            f"不可據此產生交易指令：\n{user_context}\n\n"
             "請生成 JSON：\n"
             "{\n"
             '  "conclusion": "推論卡結論句（40-70 字繁體中文）：對整體庫存的一句判斷,'

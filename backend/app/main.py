@@ -22,10 +22,11 @@ from app.models.fortune import FortuneResultModel
 from app.models.daily_pack import DailyPackModel
 from app.models.push_device import PushDevice
 from app.models.app_setting import AppSetting
+from app.models.investment_profile import InvestmentProfileModel, InvestmentHabitSnapshotModel
 
 # Routes
 from app.api.routes import (
-    auth, portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis, holdings, privacy, watchlists, fortune, push_devices, pack, admin_sim
+    auth, portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis, holdings, privacy, watchlists, fortune, push_devices, pack, admin_sim, investment_profile
 )
 from app.db.migrations import run_light_migrations
 from app.db.database import SessionLocal
@@ -93,6 +94,7 @@ app.include_router(fortune.router, prefix=settings.API_V1_STR)
 app.include_router(pack.router, prefix=settings.API_V1_STR)
 app.include_router(push_devices.router, prefix=settings.API_V1_STR)
 app.include_router(admin_sim.router, prefix=settings.API_V1_STR)
+app.include_router(investment_profile.router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["Health"])
 def health_check():

@@ -1,6 +1,8 @@
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.investment_profile_schema import HabitRead, StyleRead
+
 
 # ── 庫存分析(8a / 8b / 8c) ─────────────────────────────────
 
@@ -93,6 +95,24 @@ class NewsSignal(BaseModel):
     data_date: str         # 實際資料日
 
 
+class PersonalizedInsightSection(BaseModel):
+    key: str
+    title: str
+    text: str
+
+
+class PersonalizedStockInsight(BaseModel):
+    prompt_version: str
+    preference_style: StyleRead
+    observed_style: StyleRead
+    investment_habit: HabitRead
+    title: str
+    summary: str
+    sections: List[PersonalizedInsightSection]
+    observation_points: List[str]
+    data_date: str
+
+
 class StockInsightDetail(BaseModel):
     symbol: str
     name: str
@@ -103,3 +123,4 @@ class StockInsightDetail(BaseModel):
     summary: str           # 主句
     signals: List[NewsSignal]
     plain_summary: str
+    personalization: PersonalizedStockInsight

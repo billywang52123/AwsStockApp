@@ -22,6 +22,7 @@ from app.models.portfolio import PortfolioItem
 from app.models.reminder import ReminderSettingModel
 from app.models.watchlist import Watchlist, WatchlistItem
 from app.models.push_device import PushDevice
+from app.models.investment_profile import InvestmentProfileModel, InvestmentHabitSnapshotModel
 from app.schemas.common_schema import ApiResponse
 
 router = APIRouter(prefix="/privacy", tags=["Privacy"])
@@ -37,6 +38,8 @@ _USER_TABLES = [
     ("watchlist_items", WatchlistItem),
     ("fortune_results", FortuneResultModel),
     ("push_devices", PushDevice),
+    ("investment_profiles", InvestmentProfileModel),
+    ("investment_habit_snapshots", InvestmentHabitSnapshotModel),
 ]
 
 
@@ -50,6 +53,8 @@ class PrivacySummary(BaseModel):
     watchlist_items: int = 0
     fortune_results: int = 0
     push_devices: int = 0
+    investment_profiles: int = 0
+    investment_habit_snapshots: int = 0
 
 
 class DeleteAllResult(BaseModel):

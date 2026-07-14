@@ -69,8 +69,9 @@ final class CognitoAuthService: NSObject {
             URLQueryItem(name: "code_challenge", value: challenge),
         ]
         if let idp = identityProvider {
-            components.queryItems?.append(URLQueryItem(name: "identity_provider", value: idp))
+            queryItems.append(URLQueryItem(name: "identity_provider", value: idp))
         }
+        components.queryItems = queryItems
 
         let callbackURL = try await presentWebAuth(url: components.url!)
 
