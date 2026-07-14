@@ -822,9 +822,10 @@ struct CardBackFace: View {
     }
 }
 
-/// 卡背旋轉光芒層:conic 金/主色微光,14s linear 循環
-private struct CardBackRayLayer: View {
+/// 旋轉光芒層:conic 金/主色微光(卡背 14s / 封面 16s linear 循環)
+struct CardBackRayLayer: View {
     let tint: Color
+    var duration: Double = 14
     @State private var rotating = false
 
     var body: some View {
@@ -840,7 +841,7 @@ private struct CardBackRayLayer: View {
             .frame(width: geo.size.height * 1.7, height: geo.size.height * 1.7)
             .position(x: geo.size.width / 2, y: geo.size.height / 2)
             .rotationEffect(.degrees(rotating ? 360 : 0))
-            .animation(.linear(duration: 14).repeatForever(autoreverses: false),
+            .animation(.linear(duration: duration).repeatForever(autoreverses: false),
                        value: rotating)
         }
         .allowsHitTesting(false)

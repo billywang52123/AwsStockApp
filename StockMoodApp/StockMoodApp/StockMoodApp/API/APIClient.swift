@@ -89,7 +89,7 @@ class APIClient {
                 // Cognito access token expired? Renew with the refresh token and
                 // retry once before giving up.
                 if !isRetry, await CognitoAuthService.shared.refreshSession() {
-                    return try await request(endpoint, method: method, body: body, isRetry: true)
+                    return try await self.request(endpoint, method: method, body: body, isRetry: true)
                 }
                 // Session token rejected (expired / secret rotated) — drop it so
                 // the next launch re-registers instead of failing forever.

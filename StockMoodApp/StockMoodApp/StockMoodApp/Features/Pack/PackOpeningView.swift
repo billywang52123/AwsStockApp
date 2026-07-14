@@ -1,8 +1,8 @@
 import SwiftUI
 
 // MARK: - 15b–15e · 開包動畫舞台(深色模式,光效在深色下最漂亮)
-// KF1 撕開 → KF2 事實卡飛出翻面 → KF3 推論卡接續 → KF4 三張攤成扇形手牌
-// 全程可 tap 任一處加速;右上「跳過」直達完成態;瀏覽態(15f/g/h)也在此舞台上
+// KF1 撕開 → KF2 事實卡飛出翻面 → KF3 推論卡接續 → KF4 卡疊覆蓋態(卡背朝上)
+// 全程可 tap 任一處加速;右上「跳過」直達卡疊;完成態(15f/g/h)也在此舞台上
 
 struct PackOpeningStage: View {
     @ObservedObject var viewModel: DailyPackViewModel
@@ -16,8 +16,8 @@ struct PackOpeningStage: View {
                 case .opening(let keyframe):
                     keyframeContent(pack: pack, keyframe: keyframe)
                         .allowsHitTesting(false)   // 動畫中卡片不吃點擊,tap 一律加速
-                case .hand:
-                    PackHandView(pack: pack, viewModel: viewModel)
+                case .stack:
+                    PackStackView(pack: pack, viewModel: viewModel)
                 case .browsing:
                     PackBrowseView(pack: pack, viewModel: viewModel)
                 default:
@@ -129,7 +129,7 @@ struct PackTearKeyframe: View {
     }
 }
 
-// MARK: - KF2 · 事實卡飛出翻面(15c):spring 彈出定位 -6°,下一張殘影等待
+// MARK: - KF2 · 事實卡飛出翻面(15c):spring 彈出定位 -6°,下一張卡背等待
 
 struct PackFactFlyKeyframe: View {
     let pack: DailyPack
@@ -141,8 +141,8 @@ struct PackFactFlyKeyframe: View {
             let cardHeight = cardWidth * 472 / 308
 
             ZStack {
-                // 下一張卡(推論卡)殘影已就位等待
-                MiniPackCard(kind: .inference, pack: pack)
+                // 下一張卡(推論卡)卡背已就位等待
+                CardBackFace(kind: .inference)
                     .frame(width: cardWidth * 0.6, height: cardHeight * 0.57)
                     .opacity(0.45)
                     .offset(y: geo.size.height * 0.32)
@@ -215,24 +215,23 @@ struct PackInferenceKeyframe: View {
     }
 }
 
-// MARK: - KF4 / 15e · 三張攤成扇形手牌(撲克牌持牌手勢)
+// MARK: - KF4 / 15e · 卡疊覆蓋態:三張卡背朝上收攏成疊,滑動選卡、點擊翻牌
 
-struct PackHandView: View {
+struct PackStackView: View {
     let pack: DailyPack
     @ObservedObject var viewModel: DailyPackViewModel
-    @State private var fanned = false
 
-    // 左推論卡 -17° / 中事實卡 0.5° / 右陪伴卡 17°;z-index 由左至右遞增
-    private let layout: [(kind: PackCardKind, angle: Double, xOffset: CGFloat)] = [
-        (.inference, -17, -74),
-        (.fact, 0.5, 0),
-        (.companion, 17, 74),
-    ]
+    /// 前景卡點擊翻牌角度(0→90 後切到完成態)
+    @State private var flipAngle: Double = 0
+    @State private var isFlipping = false
+    /// flipHint 待機擺動(3.6s 循環,擺幅 -24°)
+    @State private var hintWobbling = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         GeometryReader { geo in
-            let cardWidth: CGFloat = min(geo.size.width * 0.46, 186)
-            let cardHeight = cardWidth * 270 / 186
+            let frontWidth = min(geo.size.width * 0.55, 220)
+            let frontHeight = frontWidth * 314 / 220
 
             VStack(spacing: 0) {
                 // 返回入口列
@@ -265,43 +264,129 @@ struct PackHandView: View {
 
                 Spacer()
 
-                // 扇形手牌:共用錨點 50% 135%
+                // 卡疊 + 兩側 ‹ › 淡箭頭
                 ZStack {
-                    ForEach(Array(layout.enumerated()), id: \.offset) { index, item in
-                        Button {
-                            viewModel.browseCard(item.kind.rawValue)
-                        } label: {
-                            MiniPackCard(kind: item.kind, pack: pack)
-                                .frame(width: cardWidth, height: cardHeight)
-                        }
-                        .buttonStyle(PressScaleButtonStyle())
-                        .rotationEffect(.degrees(fanned ? item.angle : 0),
-                                        anchor: UnitPoint(x: 0.5, y: 1.35))
-                        .offset(x: fanned ? item.xOffset * (cardWidth / 186) : 0)
-                        .zIndex(Double(index))
-                        .animation(
-                            .spring(response: 0.4, dampingFraction: 0.78)
-                                .delay(Double(index) * 0.06),   // stagger 60ms
-                            value: fanned
-                        )
+                    stackCards(frontWidth: frontWidth, frontHeight: frontHeight)
+
+                    HStack {
+                        arrowHint("chevron.left")
+                        Spacer()
+                        arrowHint("chevron.right")
+                    }
+                    .padding(.horizontal, 14)
+                    .allowsHitTesting(false)
+                }
+                .frame(height: frontHeight * 1.16)
+
+                // 分頁指示器:當前為長條(18×7)
+                HStack(spacing: 7) {
+                    ForEach(PackCardKind.allCases) { kind in
+                        Capsule()
+                            .fill(kind.rawValue == viewModel.stackFront
+                                  ? Color.white.opacity(0.9) : Color.white.opacity(0.28))
+                            .frame(width: kind.rawValue == viewModel.stackFront ? 18 : 7, height: 7)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.8),
+                                       value: viewModel.stackFront)
                     }
                 }
-                .frame(height: cardHeight * 1.28)
+                .padding(.top, 22)
 
                 Spacer()
 
-                Text("點任一張放大檢視 · 進入後左右滑切換")
+                Text("左右滑選卡 · 點擊翻牌")
                     .font(.system(size: 11, design: .rounded))
                     .foregroundColor(.white.opacity(0.5))
                     .padding(.bottom, 46)
             }
             .frame(maxWidth: .infinity)
         }
-        .onAppear { fanned = true }
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 24)
+                .onEnded { value in
+                    guard !isFlipping else { return }
+                    if value.translation.width < -40 {
+                        viewModel.rotateStack(1)
+                    } else if value.translation.width > 40 {
+                        viewModel.rotateStack(-1)
+                    }
+                }
+        )
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
+                hintWobbling = true
+            }
+        }
+    }
+
+    /// 三張卡背:前景 220×314 置中;後方兩張 scale 0.92、opacity 0.85、±44pt、∓6°
+    private func stackCards(frontWidth: CGFloat, frontHeight: CGFloat) -> some View {
+        ZStack {
+            ForEach(PackCardKind.allCases) { kind in
+                let slot = ((kind.rawValue - viewModel.stackFront) % 3 + 3) % 3
+                let isFront = slot == 0
+                // slot 1 = 右後方(+44, -6°)、slot 2 = 左後方(−44, +6°)
+                let xOffset: CGFloat = isFront ? 0 : (slot == 1 ? 44 : -44)
+                let rotation: Double = isFront ? 0 : (slot == 1 ? -6 : 6)
+
+                CardBackFace(
+                    kind: kind,
+                    isForeground: isFront,
+                    showsFlashHint: isFront && kind == .fact && pack.fact.flashcard != nil
+                )
+                .frame(width: frontWidth, height: frontHeight)
+                .scaleEffect(isFront ? 1.0 : 0.92)
+                .opacity(isFront ? 1.0 : 0.85)
+                .rotationEffect(.degrees(rotation))
+                .offset(x: xOffset * (frontWidth / 220))
+                // 前景卡:flipHint 待機擺動 + 點擊翻牌(perspective 1100pt ≈ 0.5)
+                .rotation3DEffect(
+                    .degrees(isFront ? (isFlipping ? flipAngle : (hintWobbling ? -24 : 0)) : 0),
+                    axis: (x: 0, y: 1, z: 0),
+                    perspective: 0.5
+                )
+                .zIndex(isFront ? 2 : (slot == 1 ? 1 : 0))
+                .shadow(color: .black.opacity(isFront ? 0.45 : 0.25),
+                        radius: isFront ? 18 : 10, x: 0, y: isFront ? 16 : 8)
+                .onTapGesture {
+                    if isFront {
+                        flipFrontCard()
+                    } else {
+                        viewModel.rotateStack(slot == 1 ? 1 : -1)
+                    }
+                }
+                .animation(.spring(response: 0.45, dampingFraction: 0.8),
+                           value: viewModel.stackFront)
+            }
+        }
+    }
+
+    /// 點擊翻牌:rotateY 0→90(0.25s easeIn)→ 切到完成態由 FlipRevealCard 接 −90→0
+    private func flipFrontCard() {
+        guard !isFlipping else { return }
+        if reduceMotion {
+            viewModel.revealFrontCard()
+            return
+        }
+        isFlipping = true
+        flipAngle = 0
+        withAnimation(.easeIn(duration: 0.25)) { flipAngle = 90 }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.25))
+            viewModel.revealFrontCard()
+        }
+    }
+
+    private func arrowHint(_ systemName: String) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 17, weight: .semibold))
+            .foregroundColor(.white.opacity(0.35))
     }
 }
 
-// MARK: - 15f/g/h · 單卡放大瀏覽:左右滑依 1→2→3 切換 + 三點分頁指示
+// MARK: - 15f/g/h · 完成態:左右滑依 1↔2↔3 切換 + 三點分頁指示
+// 滑向未翻開的卡先播翻牌動畫再顯示內容;已翻開的卡直接切換
 
 struct PackBrowseView: View {
     let pack: DailyPack
@@ -312,7 +397,7 @@ struct PackBrowseView: View {
             // 返回列(‹ 今日卡包)+ 序號
             HStack {
                 Button {
-                    viewModel.backToHand()
+                    viewModel.backToStack()
                 } label: {
                     Text("‹ 今日卡包")
                         .font(.system(size: 14, weight: .semibold, design: .rounded))
@@ -336,26 +421,38 @@ struct PackBrowseView: View {
                 set: { viewModel.browsingIndex = $0 }
             )) {
                 ForEach(PackCardKind.allCases) { kind in
-                    fullCard(kind: kind)
-                        .padding(.horizontal, 34)
-                        .padding(.vertical, 26)
-                        .tag(kind.rawValue)
+                    FlipRevealCard(
+                        isAlreadyRevealed: viewModel.flippedKinds.contains(kind.rawValue),
+                        isFlash: kind == .fact && pack.fact.flashcard != nil,
+                        onReveal: { viewModel.markFlipped(kind.rawValue) }
+                    ) {
+                        fullCard(kind: kind)
+                    } back: {
+                        CardBackFace(kind: kind, isForeground: false)
+                    }
+                    .padding(.horizontal, 34)
+                    .padding(.vertical, 26)
+                    .tag(kind.rawValue)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeOut(duration: 0.3), value: viewModel.browsingIndex)
 
-            // 三點分頁指示器
+            // 三點分頁指示器(社群卡當前色 communityLabelBg)
             HStack(spacing: 8) {
                 ForEach(PackCardKind.allCases) { kind in
                     Circle()
-                        .fill(kind.rawValue == viewModel.browsingIndex
-                              ? AppColor.primary : Color.white.opacity(0.25))
+                        .fill(indicatorColor(for: kind))
                         .frame(width: 7, height: 7)
                 }
             }
             .padding(.bottom, 40)
         }
+    }
+
+    private func indicatorColor(for kind: PackCardKind) -> Color {
+        guard kind.rawValue == viewModel.browsingIndex else { return Color.white.opacity(0.25) }
+        return kind == .community ? TrustCardColor.communityLabelBg : AppColor.primary
     }
 
     @ViewBuilder
@@ -367,8 +464,79 @@ struct PackBrowseView: View {
             InferenceCardView(pack: pack,
                               onChip: { viewModel.activeChip = $0 },
                               onGlossary: { viewModel.activeGlossary = $0 })
-        case .companion:
-            CompanionCardView(pack: pack)
+        case .community:
+            CommunityCardView(pack: pack) { viewModel.activeChip = $0 }
+        }
+    }
+}
+
+// MARK: - 翻牌容器:未翻開的卡先播 −90→0 翻入(閃卡在落定瞬間金光爆開)
+
+struct FlipRevealCard<Front: View, Back: View>: View {
+    let isAlreadyRevealed: Bool
+    let isFlash: Bool
+    let onReveal: () -> Void
+    @ViewBuilder let front: () -> Front
+    @ViewBuilder let back: () -> Back
+
+    @State private var revealed: Bool
+    @State private var angle: Double
+    @State private var burstScale: CGFloat = 1.0
+    @State private var burstOpacity: Double = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    init(isAlreadyRevealed: Bool, isFlash: Bool, onReveal: @escaping () -> Void,
+         @ViewBuilder front: @escaping () -> Front, @ViewBuilder back: @escaping () -> Back) {
+        self.isAlreadyRevealed = isAlreadyRevealed
+        self.isFlash = isFlash
+        self.onReveal = onReveal
+        self.front = front
+        self.back = back
+        _revealed = State(initialValue: isAlreadyRevealed)
+        _angle = State(initialValue: isAlreadyRevealed ? 0 : -90)
+    }
+
+    var body: some View {
+        ZStack {
+            // 閃卡翻至正面瞬間:光暈 scale 1→1.6 爆開(0.25s easeOut)
+            if isFlash {
+                Ellipse()
+                    .fill(TrustCardColor.flashAura)
+                    .blur(radius: 12)
+                    .padding(-20)
+                    .scaleEffect(burstScale)
+                    .opacity(burstOpacity)
+                    .allowsHitTesting(false)
+            }
+
+            if revealed {
+                front()
+                    .rotation3DEffect(.degrees(angle), axis: (x: 0, y: 1, z: 0), perspective: 0.5)
+            } else {
+                back()
+            }
+        }
+        .onAppear {
+            guard !revealed else { return }
+            if reduceMotion {
+                revealed = true
+                angle = 0
+                onReveal()
+                return
+            }
+            // 進場即翻:卡背停半拍 → 翻入正面
+            revealed = true
+            angle = -90
+            withAnimation(.easeOut(duration: 0.25).delay(0.05)) { angle = 0 }
+            if isFlash {
+                burstOpacity = 0.9
+                burstScale = 1.0
+                withAnimation(.easeOut(duration: 0.25).delay(0.2)) {
+                    burstScale = 1.6
+                    burstOpacity = 0
+                }
+            }
+            onReveal()
         }
     }
 }

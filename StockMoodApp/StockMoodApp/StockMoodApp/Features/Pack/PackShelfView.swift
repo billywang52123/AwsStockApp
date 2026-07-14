@@ -190,7 +190,7 @@ struct PackShelfView: View {
     }
 }
 
-// MARK: - 卡包架單卡(產業色系封面;新洞察發光)
+// MARK: - 卡包架單卡(產業色系深寶石漸層封面 + 金 trim;新洞察發光)
 
 struct ShelfPackCard: View {
     let pack: ShelfPack
@@ -199,13 +199,29 @@ struct ShelfPackCard: View {
 
     private var industryColor: Color { IndustryStyle.style(for: pack.industry).color }
 
+    /// 產業 → 深寶石漸層(半導體深靛藍 / 航運深祖母綠 / 電子深海軍藍…)
+    private var gemGradient: [Color] {
+        if pack.industry.contains("半導體") {
+            return [Color(hex: "2E3272"), Color(hex: "1D2050"), Color(hex: "111334")]
+        }
+        if pack.industry.contains("航運") {
+            return TrustCardColor.cardBackCommunity
+        }
+        if pack.industry.contains("ETF") || pack.industry.contains("指數")
+            || pack.industry.contains("金融") {
+            return [Color(hex: "1E3A31"), Color(hex: "12281F"), Color(hex: "0A1913")]
+        }
+        // 電子/IC/其他:深海軍藍
+        return [Color(hex: "1C2440"), Color(hex: "121830"), Color(hex: "0A0F20")]
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            // 頂部虛線分隔區(結構同 15a 封面)
+            // 頂部金撕條(結構同 15a TCG 封面)
             VStack {
                 Spacer()
                 DashedLine()
-                    .stroke(Color.white.opacity(0.55),
+                    .stroke(TrustCardColor.packTearStrip.opacity(0.85),
                             style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
                     .frame(height: 1.5)
             }
@@ -217,10 +233,12 @@ struct ShelfPackCard: View {
                 Text(pack.industry)
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .kerning(1.5)
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(TrustCardColor.packTearStrip.opacity(0.9))
+                // 股名:同色系發光 text-shadow
                 Text(pack.name)
                     .font(.system(size: 26, weight: .heavy, design: .serif))
-                    .foregroundColor(.white)
+                    .foregroundColor(TrustCardColor.packTitleInk)
+                    .shadow(color: industryColor.opacity(0.85), radius: 9)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 Text(pack.subtitle)
@@ -234,15 +252,23 @@ struct ShelfPackCard: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
-            LinearGradient(
-                colors: [industryColor.opacity(0.95), industryColor,
-                         industryColor.opacity(0.75)],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
+            LinearGradient(colors: gemGradient,
+                           startPoint: .topLeading, endPoint: .bottomTrailing)
         )
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        // 1.5px 金 inset trim + 內縮金細線框
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(TrustCardColor.packTrim.opacity(0.5), lineWidth: 0.8)
+                .padding(7)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .strokeBorder(TrustCardColor.packTrim, lineWidth: 1.5)
+        )
         .overlay(alignment: .topTrailing) {
             if pack.hasNewInsight {
+                // 「● 新洞察」金橘漸層 pill(發光 box-shadow)
                 HStack(spacing: 4) {
                     Circle().fill(Color.white).frame(width: 5, height: 5)
                     Text("新洞察")
@@ -251,15 +277,19 @@ struct ShelfPackCard: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, 9)
                 .padding(.vertical, 5)
-                .background(AppColor.amberBadge)
+                .background(
+                    LinearGradient(colors: TrustCardColor.flashcardTag,
+                                   startPoint: .leading, endPoint: .trailing)
+                )
                 .clipShape(Capsule())
+                .shadow(color: TrustCardColor.flashAura, radius: 7)
                 .padding(10)
             }
         }
         // 新洞察:newGlow 呼吸光暈(2.8s 循環,兩層陰影)
         .shadow(color: pack.hasNewInsight
                 ? AppColor.amberBadge.opacity(glowing ? 0.55 : 0.25)
-                : industryColor.opacity(0.30),
+                : Color.black.opacity(0.30),
                 radius: pack.hasNewInsight && glowing ? 26 : 16, x: 0, y: 14)
         .shadow(color: pack.hasNewInsight
                 ? AppColor.amberBadge.opacity(glowing ? 0.30 : 0.10) : .clear,
@@ -305,7 +335,7 @@ struct CollectionMiniCard: View {
         switch card.kind {
         case "flash": return "✦"
         case "inference": return "🧠"
-        case "companion": return "💛"
+        case "community", "companion": return "💬"
         default: return "📊"
         }
     }
@@ -314,7 +344,7 @@ struct CollectionMiniCard: View {
         switch card.kind {
         case "flash": return "閃卡"
         case "inference": return "推論"
-        case "companion": return "陪伴"
+        case "community", "companion": return "社群"
         default: return "事實"
         }
     }
@@ -324,8 +354,8 @@ struct CollectionMiniCard: View {
         case "inference":
             return AnyShapeStyle(LinearGradient(colors: TrustCardColor.inferenceBg,
                                                 startPoint: .top, endPoint: .bottom))
-        case "companion":
-            return AnyShapeStyle(LinearGradient(colors: TrustCardColor.companionBg,
+        case "community", "companion":
+            return AnyShapeStyle(LinearGradient(colors: TrustCardColor.communityBg,
                                                 startPoint: .top, endPoint: .bottom))
         default:
             return AnyShapeStyle(TrustCardColor.factBg)
@@ -335,7 +365,7 @@ struct CollectionMiniCard: View {
     private var border: Color {
         switch card.kind {
         case "inference": return TrustCardColor.inferenceBorder
-        case "companion": return TrustCardColor.companionBorder
+        case "community", "companion": return TrustCardColor.communityBorder
         default: return TrustCardColor.factBorder
         }
     }
@@ -343,7 +373,7 @@ struct CollectionMiniCard: View {
     private var fg: Color {
         switch card.kind {
         case "inference": return TrustCardColor.inferenceText
-        case "companion": return TrustCardColor.companionText
+        case "community", "companion": return TrustCardColor.communityText
         default: return TrustCardColor.factLabelText
         }
     }

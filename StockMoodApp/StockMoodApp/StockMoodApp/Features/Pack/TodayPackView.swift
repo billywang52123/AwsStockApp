@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - 每日抽卡包主頁(spec 06 · 15a 入口 → 15b–15e 開包 → 15f/g/h 瀏覽)
-// 取代御神籤:AI 每天把整體庫存整理成一包三張卡(事實 → 推論 → 陪伴,順序不可亂)
+// 取代御神籤:AI 每天把整體庫存整理成一包三張卡(事實 → 推論 → 社群,順序不可亂)
 
 struct TodayPackView: View {
     @StateObject private var viewModel = DailyPackViewModel()
@@ -20,7 +20,7 @@ struct TodayPackView: View {
                 case .entry:
                     PackEntryView(viewModel: viewModel, reduceMotion: reduceMotion)
                         .transition(.opacity)
-                case .opening, .hand, .browsing:
+                case .opening, .stack, .browsing:
                     PackOpeningStage(viewModel: viewModel)
                         .transition(.opacity)
                 }
@@ -44,7 +44,7 @@ struct TodayPackView: View {
         case .loading: return 0
         case .entry: return 1
         case .opening(let kf): return 10 + kf
-        case .hand: return 20
+        case .stack: return 20
         case .browsing: return 30
         }
     }
@@ -165,20 +165,22 @@ struct PackEntryView: View {
 }
 
 // MARK: - 卡包封面 `PackCoverCard`(212×292,15a 與 KF1 共用)
+// TCG 質感,與卡背同語彙:深靛藍寶石漸層 + 金箔雙層框 + 金撕條 + 光芒層 + 徽記暈
 
 struct PackCoverCard: View {
     let pack: DailyPack
-    /// KF1 撕開態:虛線區光帶橫掃 + 放射光線
+    /// KF1 撕開態:撕條光帶橫掃 + 放射光線
     let tearing: Bool
 
     @State private var sweeping = false
+    @State private var emblemPulsing = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: 0) {
-            // 頂部「— 由此撕開 —」虛線分隔區(44 高)
+            // 頂部「— 由此撕開 —」撕條(44 高,金箔漸層底 + dashed 金)
             ZStack {
-                LinearGradient(colors: [.white.opacity(0.10), .clear],
+                LinearGradient(colors: [TrustCardColor.packTearStrip.opacity(0.22), .clear],
                                startPoint: .top, endPoint: .bottom)
                 VStack {
                     Spacer()
@@ -189,16 +191,16 @@ struct PackCoverCard: View {
                         Text("—")
                     }
                     .font(.system(size: 10, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white.opacity(0.75))
+                    .foregroundColor(TrustCardColor.packTearStrip)
                     Spacer()
                     DashedLine()
-                        .stroke(Color.white.opacity(0.6),
+                        .stroke(TrustCardColor.packTearStrip,
                                 style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
                         .frame(height: 1.5)
                 }
                 .padding(.top, 6)
 
-                // KF1:一條全息光帶沿虛線橫掃(glowPulse)
+                // KF1:一條全息光帶沿撕條橫掃(glowPulse)
                 if tearing && !reduceMotion {
                     LinearGradient(colors: [.clear, .white.opacity(0.9), .clear],
                                    startPoint: .leading, endPoint: .trailing)
@@ -218,14 +220,43 @@ struct PackCoverCard: View {
             VStack(spacing: 10) {
                 Text("庫存分析 · 內含 3 張卡")
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .kerning(1.5)
-                    .foregroundColor(.white.opacity(0.8))
-                Text("我的庫存")
-                    .font(.system(size: 32, weight: .heavy, design: .serif))
-                    .foregroundColor(.white)
+                    .kerning(3)
+                    .foregroundColor(TrustCardColor.packTearStrip.opacity(0.9))
+                    .padding(.leading, 3)   // 抵銷 kerning 尾端空隙
+
+                // 「我的庫存」:米金大字 + 後方 110pt 紫光徽記暈 + 45° 菱形線框
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(colors: [Color(hex: "8B8FE0").opacity(0.45), .clear],
+                                           center: .center, startRadius: 8, endRadius: 55)
+                        )
+                        .frame(width: 110, height: 110)
+                        .scaleEffect(emblemPulsing && !reduceMotion ? 1.12 : 1.0)
+                        .opacity(emblemPulsing || reduceMotion ? 0.95 : 0.6)
+                    Rectangle()
+                        .strokeBorder(TrustCardColor.packTrim.opacity(0.5), lineWidth: 0.8)
+                        .frame(width: 92, height: 92)
+                        .rotationEffect(.degrees(45))
+                    Text("我的庫存")
+                        .font(.system(size: 32, weight: .heavy, design: .serif))
+                        .foregroundColor(TrustCardColor.packTitleInk)
+                        .shadow(color: TrustCardColor.packTearStrip.opacity(0.65), radius: 9)
+                }
+                .frame(height: 104)
+
                 Text("\(pack.holdingsCount) 檔 · \(pack.totalValueText)")
                     .font(.system(size: 14, weight: .semibold, design: .monospaced))
                     .foregroundColor(.white.opacity(0.9))
+
+                // 金框 pill「今日 +1.1%」
+                Text(String(format: "今日 %+.1f%%", pack.fact.totalChangePercent))
+                    .font(.system(size: 11.5, weight: .bold, design: .monospaced))
+                    .foregroundColor(TrustCardColor.packTearStrip)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .overlay(Capsule().strokeBorder(TrustCardColor.packTrim, lineWidth: 1))
+                    .padding(.top, 2)
             }
 
             Spacer()
@@ -233,15 +264,39 @@ struct PackCoverCard: View {
         }
         .frame(width: 212, height: 292)
         .background(
-            LinearGradient(colors: TrustCardColor.packGradient,
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
+            ZStack {
+                LinearGradient(colors: TrustCardColor.packGradient,
+                               startPoint: .topLeading, endPoint: .bottomTrailing)
+                // 旋轉光芒層(rayRotate conic 金/靛微光 16s linear)
+                if !reduceMotion {
+                    CardBackRayLayer(tint: Color(hex: "8B8FE0"), duration: 16)
+                }
+            }
         )
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        // 內縮 7pt 金細線框 + 底部兩枚 22pt L 形金角飾
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(TrustCardColor.packTrim.opacity(0.6), lineWidth: 0.8)
+                .padding(7)
+        )
+        .overlay(CornerOrnaments(color: TrustCardColor.packTrim, size: 22,
+                                 inset: 12, bottomOnly: true))
+        // 金箔雙層 inset 描邊(外 3.5 暗金 + 內 2 亮金)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .strokeBorder(TrustCardColor.packTrimDark, lineWidth: 3.5)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .strokeBorder(TrustCardColor.packTrim, lineWidth: 2)
+                .padding(1.5)
+        )
         .holoShimmer(widthFraction: 0.46, duration: 4.2, opacity: 0.28)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: TrustCardColor.packGlow, radius: 23, x: 0, y: 22)
         .overlay(alignment: .top) {
-            // KF1:3 條放射光線由虛線區斜向射出
+            // KF1:3 條放射光線由撕條斜向射出
             if tearing && !reduceMotion {
                 ZStack {
                     ForEach(0..<3, id: \.self) { index in
@@ -254,6 +309,12 @@ struct PackCoverCard: View {
                     }
                 }
                 .allowsHitTesting(false)
+            }
+        }
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.easeInOut(duration: 2.6).repeatForever(autoreverses: true)) {
+                emblemPulsing = true
             }
         }
     }
