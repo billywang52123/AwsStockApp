@@ -197,12 +197,12 @@ final class AuthService: ObservableObject {
     /// Sign in via the Cognito Hosted UI. The obtained access token replaces the
     /// legacy self-issued session JWT — APIClient sends it as Bearer unchanged,
     /// and the backend resolves the user as "cognito-<sub>".
-    func signInWithCognito(onSuccess: @escaping () -> Void) {
+    func signInWithCognito(identityProvider: String? = nil, onSuccess: @escaping () -> Void) {
         isAuthenticating = true
         authError = nil
         Task {
             do {
-                let session = try await CognitoAuthService.shared.signIn()
+                let session = try await CognitoAuthService.shared.signIn(identityProvider: identityProvider)
                 AppPreferenceStore.shared.signIn(userId: session.userId)
                 PushDeviceService.shared.registerForRemoteNotificationsIfPermitted()
                 PushDeviceService.shared.applyPendingRegistration()

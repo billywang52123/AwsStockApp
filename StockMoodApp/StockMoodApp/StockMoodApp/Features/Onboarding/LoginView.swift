@@ -100,21 +100,28 @@ struct LoginView: View {
                             .progressViewStyle(CircularProgressViewStyle(tint: AppColor.primary))
                             .font(.system(.caption, design: .rounded))
                     } else {
-                        // ── Apple Sign-In (native ASAuthorizationController, token posted to backend) ──
-                        SignInWithAppleButton(.signIn) { request in
-                            request.requestedScopes = [.fullName, .email]
-                        } onCompletion: { result in
-                            authService.handleAppleCompletion(result, onSuccess: onLoginSuccess)
-                        }
-                        .signInWithAppleButtonStyle(.black)
-                        .frame(height: 52)
-                        .cornerRadius(14)
-                        .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
-                        
-                        // ── Google Sign-In (OAuth 2.0 PKCE via ASWebAuthenticationSession — no SDK required) ──
+                        // ── Apple Sign-In (Cognito federated IdP via Hosted UI) ──
                         Button(action: {
                             HapticManager.shared.triggerImpact(style: .medium)
-                            authService.signInWithGoogle(onSuccess: onLoginSuccess)
+                            authService.signInWithCognito(identityProvider: "SignInWithApple", onSuccess: onLoginSuccess)
+                        }) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "apple.logo").font(.title3)
+                                Text("使用 Apple 帳號登入").fontWeight(.bold)
+                            }
+                            .font(.system(.body, design: .rounded))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color.black)
+                            .cornerRadius(14)
+                            .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
+                        }
+
+                        // ── Google Sign-In (Cognito federated IdP via Hosted UI) ──
+                        Button(action: {
+                            HapticManager.shared.triggerImpact(style: .medium)
+                            authService.signInWithCognito(identityProvider: "Google", onSuccess: onLoginSuccess)
                         }) {
                             HStack(spacing: 10) {
                                 Image(systemName: "g.circle.fill").font(.title3)

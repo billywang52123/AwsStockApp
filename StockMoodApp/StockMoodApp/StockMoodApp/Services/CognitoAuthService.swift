@@ -49,8 +49,11 @@ final class CognitoAuthService: NSObject {
 
     // MARK: - Hosted UI sign-in (authorization code + PKCE)
 
+    /// - Parameter identityProvider: pass "Google" / "SignInWithApple" to skip
+    ///   the Hosted UI chooser and go straight to that federated IdP; nil shows
+    ///   the pool's own email/password form.
     @MainActor
-    func signIn() async throws -> Session {
+    func signIn(identityProvider: String? = nil) async throws -> Session {
         let verifier = Self.randomURLSafeString(bytes: 32)
         let challenge = Data(SHA256.hash(data: Data(verifier.utf8))).base64URLEncodedString()
         let state = Self.randomURLSafeString(bytes: 16)
@@ -65,6 +68,9 @@ final class CognitoAuthService: NSObject {
             URLQueryItem(name: "code_challenge_method", value: "S256"),
             URLQueryItem(name: "code_challenge", value: challenge),
         ]
+        if let idp = identityProvider {
+            components.queryItems?.append(URLQueryItem(name: "identity_provider", value: idp))
+        }
 
         let callbackURL = try await presentWebAuth(url: components.url!)
 
