@@ -8,3 +8,6 @@ backend/*.sqlite3
 __pycache__/
 *.pyc
 *.pyo
+
+# Apple Sign-In private key — never commit
+*.p8

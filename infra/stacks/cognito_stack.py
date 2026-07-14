@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from aws_cdk import Stack, CfnOutput, RemovalPolicy, Duration, SecretValue
 from aws_cdk import aws_cognito as cognito
 from constructs import Construct
@@ -46,8 +48,12 @@ class CognitoStack(Stack):
         supported_idps = [cognito.UserPoolClientIdentityProvider.COGNITO]
         idp_dependencies = []
 
-        google_client_id = self.node.try_get_context("google_client_id")
-        google_client_secret = self.node.try_get_context("google_client_secret")
+        # 黑客松:憑證直接寫死當預設,context 有給仍可覆寫。
+        # (client secret 進了 git history;賽後要換掉或刪掉這個 OAuth client)
+        google_client_id = (self.node.try_get_context("google_client_id")
+                            or "155358777599-kide00o4ucthin7bqfvb0ngej2h7lkp5.apps.googleusercontent.com")
+        google_client_secret = (self.node.try_get_context("google_client_secret")
+                                or "***REMOVED***")
         if google_client_id and google_client_secret:
             google_idp = cognito.UserPoolIdentityProviderGoogle(
                 self,
@@ -64,12 +70,18 @@ class CognitoStack(Stack):
             supported_idps.append(cognito.UserPoolClientIdentityProvider.GOOGLE)
             idp_dependencies.append(google_idp)
 
-        apple_client_id = self.node.try_get_context("apple_client_id")       # Services ID
-        apple_team_id = self.node.try_get_context("apple_team_id")
-        apple_key_id = self.node.try_get_context("apple_key_id")
-        # 私鑰可直接給內容(apple_private_key),或給 .p8 檔路徑(apple_private_key_path)。
+        apple_client_id = (self.node.try_get_context("apple_client_id")      # Services ID
+                           or "com.Wbilly.StockMoodApp")
+        apple_team_id = self.node.try_get_context("apple_team_id") or "8D8DJA42A"
+        apple_key_id = self.node.try_get_context("apple_key_id") or "NDLY6ZTD82"
+        # 私鑰可直接給內容(apple_private_key),或給 .p8 檔路徑(apple_private_key_path);
+        # 都沒給就找 infra/AuthKey_<KeyID>.p8(不進版控),檔案在才建 Apple IdP。
         apple_private_key = self.node.try_get_context("apple_private_key")    # .p8 內容
         apple_private_key_path = self.node.try_get_context("apple_private_key_path")
+        if not apple_private_key and not apple_private_key_path:
+            default_p8 = Path(__file__).resolve().parents[1] / f"AuthKey_{apple_key_id}.p8"
+            if default_p8.is_file():
+                apple_private_key_path = str(default_p8)
         if not apple_private_key and apple_private_key_path:
             with open(apple_private_key_path, "r", encoding="utf-8") as f:
                 apple_private_key = f.read()
