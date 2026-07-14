@@ -7,6 +7,7 @@ struct HoloShimmer: ViewModifier {
     var widthFraction: CGFloat = 0.38
     var duration: Double = 3.6
     var opacity: Double = 0.35
+    var cornerRadius: CGFloat = 26
     @State private var moving = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -22,11 +23,15 @@ struct HoloShimmer: ViewModifier {
                     .rotationEffect(.degrees(18))
                     .offset(x: moving ? geo.size.width * 1.25 : -geo.size.width * 0.65,
                             y: -geo.size.height * 0.3)
+                    .blendMode(.screen)
                     .animation(.easeInOut(duration: duration).repeatForever(autoreverses: false),
                                value: moving)
                     .onAppear { moving = true }
                 }
             }
+            // GeometryReader 本身不會裁切超出邊界的子 View。若不加 mask，
+            // 斜向光帶會在卡片外形成整根「光柱」，切換卡片時尤其明顯。
+            .mask(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             .allowsHitTesting(false)
         )
     }
@@ -34,8 +39,9 @@ struct HoloShimmer: ViewModifier {
 
 extension View {
     func holoShimmer(widthFraction: CGFloat = 0.38, duration: Double = 3.6,
-                     opacity: Double = 0.35) -> some View {
-        modifier(HoloShimmer(widthFraction: widthFraction, duration: duration, opacity: opacity))
+                     opacity: Double = 0.35, cornerRadius: CGFloat = 26) -> some View {
+        modifier(HoloShimmer(widthFraction: widthFraction, duration: duration,
+                             opacity: opacity, cornerRadius: cornerRadius))
     }
 }
 
@@ -209,9 +215,11 @@ struct FactCardView: View {
 /// 閃卡才疊掃光(38% 寬 3.6s 循環)
 private struct ConditionalShimmer: ViewModifier {
     let enabled: Bool
+    var cornerRadius: CGFloat = 26
     func body(content: Content) -> some View {
         if enabled {
-            content.holoShimmer(widthFraction: 0.38, duration: 3.6)
+            content.holoShimmer(widthFraction: 0.38, duration: 3.6,
+                                cornerRadius: cornerRadius)
         } else {
             content
         }
@@ -772,7 +780,7 @@ struct CardBackFace: View {
                 .strokeBorder(TrustCardColor.packTrim, lineWidth: 2)
                 .padding(1.5)
         )
-        .modifier(ConditionalShimmer(enabled: isForeground && !reduceMotion))
+        .modifier(ConditionalShimmer(enabled: isForeground && !reduceMotion, cornerRadius: 18))
         // 閃卡預告:外緣金色光暈爆發(flashBurst 2.2s 呼吸)
         .background {
             if showsFlashHint {

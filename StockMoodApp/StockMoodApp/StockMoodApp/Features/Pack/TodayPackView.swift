@@ -28,6 +28,12 @@ struct TodayPackView: View {
             .animation(.easeInOut(duration: 0.35), value: phaseKey)
             .navigationBarHidden(true)
             .task { await viewModel.loadToday() }
+            .onDisappear {
+                viewModel.prepareForNextVisit()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .simDateDidChange)) { _ in
+                Task { await viewModel.reloadAfterSimDateChange() }
+            }
             // 15i 出處 chip bottom sheet(任一出處 chip 點擊觸發)
             .sheet(item: $viewModel.activeChip) { chip in
                 SourceChipSheet(chip: chip) { viewModel.activeChip = nil }
@@ -292,7 +298,7 @@ struct PackCoverCard: View {
                 .strokeBorder(TrustCardColor.packTrim, lineWidth: 2)
                 .padding(1.5)
         )
-        .holoShimmer(widthFraction: 0.46, duration: 4.2, opacity: 0.28)
+        .holoShimmer(widthFraction: 0.46, duration: 4.2, opacity: 0.28, cornerRadius: 20)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .shadow(color: TrustCardColor.packGlow, radius: 23, x: 0, y: 22)
         .overlay(alignment: .top) {

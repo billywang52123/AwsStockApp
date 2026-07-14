@@ -192,7 +192,7 @@ final class AuthService: ObservableObject {
         onSuccess()
     }
 
-    // MARK: - Cognito (Hosted UI email / password)
+    // MARK: - Cognito (Hosted UI / Federated IdP)
 
     /// Sign in via the Cognito Hosted UI. The obtained access token replaces the
     /// legacy self-issued session JWT — APIClient sends it as Bearer unchanged,
@@ -218,6 +218,14 @@ final class AuthService: ObservableObject {
                 isAuthenticating = false
             }
         }
+    }
+
+    func signInWithGoogleViaCognito(onSuccess: @escaping () -> Void) {
+        signInWithCognito(identityProvider: "Google", onSuccess: onSuccess)
+    }
+
+    func signInWithAppleViaCognito(onSuccess: @escaping () -> Void) {
+        signInWithCognito(identityProvider: "SignInWithApple", onSuccess: onSuccess)
     }
 
     // MARK: - Guest session

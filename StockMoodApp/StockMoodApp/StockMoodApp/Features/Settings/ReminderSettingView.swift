@@ -126,6 +126,21 @@ struct ReminderSettingView: View {
                             }
                     }
 
+                    Section(
+                        header: Text("資料日期").font(.system(.footnote, design: .rounded)),
+                        footer: Text("檢視後端目前採用的交易資料日，或暫時切換全 App 的模擬日期。")
+                            .font(.system(.caption2, design: .rounded))
+                    ) {
+                        NavigationLink(destination: SimDateSettingView()) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "calendar.badge.clock")
+                                    .foregroundColor(AppColor.amberStrong)
+                                Text("模擬日期設定")
+                                    .foregroundColor(AppColor.textPrimary)
+                            }
+                        }
+                    }
+
                     Section(header: Text("推播提醒設定").font(.system(.footnote, design: .rounded))) {
                         Toggle("啟用每日提醒", isOn: Binding(
                             get: { viewModel.enabled },

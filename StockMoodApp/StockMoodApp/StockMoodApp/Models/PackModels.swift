@@ -164,13 +164,14 @@ enum PackCardKind: Int, CaseIterable, Identifiable {
 // MARK: - 15j 卡包架
 
 struct ShelfPack: Codable, Hashable, Identifiable {
-    var id: String { symbol }
-    let symbol: String
-    let name: String
-    let industry: String
-    let subtitle: String
+    var id: String { tradeDate }
+    let tradeDate: String
+    let dateText: String
+    let contentTitle: String
+    let contentSummary: String
+    let dataDate: String
     let hasNewInsight: Bool
-    let insightNote: String?
+    let pack: DailyPack
 }
 
 /// 歷史卡片圖鑑小卡;kind: fact / inference / community / flash(舊資料可能為 companion)

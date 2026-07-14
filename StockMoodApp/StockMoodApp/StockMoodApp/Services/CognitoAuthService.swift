@@ -59,7 +59,7 @@ final class CognitoAuthService: NSObject {
         let state = Self.randomURLSafeString(bytes: 16)
 
         var components = URLComponents(string: "\(domain)/oauth2/authorize")!
-        components.queryItems = [
+        var queryItems = [
             URLQueryItem(name: "response_type", value: "code"),
             URLQueryItem(name: "client_id", value: clientId),
             URLQueryItem(name: "redirect_uri", value: redirectURI),

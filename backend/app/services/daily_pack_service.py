@@ -652,33 +652,35 @@ class DailyPackService:
     # ── 15j 卡包架 ───────────────────────────────────────────
 
     def get_shelf(self, user_id: str = "demo-user") -> dict:
-        trade_date = pack_trade_date()
-        self._cmoney_context(trade_date)   # 確保今日已同步(冪等)
-        holdings = sorted(_load_holdings(self.db, user_id),
-                          key=lambda h: h.weight_percent, reverse=True)
-        packs = []
-        for h in holdings:
-            has_new = abs(h.change) >= 2.0
-            packs.append({
-                "symbol": h.symbol,
-                "name": h.name,
-                "industry": h.industry,
-                "subtitle": (f"收盤 {h.close:,.2f} · {h.change:+.2f}%"
-                             if h.close is not None else f"{h.change:+.2f}%"),
-                "has_new_insight": has_new,
-                "insight_note": (f"單日 {h.change:+.2f}%,今天值得打開看看" if has_new else None),
-            })
-
-        # 歷史卡片圖鑑:已存的每日包,每包 3 張;閃卡另計
+        # 卡包架收藏的是「每天抽過的一整包」,不是每檔持股各一包。
+        # 直接使用當時存下的快照,避免回顧歷史日期時混入今天的持股或行情。
         rows = self.db.scalars(
             select(DailyPackModel)
             .where(DailyPackModel.user_id == user_id)
             .order_by(DailyPackModel.trade_date.desc())
         ).all()
+        packs: list = []
         collected = 0
         recent: list = []
         for row in rows:
             payload = json.loads(row.pack_json)
+            # 陪伴卡舊格式無法完整回顧目前的三卡畫面,只保留在圖鑑計數中。
+            if "community_card" in payload:
+                payload["opened"] = bool(row.opened)
+                flashcard = payload.get("fact", {}).get("flashcard")
+                holdings_count = int(payload.get("holdings_count", 0))
+                packs.append({
+                    "trade_date": row.trade_date.isoformat(),
+                    "date_text": payload.get("date_text", _date_text(row.trade_date)),
+                    "content_title": (
+                        flashcard.get("event_text") if flashcard
+                        else f"{holdings_count} 檔庫存 · 3 張分析卡"
+                    ),
+                    "content_summary": payload.get("why_today", {}).get("text", "當日卡包回顧"),
+                    "data_date": payload.get("data_date", row.trade_date.isoformat()),
+                    "has_new_insight": flashcard is not None,
+                    "pack": payload,
+                })
             kinds = ["fact", "inference", "community"]
             if payload.get("fact", {}).get("flashcard"):
                 kinds[0] = "flash"

@@ -1,11 +1,11 @@
 import SwiftUI
 
 // MARK: - 15j · 卡包架收藏頁 `PackShelfView`
-// 每檔持股一包(橫滑聚焦 peek carousel)+ 歷史卡片圖鑑;發光的包有新洞察
+// 每個日期一包(橫滑聚焦 peek carousel)+ 歷史卡片圖鑑;發光的包有閃卡事件
 
 struct PackShelfView: View {
     @State private var shelf: PackShelf?
-    @State private var focusedSymbol: String?
+    @State private var focusedDate: String?
     @State private var hasError = false
 
     private let cardWidth: CGFloat = 216
@@ -22,11 +22,11 @@ struct PackShelfView: View {
                         Text("卡包架")
                             .font(.system(size: 26, weight: .heavy, design: .rounded))
                             .foregroundColor(AppColor.inkPrimary)
-                        Text("\(shelf.packs.count) 檔持股 · 每檔一包")
+                        Text("已收藏 \(shelf.packs.count) 天 · 每日一包")
                             .font(.system(size: 12, design: .rounded))
                             .foregroundColor(AppColor.inkQuaternary)
                             .padding(.top, 4)
-                        Text("隨時可打開任一包,發光的包有新洞察")
+                        Text("依日期回顧當天內容,發光的包含有閃卡事件")
                             .font(.system(size: 12, design: .rounded))
                             .foregroundColor(AppColor.inkTertiary)
                             .padding(.top, 2)
@@ -65,7 +65,7 @@ struct PackShelfView: View {
             do {
                 let result = try await DependencyContainer.shared.packService.getShelf()
                 shelf = result
-                focusedSymbol = result.packs.first?.symbol
+                focusedDate = result.packs.first?.tradeDate
             } catch {
                 hasError = true
                 print("Load pack shelf failed: \(error)")
@@ -83,7 +83,7 @@ struct PackShelfView: View {
                         ForEach(shelf.packs) { pack in
                             ShelfPackCard(pack: pack)
                                 .frame(width: cardWidth, height: cardHeight)
-                                .id(pack.symbol)
+                                .id(pack.tradeDate)
                                 .visualEffect { content, proxy in
                                     let midX = proxy.frame(in: .scrollView).midX
                                     let distance = abs(midX - geo.size.width / 2)
@@ -97,7 +97,7 @@ struct PackShelfView: View {
                     .scrollTargetLayout()
                 }
                 .scrollTargetBehavior(.viewAligned)
-                .scrollPosition(id: $focusedSymbol)
+                .scrollPosition(id: $focusedDate)
                 .safeAreaPadding(.horizontal, max(0, (geo.size.width - cardWidth) / 2))
             }
             .frame(height: cardHeight + 8)
@@ -108,19 +108,19 @@ struct PackShelfView: View {
             HStack(spacing: 6) {
                 ForEach(shelf.packs) { pack in
                     Capsule()
-                        .fill(pack.symbol == focusedSymbol ? AppColor.primary : AppColor.bgTrack)
-                        .frame(width: pack.symbol == focusedSymbol ? 18 : 6, height: 6)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: focusedSymbol)
+                        .fill(pack.tradeDate == focusedDate ? AppColor.primary : AppColor.bgTrack)
+                        .frame(width: pack.tradeDate == focusedDate ? 18 : 6, height: 6)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: focusedDate)
                 }
             }
             .frame(maxWidth: .infinity)
 
-            // CTA「打開 {股名} 的卡包」→ 個股 AI 觀點詳情
-            if let focused = shelf.packs.first(where: { $0.symbol == focusedSymbol }) {
+            // 點開後使用當時存下的完整快照,不混入今日行情。
+            if let focused = shelf.packs.first(where: { $0.tradeDate == focusedDate }) {
                 NavigationLink {
-                    StockInsightDetailView(symbol: focused.symbol, name: focused.name)
+                    ArchivedPackView(pack: focused.pack)
                 } label: {
-                    Text("打開 \(focused.name) 的卡包")
+                    Label("回顧 \(focused.dateText) 卡包", systemImage: "rectangle.stack.fill")
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -135,10 +135,10 @@ struct PackShelfView: View {
 
     private var emptyState: some View {
         VStack(spacing: 10) {
-            Text("還沒有持股,卡包架空空的")
+            Text("卡包架目前還是空的")
                 .font(.system(size: 14, weight: .bold, design: .rounded))
                 .foregroundColor(AppColor.inkSecondary)
-            Text("加入持股後,每檔都會有自己的卡包")
+            Text("完成第一次每日抽卡後,卡包會依日期收藏在這裡")
                 .font(.system(size: 12, design: .rounded))
                 .foregroundColor(AppColor.inkTertiary)
         }
@@ -190,29 +190,17 @@ struct PackShelfView: View {
     }
 }
 
-// MARK: - 卡包架單卡(產業色系深寶石漸層封面 + 金 trim;新洞察發光)
+// MARK: - 卡包架單卡(日期 + 當日內容摘要;閃卡事件發光)
 
 struct ShelfPackCard: View {
     let pack: ShelfPack
     @State private var glowing = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var industryColor: Color { IndustryStyle.style(for: pack.industry).color }
-
-    /// 產業 → 深寶石漸層(半導體深靛藍 / 航運深祖母綠 / 電子深海軍藍…)
     private var gemGradient: [Color] {
-        if pack.industry.contains("半導體") {
-            return [Color(hex: "2E3272"), Color(hex: "1D2050"), Color(hex: "111334")]
-        }
-        if pack.industry.contains("航運") {
-            return TrustCardColor.cardBackCommunity
-        }
-        if pack.industry.contains("ETF") || pack.industry.contains("指數")
-            || pack.industry.contains("金融") {
-            return [Color(hex: "1E3A31"), Color(hex: "12281F"), Color(hex: "0A1913")]
-        }
-        // 電子/IC/其他:深海軍藍
-        return [Color(hex: "1C2440"), Color(hex: "121830"), Color(hex: "0A0F20")]
+        pack.hasNewInsight
+            ? [Color(hex: "352755"), Color(hex: "1D2050"), Color(hex: "111334")]
+            : [Color(hex: "1C2440"), Color(hex: "121830"), Color(hex: "0A0F20")]
     }
 
     var body: some View {
@@ -230,20 +218,27 @@ struct ShelfPackCard: View {
             Spacer()
 
             VStack(spacing: 8) {
-                Text(pack.industry)
+                Text("每日安心卡包")
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .kerning(1.5)
                     .foregroundColor(TrustCardColor.packTearStrip.opacity(0.9))
-                // 股名:同色系發光 text-shadow
-                Text(pack.name)
-                    .font(.system(size: 26, weight: .heavy, design: .serif))
+                Text(pack.dateText)
+                    .font(.system(size: 23, weight: .heavy, design: .serif))
                     .foregroundColor(TrustCardColor.packTitleInk)
-                    .shadow(color: industryColor.opacity(0.85), radius: 9)
+                    .shadow(color: AppColor.primary.opacity(0.8), radius: 9)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-                Text(pack.subtitle)
-                    .font(.system(size: 12.5, weight: .semibold, design: .monospaced))
+                Text(pack.contentTitle)
+                    .font(.system(size: 12.5, weight: .bold, design: .rounded))
                     .foregroundColor(.white.opacity(0.9))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                Text(pack.contentSummary)
+                    .font(.system(size: 10.5, design: .rounded))
+                    .foregroundColor(.white.opacity(0.64))
+                    .lineLimit(3)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(3)
             }
             .padding(.horizontal, 14)
 
@@ -299,6 +294,28 @@ struct ShelfPackCard: View {
                    : .default,
                    value: glowing)
         .onAppear { if pack.hasNewInsight { glowing = true } }
+    }
+}
+
+// MARK: - 歷史卡包回顧(直接瀏覽三張已揭曉卡片)
+
+private struct ArchivedPackView: View {
+    @StateObject private var viewModel: DailyPackViewModel
+
+    init(pack: DailyPack) {
+        _viewModel = StateObject(wrappedValue: DailyPackViewModel(archivedPack: pack))
+    }
+
+    var body: some View {
+        PackOpeningStage(viewModel: viewModel)
+            .navigationTitle(viewModel.pack?.dateText ?? "卡包回顧")
+            .navigationBarTitleDisplayMode(.inline)
+            .sheet(item: $viewModel.activeChip) { chip in
+                SourceChipSheet(chip: chip) { viewModel.activeChip = nil }
+            }
+            .sheet(item: $viewModel.activeGlossary) { term in
+                GlossaryTermSheet(term: term) { viewModel.activeGlossary = nil }
+            }
     }
 }
 

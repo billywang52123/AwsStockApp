@@ -391,6 +391,7 @@ struct PackStackView: View {
 struct PackBrowseView: View {
     let pack: DailyPack
     @ObservedObject var viewModel: DailyPackViewModel
+    @State private var shareKind: PackCardKind?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -438,6 +439,27 @@ struct PackBrowseView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.easeOut(duration: 0.3), value: viewModel.browsingIndex)
 
+            Button {
+                shareKind = PackCardKind(rawValue: viewModel.browsingIndex)
+                HapticManager.shared.triggerImpact(style: .light)
+            } label: {
+                Label("分享這張卡", systemImage: "square.and.arrow.up")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white.opacity(0.92))
+                    .frame(height: 42)
+                    .padding(.horizontal, 18)
+                    .background(TrustCardColor.darkSkipPillBg)
+                    .clipShape(Capsule())
+                    .overlay(Capsule().strokeBorder(TrustCardColor.darkSkipPillBorder, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("製作不含個人金額的分享卡圖片")
+            .sheet(item: $shareKind) { selectedKind in
+                ShareCardSheet(pack: pack, kind: selectedKind)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+            }
+
             // 三點分頁指示器(社群卡當前色 communityLabelBg)
             HStack(spacing: 8) {
                 ForEach(PackCardKind.allCases) { kind in
@@ -446,7 +468,8 @@ struct PackBrowseView: View {
                         .frame(width: 7, height: 7)
                 }
             }
-            .padding(.bottom, 40)
+            .padding(.top, 14)
+            .padding(.bottom, 26)
         }
     }
 

@@ -69,10 +69,6 @@ struct TodayDashboardView: View {
                                 AppButton(title: "查看今天白話原因", icon: "doc.text.magnifyingglass") {
                                     showExplanationDetail = true
                                 }
-                                
-                                AppButton(title: "求今日安心籤", icon: "scroll.fill", backgroundColor: AppColor.secondary, textColor: AppColor.textPrimary) {
-                                    activeTab = 1 // Switch to Fortune Tab
-                                }
                             }
                             
                             DisclaimerView()

@@ -35,7 +35,7 @@ def open_pack(db: Session = Depends(get_db), user_id: str = Depends(get_current_
 
 @router.get("/shelf", response_model=ApiResponse[PackShelfRead])
 def get_pack_shelf(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
-    """卡包架(15j):每檔持股一包 + 歷史卡片圖鑑。"""
+    """卡包架(15j):依日期收藏每日卡包快照 + 歷史卡片圖鑑。"""
     service = DailyPackService(db)
     shelf = service.get_shelf(user_id)
     db.commit()   # CMoney 模擬日同步(冪等)可能寫入 public 表

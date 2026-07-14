@@ -146,12 +146,13 @@ class DailyPackRead(BaseModel):
 class ShelfPack(BaseModel):
     model_config = _NO_NAN
 
-    symbol: str
-    name: str
-    industry: str
-    subtitle: str                # 「收盤 1,105 · +2.35%」
+    trade_date: str              # 卡包唯一日期(ISO 8601)
+    date_text: str               # 「2026/07/14 · 週二」
+    content_title: str           # 「3 檔庫存 · 3 張分析卡」或閃卡事件
+    content_summary: str         # 當日「為什麼值得看」摘要
+    data_date: str               # 卡片實際使用的資料日
     has_new_insight: bool
-    insight_note: Optional[str] = None
+    pack: DailyPackRead           # 點開後可完整回顧當日三張卡
 
 
 class CollectionCard(BaseModel):

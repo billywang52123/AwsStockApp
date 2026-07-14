@@ -238,8 +238,12 @@ def test_shelf(client, db_session, afternoon):
     seed_portfolio(db_session)
     client.get("/api/pack/today")   # 產生一包 → 圖鑑 3 張
     data = client.get("/api/pack/shelf").json()["data"]
-    assert len(data["packs"]) == 3
-    assert data["packs"][0]["symbol"] == "2330"      # 依權重排序
+    assert len(data["packs"]) == 1
+    shelf_pack = data["packs"][0]
+    assert shelf_pack["trade_date"]
+    assert shelf_pack["date_text"] == shelf_pack["pack"]["date_text"]
+    assert shelf_pack["content_summary"] == shelf_pack["pack"]["why_today"]["text"]
+    assert shelf_pack["pack"]["fact"]["stocks"][0]["symbol"] == "2330"
     assert data["collected_count"] == 3
     assert len(data["recent_cards"]) == 3
     assert {c["kind"] for c in data["recent_cards"]} == {"fact", "inference", "community"}

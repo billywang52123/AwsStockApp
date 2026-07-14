@@ -146,4 +146,22 @@ class APIClient {
         let bodyData = try encoder.encode(body)
         return try await request(endpoint, method: method, body: bodyData)
     }
+
+    // MARK: - Admin Simulated Date
+
+    func getSimDate() async throws -> SimDateStatus {
+        try await request("/admin/sim-date", method: "GET")
+    }
+
+    func setSimDate(_ date: String) async throws -> SimDateStatus {
+        try await requestBody(
+            "/admin/sim-date",
+            method: "PUT",
+            body: SimDateUpdateBody(date: date)
+        )
+    }
+
+    func clearSimDate() async throws -> SimDateStatus {
+        try await request("/admin/sim-date", method: "DELETE")
+    }
 }

@@ -15,6 +15,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>將你選擇分享的卡片圖片儲存到照片。</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

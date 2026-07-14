@@ -8,6 +8,8 @@ struct WeeklyCheckupView: View {
     @State private var hasError = false
     @State private var activeChip: SourceChip?
     @State private var barGrown = false
+    @State private var specialPackOpened = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -28,11 +30,21 @@ struct WeeklyCheckupView: View {
                         specialPackBanner(checkup: checkup)
                             .padding(.top, 18)
 
-                        honestyCard(checkup: checkup)
-                            .padding(.top, 16)
+                        if specialPackOpened {
+                            honestyCard(checkup: checkup)
+                                .padding(.top, 16)
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .top).combined(with: .opacity),
+                                    removal: .opacity
+                                ))
 
-                        checkupTiles(checkup: checkup)
-                            .padding(.top, 16)
+                            checkupTiles(checkup: checkup)
+                                .padding(.top, 16)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        } else {
+                            unopenedHint
+                                .padding(.top, 14)
+                        }
 
                         // footer 置於內容流末端(此頁可捲動,不可釘底)
                         DisclaimerBlock(text: "本內容為現況描述與風險提示,非投資建議")
@@ -63,8 +75,6 @@ struct WeeklyCheckupView: View {
         .task {
             do {
                 checkup = try await DependencyContainer.shared.packService.getWeeklyCheckup()
-                // 誠實度分段進度條:首次出現由左至右長出 0.6s
-                withAnimation(.easeOut(duration: 0.6).delay(0.25)) { barGrown = true }
             } catch {
                 hasError = true
                 print("Load weekly checkup failed: \(error)")
@@ -75,46 +85,79 @@ struct WeeklyCheckupView: View {
     // ── 本週特別卡包 banner(135° 漸層 + 全息掃光) ──
 
     private func specialPackBanner(checkup: WeeklyCheckup) -> some View {
-        HStack(spacing: 14) {
-            // 禮物圖示格(dashed 邊)
-            Text("🎁")
-                .font(.system(size: 26))
-                .frame(width: 52, height: 70)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.6),
-                                      style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
-                )
-
-            VStack(alignment: .leading, spacing: 5) {
-                Text("本週特別卡包已送達")
-                    .font(.system(size: 14.5, weight: .bold, design: .rounded))
+        Button(action: openSpecialPack) {
+            HStack(spacing: 14) {
+                // 禮物圖示格(dashed 邊)
+                Image(systemName: specialPackOpened ? "checkmark.seal.fill" : "giftbox.fill")
+                    .font(.system(size: 25, weight: .semibold))
                     .foregroundColor(.white)
-                Text(checkup.specialPackNote)
-                    .font(.system(size: 11.5, design: .rounded))
-                    .foregroundColor(.white.opacity(0.85))
-                    .lineSpacing(4)
+                    .frame(width: 52, height: 70)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.6),
+                                          style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
+                    )
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(specialPackOpened ? "本週特別卡包已拆開" : "本週特別卡包已送達")
+                        .font(.system(size: 14.5, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    Text(checkup.specialPackNote)
+                        .font(.system(size: 11.5, design: .rounded))
+                        .foregroundColor(.white.opacity(0.85))
+                        .lineSpacing(4)
+                }
+
+                Spacer()
+
+                Text(specialPackOpened ? "已拆開" : "拆開")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(AppColor.gradientCardBottom)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background(Color.white)
+                    .clipShape(Capsule())
             }
-
-            Spacer()
-
-            Text("拆開")
-                .font(.system(size: 13, weight: .bold, design: .rounded))
-                .foregroundColor(AppColor.gradientCardBottom)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(Color.white)
-                .clipShape(Capsule())
+            .padding(16)
+            .contentShape(Rectangle())
         }
-        .padding(16)
+        .buttonStyle(PressScaleButtonStyle())
+        .accessibilityLabel(specialPackOpened ? "本週特別卡包已拆開" : "拆開本週特別卡包")
+        .accessibilityHint(specialPackOpened ? "本週體檢內容已顯示在下方" : "顯示本週 AI 對帳與組合體檢")
         .background(
             LinearGradient(colors: [AppColor.gradientCardTop, AppColor.gradientCardBottom],
                            startPoint: .topLeading, endPoint: .bottomTrailing)
         )
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .holoShimmer(widthFraction: 0.4, duration: 4.5, opacity: 0.25)
+        .holoShimmer(widthFraction: 0.4, duration: 4.5, opacity: 0.25, cornerRadius: 18)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: AppColor.gradientCardBottom.opacity(0.35), radius: 16, x: 0, y: 10)
+    }
+
+    private var unopenedHint: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "hand.tap.fill")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(AppColor.primary)
+            Text("點擊上方「拆開」,查看本週 AI 對帳與組合體檢")
+                .font(.system(size: 12, design: .rounded))
+                .foregroundColor(AppColor.inkTertiary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .background(AppColor.bgInset)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private func openSpecialPack() {
+        guard !specialPackOpened else { return }
+        HapticManager.shared.triggerImpact(style: .medium)
+        withAnimation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.82)) {
+            specialPackOpened = true
+        }
+        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.6).delay(0.25)) {
+            barGrown = true
+        }
     }
 
     // ── AI 本週誠實度卡 `HonestyScoreCard` ──

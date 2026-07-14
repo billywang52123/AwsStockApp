@@ -36,17 +36,53 @@ class DailyPackViewModel: ObservableObject {
         self.container = container ?? .shared
     }
 
+    /// 卡包架回顧模式:使用當日已存快照,不重新請求或改寫後端開封狀態。
+    init(archivedPack: DailyPack, container: DependencyContainer? = nil) {
+        self.container = container ?? .shared
+        self.pack = archivedPack
+        self.phase = .browsing(index: PackCardKind.fact.rawValue)
+        self.flippedKinds = Set(PackCardKind.allCases.map(\.rawValue))
+    }
+
     /// 開頁:載入今日卡包(後端第一次請求時產生,全天同一包)
     func loadToday() async {
         guard phase == .loading else { return }
         do {
-            pack = try await container.packService.getTodayPack(force: false)
+            let shouldForce = AppPreferenceStore.shared.shouldRegeneratePackAfterSimDateChange
+            pack = try await container.packService.getTodayPack(force: shouldForce)
+            if shouldForce {
+                AppPreferenceStore.shared.shouldRegeneratePackAfterSimDateChange = false
+            }
             phase = .entry
         } catch {
             hasError = true
             errorMessage = error.localizedDescription
             phase = .entry
             print("Load today pack failed: \(error)")
+        }
+    }
+
+    /// 模擬日期切換後強制重生該日期的卡包，讓使用者從未開封入口重新抽卡。
+    func reloadAfterSimDateChange() async {
+        autoAdvanceTask?.cancel()
+        phase = .loading
+        pack = nil
+        stackFront = 0
+        flippedKinds = []
+        activeChip = nil
+        activeGlossary = nil
+        hasError = false
+        errorMessage = ""
+
+        do {
+            pack = try await container.packService.getTodayPack(force: true)
+            AppPreferenceStore.shared.shouldRegeneratePackAfterSimDateChange = false
+            phase = .entry
+        } catch {
+            hasError = true
+            errorMessage = error.localizedDescription
+            phase = .entry
+            print("Reload pack after simulated date change failed: \(error)")
         }
     }
 
@@ -174,5 +210,17 @@ class DailyPackViewModel: ObservableObject {
     func backToEntry() {
         autoAdvanceTask?.cancel()
         withAnimation(.easeInOut(duration: 0.3)) { phase = .entry }
+    }
+
+    /// 離開抽卡分頁時收起暫存互動；保留已載入卡包及 opened 狀態，
+    /// 下次回來直接顯示「今日卡包」入口與「再看今日卡包」。
+    func prepareForNextVisit() {
+        autoAdvanceTask?.cancel()
+        activeChip = nil
+        activeGlossary = nil
+        stackFront = 0
+        flippedKinds = []
+        guard pack != nil else { return }
+        phase = .entry
     }
 }

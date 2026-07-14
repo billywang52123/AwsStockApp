@@ -93,11 +93,18 @@ class AppPreferenceStore {
     // MARK: - 每日抽卡包(spec 06,per-user)
 
     private let skipPackAnimationKey = "com.stockmoodapp.alwaysSkipPackAnimation"
+    private let regeneratePackAfterSimDateKey = "com.stockmoodapp.regeneratePackAfterSimDate"
 
     /// 「總是跳過開包動畫」:開啟後點「開啟今日卡包」直達 15e 完成態
     var alwaysSkipPackAnimation: Bool {
         get { UserDefaults.standard.bool(forKey: userScopedKey(skipPackAnimationKey)) }
         set { UserDefaults.standard.set(newValue, forKey: userScopedKey(skipPackAnimationKey)) }
+    }
+
+    /// 日期切換事件若發生在抽卡分頁尚未建立時，保留一次 force 重生需求。
+    var shouldRegeneratePackAfterSimDateChange: Bool {
+        get { UserDefaults.standard.bool(forKey: userScopedKey(regeneratePackAfterSimDateKey)) }
+        set { UserDefaults.standard.set(newValue, forKey: userScopedKey(regeneratePackAfterSimDateKey)) }
     }
 
     // MARK: - 抽籤通知(日間/夜間收盤,per-user)
