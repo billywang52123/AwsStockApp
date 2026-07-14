@@ -8,6 +8,9 @@ from typing import List, Optional
 
 from app.repositories.repositories import PortfolioRepository, StockRepository
 from app.services.services import AnxietyScoreService, get_live_market_change, is_finite_number
+from app.services.cmoney_service import (
+    CMoneyDataService, DATA_SOURCE, effective_trade_date, simulated_target,
+)
 
 # 視為「科技類」的產業關鍵字(曝險集中提醒用)
 TECH_INDUSTRY_KEYWORDS = ("半導體", "IC", "電子", "光電", "通信", "電腦", "科技")
@@ -49,6 +52,7 @@ class _Holding:
         self.cost = float(item.cost_price) if is_finite_number(item.cost_price) else None
         self.close = float(price.close_price) if price and is_finite_number(price.close_price) else None
         self.change = float(price.change_percent) if price and is_finite_number(price.change_percent) else 0.0
+        self.price_date = price.trade_date if price else None
 
         effective_price = self.close if self.close is not None else (self.cost or 0.0)
         self.market_value = effective_price * (self.shares or 0)
@@ -344,11 +348,17 @@ class StockInsightService:
         outlook, score = self._outlook(h)
         market_change = get_live_market_change(self.db)
         signals = self._signals(h, market_change)
+        data_source, data_date = self._signal_data_context(h)
         signals[-1] = {
             "source": "觀察中 · 未持有",
             "direction": "neutral",
             "direction_label": "→ 中性觀望",
             "text": "這檔還在觀察清單,不計入市值與損益;可以先留意量能與產業消息,節奏由你決定。",
+            "explanation": "觀察清單只保存你想追蹤的標的,不代表你已持有,因此不會計算個人成本、部位或未實現損益。",
+            "calculation": "未持有 → 個人持倉與損益不納入計算",
+            "rule": "觀察股的個人持倉訊號固定標為中性;價格與大盤方向仍由另外兩張訊號卡判定。",
+            "data_source": f"你的觀察清單 + {data_source}",
+            "data_date": data_date,
         }
 
         return {
@@ -427,6 +437,7 @@ class StockInsightService:
         }
 
         signals = []
+        data_source, data_date = self._signal_data_context(h)
 
         # 訊號 1:今日價格
         short = self._short_term(h)
@@ -442,6 +453,11 @@ class StockInsightService:
             "direction": short,
             "direction_label": label,
             "text": text,
+            "explanation": "單日漲跌幅用來描述這檔股票最新收盤價相對前一交易日的變化,只代表短線價格動能。",
+            "calculation": f"(最新收盤 − 前一交易日收盤) ÷ 前一交易日收盤 × 100 = {h.change:+.2f}%",
+            "rule": "漲跌幅 ≥ +0.50% 標為短線偏多;≤ −0.50% 標為短線偏空;其餘落在中性範圍。",
+            "data_source": data_source,
+            "data_date": data_date,
         })
 
         # 訊號 2:與大盤對比
@@ -460,6 +476,11 @@ class StockInsightService:
             "direction": direction,
             "direction_label": direction_labels[direction],
             "text": text,
+            "explanation": "把個股漲跌與台股大盤同日漲跌相比,用來分辨是市場一起波動,還是這檔相對強弱較明顯。",
+            "calculation": f"個股 {h.change:+.2f}% − 大盤 {market_change:+.2f}% = {diff:+.2f} 個百分點",
+            "rule": "相對大盤 ≥ +0.50 個百分點標為相對偏強;≤ −0.50 標為相對偏弱;中間區間視為同步。",
+            "data_source": data_source,
+            "data_date": data_date,
         })
 
         # 訊號 3:持有成本視角
@@ -478,9 +499,27 @@ class StockInsightService:
             "direction": long,
             "direction_label": long_label,
             "text": text,
+            "explanation": "以你登錄的加權平均成本和最新收盤價計算未實現報酬,提供個人持有位置的背景;它不是公司價值評估。",
+            "calculation": (
+                f"(收盤 {h.close:,.2f} − 平均成本 {h.cost:,.2f}) ÷ 平均成本 × 100 = {h.pnl_percent:+.1f}%"
+                if h.has_pnl else "缺少有效成本、股數或收盤資料 → 無法計算未實現報酬"
+            ),
+            "rule": "未實現報酬 ≥ +5% 標為長線偏多;≤ −5% 標為長線保守;其餘標為中性。此分類不等於買賣建議。",
+            "data_source": f"你的持股紀錄 + {data_source}",
+            "data_date": data_date,
         })
 
         return signals
+
+    def _signal_data_context(self, h: _Holding) -> tuple[str, str]:
+        """訊號 sheet 顯示真正的資料來源與 CMoney 模擬資料日。"""
+        cm = CMoneyDataService(self.db)
+        if cm.available:
+            yyyymmdd = cm.resolve_trade_date(simulated_target(effective_trade_date()))
+            if yyyymmdd:
+                return DATA_SOURCE, cm.to_date(yyyymmdd).isoformat()
+        fallback_date = h.price_date or effective_trade_date()
+        return "App 股價資料庫", fallback_date.isoformat()
 
     def _plain_summary(self, h: _Holding, outlook: str) -> str:
         if outlook == "caution":

@@ -286,6 +286,7 @@ struct SentimentMeter: View {
 // MARK: - NewsSignalCard(8e 新聞/訊號卡)
 struct NewsSignalCard: View {
     let signal: NewsSignal
+    var showsDisclosure = false
     @State private var labelShown = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -310,6 +311,18 @@ struct NewsSignalCard: View {
                 .foregroundColor(AppColor.inkPrimary)
                 .lineSpacing(5)
                 .fixedSize(horizontal: false, vertical: true)
+
+            if showsDisclosure {
+                HStack(spacing: 5) {
+                    Spacer()
+                    Text("查看解釋與資料由來")
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .bold))
+                }
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundColor(AppColor.primary)
+                .padding(.top, 3)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 15)
@@ -322,6 +335,7 @@ struct NewsSignalCard: View {
                 labelShown = true
             }
         }
+        .accessibilityElement(children: .combine)
     }
 }
 

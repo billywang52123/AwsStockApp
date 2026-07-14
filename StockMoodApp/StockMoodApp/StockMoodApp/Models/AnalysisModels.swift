@@ -124,6 +124,11 @@ struct NewsSignal: Codable, Hashable, Identifiable {
     let direction: SignalDirection
     let directionLabel: String
     let text: String
+    let explanation: String
+    let calculation: String
+    let rule: String
+    let dataSource: String
+    let dataDate: String
 }
 
 enum SignalDirection: String, Codable {

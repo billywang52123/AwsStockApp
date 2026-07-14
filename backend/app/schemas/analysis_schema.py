@@ -86,6 +86,11 @@ class NewsSignal(BaseModel):
     direction: str         # bullish / bearish / neutral
     direction_label: str   # 「→ 短線偏空」等
     text: str
+    explanation: str       # 指標代表什麼
+    calculation: str       # 本次數字如何計算
+    rule: str              # 固定門檻如何得到方向
+    data_source: str       # 原始資料來源
+    data_date: str         # 實際資料日
 
 
 class StockInsightDetail(BaseModel):

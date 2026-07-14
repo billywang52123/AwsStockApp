@@ -167,6 +167,8 @@ def test_insight_detail(client, db_session):
         assert signal["direction"] in ("bullish", "bearish", "neutral")
         assert signal["direction_label"].startswith("→")
         assert len(signal["text"]) > 0
+        for field in ("explanation", "calculation", "rule", "data_source", "data_date"):
+            assert signal[field], f"訊號缺少 {field}: {signal}"
     assert len(data["plain_summary"]) > 0
 
     # 台積電今日 -1.2% 但成本 900 有獲利 → 短線留意、長線看好
@@ -233,4 +235,6 @@ def test_insight_detail_for_watch_stock(client, db_session):
     assert last["source"] == "觀察中 · 未持有"
     assert "觀察清單" in last["text"]
     assert "成本" not in last["text"]   # 不再出現「尚未填寫成本」的持倉文案
+    assert "不納入計算" in last["calculation"]
+    assert last["data_source"]
     assert len(data["plain_summary"]) > 0
