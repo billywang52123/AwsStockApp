@@ -19,11 +19,12 @@ from app.models.achievement import AchievementModel
 from app.models.holding_activity import HoldingActivityModel
 from app.models.watchlist import Watchlist, WatchlistItem
 from app.models.fortune import FortuneResultModel
+from app.models.daily_pack import DailyPackModel
 from app.models.push_device import PushDevice
 
 # Routes
 from app.api.routes import (
-    auth, portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis, holdings, privacy, watchlists, fortune, push_devices
+    auth, portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis, holdings, privacy, watchlists, fortune, push_devices, pack
 )
 from app.db.migrations import run_light_migrations
 
@@ -82,6 +83,7 @@ app.include_router(holdings.router, prefix=settings.API_V1_STR)
 app.include_router(privacy.router, prefix=settings.API_V1_STR)
 app.include_router(watchlists.router, prefix=settings.API_V1_STR)
 app.include_router(fortune.router, prefix=settings.API_V1_STR)
+app.include_router(pack.router, prefix=settings.API_V1_STR)
 app.include_router(push_devices.router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["Health"])

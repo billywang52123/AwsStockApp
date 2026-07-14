@@ -66,7 +66,7 @@ class APIClient {
 
     // Default to production; can be overridden for local development / UI tests
     // via UserDefaults key "api_base_url"(e.g. launch argument: -api_base_url http://localhost:8000/api)
-    var baseURL = UserDefaults.standard.string(forKey: "api_base_url") ?? "https://st-2f8caae5711f455a9318dbe4a15ec9a2.ecs.us-east-1.on.aws/api"
+    var baseURL = UserDefaults.standard.string(forKey: "api_base_url") ?? "https://st-137db68f559744aaa7b1da59a138d2aa.ecs.us-east-1.on.aws/api"
     
     private init() {}
     

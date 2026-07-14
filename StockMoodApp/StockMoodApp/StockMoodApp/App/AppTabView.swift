@@ -12,9 +12,10 @@ struct AppTabView: View {
                 }
                 .tag(0)
             
-            FortuneDrawView()
+            // 每日抽卡包 + AI 信任系統(spec 06,取代御神籤)
+            TodayPackView()
                 .tabItem {
-                    Label("抽籤", systemImage: "scroll.fill")
+                    Label("抽卡", systemImage: "square.stack.fill")
                 }
                 .tag(1)
             

@@ -13,6 +13,7 @@ class DependencyContainer: ObservableObject {
     let anxietyService: AnxietyServiceProtocol = RemoteAnxietyService()
     let dailySummaryService: DailySummaryServiceProtocol = RemoteDailySummaryService()
     let fortuneService: FortuneServiceProtocol = RemoteFortuneService()
+    let packService: DailyPackServiceProtocol = RemoteDailyPackService()
     let marketService: MarketServiceProtocol = RemoteMarketService()
     let reminderService: ReminderServiceProtocol = RemoteReminderService()
     let analysisService: AnalysisServiceProtocol = RemoteAnalysisService()

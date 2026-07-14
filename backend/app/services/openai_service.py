@@ -323,3 +323,59 @@ class OpenAIService:
             logger.error(f"Failed to fetch fortune text from OpenAI: {str(e)}")
 
         return {}
+
+    @classmethod
+    async def fetch_companion_text(
+        cls,
+        avg_change: float,
+        market_change: float,
+        holdings_count: int,
+    ) -> Optional[str]:
+        """陪伴卡(15h)文字:3–4 句安撫,零買賣暗示。
+        離線或失敗回 None,由 DailyPackService 用規則式 fallback。"""
+        if not settings.OPENAI_API_KEY:
+            logger.info("OPENAI_API_KEY is not set. Using rule-based companion text.")
+            return None
+
+        prompt = (
+            "你是一位溫柔、不催促的 AI 陪伴者,為投資新手寫今天的陪伴訊息。\n"
+            f"用戶今天的狀況:持股 {holdings_count} 檔,庫存加權 {avg_change:+.2f}%,大盤 {market_change:+.2f}%。\n\n"
+            '請生成 JSON:{"text": "3-4 句繁體中文陪伴訊息(80-120 字),手寫信的語氣,安撫情緒"}\n'
+            "硬性限制:不得提及任何個股名稱;不得預測漲跌;不得出現「建議」二字,"
+            "也不得出現「買進、賣出、加碼、減碼、停損、停利、攤平、進場、出場、獲利了結」"
+            "等任何引導操作的字眼;只安撫情緒,永遠不給操作方向。"
+        )
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "gpt-4o-mini",
+                        "messages": [
+                            {"role": "system", "content": "你是一個專門輸出 JSON、語氣溫暖的陪伴訊息助手。"},
+                            {"role": "user", "content": prompt}
+                        ],
+                        "response_format": {"type": "json_object"},
+                        "temperature": 0.9
+                    },
+                    timeout=5.0
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    import json
+                    result = json.loads(data["choices"][0]["message"]["content"])
+                    text = result.get("text")
+                    if isinstance(text, str) and text.strip():
+                        logger.info("Successfully generated companion text via GPT-4o-mini")
+                        return text.strip()
+                else:
+                    logger.warning(f"OpenAI returned error code {response.status_code}: {response.text}")
+        except Exception as e:
+            logger.error(f"Failed to fetch companion text from OpenAI: {str(e)}")
+
+        return None

@@ -90,6 +90,16 @@ class AppPreferenceStore {
         UserDefaults.standard.removeObject(forKey: userScopedKey(faceIDLockKey))
     }
 
+    // MARK: - 每日抽卡包(spec 06,per-user)
+
+    private let skipPackAnimationKey = "com.stockmoodapp.alwaysSkipPackAnimation"
+
+    /// 「總是跳過開包動畫」:開啟後點「開啟今日卡包」直達 15e 完成態
+    var alwaysSkipPackAnimation: Bool {
+        get { UserDefaults.standard.bool(forKey: userScopedKey(skipPackAnimationKey)) }
+        set { UserDefaults.standard.set(newValue, forKey: userScopedKey(skipPackAnimationKey)) }
+    }
+
     // MARK: - 抽籤通知(日間/夜間收盤,per-user)
 
     private let fortuneDayNotifyKey = "com.stockmoodapp.fortuneNotify.dayClose"

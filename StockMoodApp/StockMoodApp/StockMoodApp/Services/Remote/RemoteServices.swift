@@ -237,6 +237,26 @@ class RemoteFortuneService: FortuneServiceProtocol {
     }
 }
 
+// MARK: - Remote Daily Pack Service(每日抽卡包 + AI 信任系統 · spec 06)
+class RemoteDailyPackService: DailyPackServiceProtocol {
+    func getTodayPack(force: Bool) async throws -> DailyPack {
+        let query = force ? "?force=true" : ""
+        return try await APIClient.shared.request("/pack/today\(query)", method: "GET")
+    }
+
+    func markOpened() async throws {
+        let _: Bool = try await APIClient.shared.request("/pack/open", method: "POST")
+    }
+
+    func getShelf() async throws -> PackShelf {
+        return try await APIClient.shared.request("/pack/shelf", method: "GET")
+    }
+
+    func getWeeklyCheckup() async throws -> WeeklyCheckup {
+        return try await APIClient.shared.request("/pack/weekly-checkup", method: "GET")
+    }
+}
+
 // MARK: - Remote Market Service
 class RemoteMarketService: MarketServiceProtocol {
     func getMarketCompare() async throws -> MarketCompareResult {

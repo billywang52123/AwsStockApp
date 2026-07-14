@@ -4,6 +4,7 @@ struct ReminderSettingView: View {
     @StateObject private var viewModel = ReminderSettingViewModel()
     @ObservedObject private var privacy = PrivacyManager.shared
     @State private var showSignOutConfirm = false
+    @State private var alwaysSkipPackAnimation = AppPreferenceStore.shared.alwaysSkipPackAnimation
 
     private var accountLabel: String {
         let id = AppPreferenceStore.shared.currentUserId
@@ -111,6 +112,18 @@ struct ReminderSettingView: View {
                                     .foregroundColor(AppColor.textSecondary.opacity(0.7))
                             }
                         }
+                    }
+
+                    // 每日抽卡包(spec 06):總是跳過開包動畫
+                    Section(
+                        header: Text("每日卡包").font(.system(.footnote, design: .rounded)),
+                        footer: Text("開啟後,點「開啟今日卡包」直接進入三張卡完成態,不播撕開動畫。")
+                    ) {
+                        Toggle("總是跳過開包動畫", isOn: $alwaysSkipPackAnimation)
+                            .tint(AppColor.primary)
+                            .onChange(of: alwaysSkipPackAnimation) { _, newValue in
+                                AppPreferenceStore.shared.alwaysSkipPackAnimation = newValue
+                            }
                     }
 
                     Section(header: Text("推播提醒設定").font(.system(.footnote, design: .rounded))) {

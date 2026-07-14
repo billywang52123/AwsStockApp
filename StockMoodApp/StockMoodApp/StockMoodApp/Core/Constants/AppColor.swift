@@ -70,6 +70,58 @@ struct AppColor {
     static let watchStatusPillText = Color(hex: "B0813F")
 }
 
+// MARK: - 每日抽卡包 + AI 信任系統色票(spec 06 · tokens.color.trustCard)
+struct TrustCardColor {
+    // 卡包封面(藍紫漸層 165°)
+    static let packGradient = [Color(hex: "8B8FE0"), Color(hex: "6C70C4"), Color(hex: "54589E")]
+    static let packGlow = Color(hex: "54589E").opacity(0.35)
+
+    // 事實卡:灰底冷靜、等寬數字
+    static let factBg = Color(hex: "F2F3F5")
+    static let factBorder = Color(hex: "E2E4E9")
+    static let factLabelBg = Color(hex: "E2E4E9")
+    static let factLabelText = Color(hex: "5B5F68")
+    static let factNumber = Color(hex: "3A3D45")
+
+    // 推論卡:藍紫漸層 + 「AI 推論」標籤
+    static let inferenceBg = [Color(hex: "F0F3FD"), Color(hex: "E4E9FB")]
+    static let inferenceBorder = Color(hex: "B9C4EE")
+    static let inferenceLabelBg = Color(hex: "5E6FD8")
+    static let inferenceText = Color(hex: "2E3560")
+    static let inferenceStepNumber = Color(hex: "3C4370")
+    static let inferenceChipBg = Color(hex: "5E6FD8").opacity(0.10)
+    static let inferenceChipBorder = Color(hex: "C3CCF2")
+    static let inferenceChipText = Color(hex: "4E5CB8")
+    static let inferenceMuted = Color(hex: "8A93B8")
+
+    // 陪伴卡:暖色手寫感
+    static let companionBg = [Color(hex: "FBF3E6"), Color(hex: "F4E6CE")]
+    static let companionBorder = Color(hex: "EAD9B8")
+    static let companionLabelBg = Color(hex: "C98A4A")
+    static let companionText = Color(hex: "6A5232")
+
+    // 出處 chip
+    static let sourceChipBg = Color(hex: "E8E9EE")
+    static let sourceChipBorder = Color(hex: "D8DAE1")
+    static let sourceChipText = Color(hex: "5B5F68")
+
+    // 閃卡五色流光環
+    static let flashcardRing = [Color(hex: "7B7FD4"), Color(hex: "5AC8FA"), Color(hex: "9DBFAA"),
+                                Color(hex: "E4B384"), Color(hex: "D08C8C"), Color(hex: "7B7FD4")]
+    static let flashcardTag = [Color(hex: "E4B384"), Color(hex: "D08C8C")]
+
+    // 15k 誠實度對帳
+    static let honestyMet = Color(hex: "6E9A7F")
+    static let honestyMiss = Color(hex: "B4AFA5")
+    static let metRowBg = Color(hex: "F4F7F4")     // 應驗列偏綠系
+    static let missRowBg = Color(hex: "F7F5F0")    // 未發生列中性(不用紅色)
+
+    // 開包深色舞台
+    static let darkPackBg = [Color(hex: "2B2850"), Color(hex: "1B1A33"), Color(hex: "121124")]
+    static let darkSkipPillBg = Color.white.opacity(0.10)
+    static let darkSkipPillBorder = Color.white.opacity(0.22)
+}
+
 // MARK: - 產業配色(曝險 bar、頭像、權重 bar 共用)
 struct IndustryStyle {
     let color: Color

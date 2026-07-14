@@ -55,7 +55,17 @@ protocol DailySummaryServiceProtocol {
     func getDailySummary() async throws -> DailySummary
 }
 
-/// 每日御神籤(spec 第十輪 12a–12d,取代原每日抽卡)
+/// 每日抽卡包 + AI 信任系統(spec 06 · 15a–15k,取代御神籤)
+protocol DailyPackServiceProtocol {
+    /// force = true:丟棄今日包,依當下持股重算(重生測試用)
+    func getTodayPack(force: Bool) async throws -> DailyPack
+    /// 開包動畫看完(或跳過)後標記,之後開頁直達完成態
+    func markOpened() async throws
+    func getShelf() async throws -> PackShelf
+    func getWeeklyCheckup() async throws -> WeeklyCheckup
+}
+
+/// 每日御神籤(spec 第十輪 12a–12d,已由每日抽卡包取代,保留存檔)
 protocol FortuneServiceProtocol {
     /// force = true:丟棄今日籤,依當下持股重新求一支(重抽測試用)
     func drawFortune(force: Bool) async throws -> FortuneResult
