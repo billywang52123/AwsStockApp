@@ -4,13 +4,13 @@
       "resources": {
         "runtimes": {
           "PortfolioInsight": {
-            "runtimeId": "PortfolioInsight_PortfolioInsight-Q7w6JZDwUi",
-            "runtimeArn": "arn:aws:bedrock-agentcore:us-east-1:475794918554:runtime/PortfolioInsight_PortfolioInsight-Q7w6JZDwUi",
-            "roleArn": "arn:aws:iam::475794918554:role/AgentCore-PortfolioInsigh-ApplicationAgentPortfolio-sJVfwVA1rVMG"
+            "runtimeId": "PortfolioInsight_PortfolioInsight-zQ0d0ECOEv",
+            "runtimeArn": "arn:aws:bedrock-agentcore:us-east-1:846592848305:runtime/PortfolioInsight_PortfolioInsight-zQ0d0ECOEv",
+            "roleArn": "arn:aws:iam::846592848305:role/AgentCore-PortfolioInsigh-ApplicationAgentPortfolio-szA9RGIaQGIh"
           }
         },
         "stackName": "AgentCore-PortfolioInsight-default",
-        "deployHash": "c2a828f0efe26334"
+        "deployHash": "8bad7da7d6f834a7"
       }
     }
   }
