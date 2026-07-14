@@ -70,7 +70,7 @@ class APIClient {
     
     private init() {}
     
-    func request<T: Codable>(_ endpoint: String, method: String = "GET", body: Data? = nil) async throws -> T {
+    func request<T: Codable>(_ endpoint: String, method: String = "GET", body: Data? = nil, isRetry: Bool = false) async throws -> T {
         guard let url = URL(string: "\(baseURL)\(endpoint)") else {
             throw APIError.invalidURL
         }
@@ -86,6 +86,11 @@ class APIClient {
         guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
             if statusCode == 401 {
+                // Cognito access token expired? Renew with the refresh token and
+                // retry once before giving up.
+                if !isRetry, await CognitoAuthService.shared.refreshSession() {
+                    return try await request(endpoint, method: method, body: body, isRetry: true)
+                }
                 // Session token rejected (expired / secret rotated) — drop it so
                 // the next launch re-registers instead of failing forever.
                 KeychainStore.shared.sessionToken = nil

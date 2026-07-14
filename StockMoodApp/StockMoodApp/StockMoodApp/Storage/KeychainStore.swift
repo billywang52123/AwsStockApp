@@ -7,6 +7,8 @@ final class KeychainStore {
     static let shared = KeychainStore()
 
     static let sessionTokenKey = "session_token"
+    static let cognitoRefreshTokenKey = "cognito_refresh_token"
+    static let cognitoTokenExpiryKey = "cognito_token_expiry"
 
     private let service = "com.stockmoodapp.auth"
 
@@ -60,6 +62,32 @@ final class KeychainStore {
                 set(token, forKey: Self.sessionTokenKey)
             } else {
                 delete(Self.sessionTokenKey)
+            }
+        }
+    }
+
+    // MARK: - Cognito token convenience
+
+    /// Long-lived Cognito refresh token, used to silently renew the access token.
+    var cognitoRefreshToken: String? {
+        get { get(Self.cognitoRefreshTokenKey) }
+        set {
+            if let token = newValue {
+                set(token, forKey: Self.cognitoRefreshTokenKey)
+            } else {
+                delete(Self.cognitoRefreshTokenKey)
+            }
+        }
+    }
+
+    /// Expiry of the current Cognito access token (unix seconds string in keychain).
+    var cognitoTokenExpiry: Date? {
+        get { get(Self.cognitoTokenExpiryKey).flatMap(Double.init).map(Date.init(timeIntervalSince1970:)) }
+        set {
+            if let date = newValue {
+                set(String(date.timeIntervalSince1970), forKey: Self.cognitoTokenExpiryKey)
+            } else {
+                delete(Self.cognitoTokenExpiryKey)
             }
         }
     }
