@@ -18,7 +18,9 @@ class EcsExpressStack(Stack):
     def __init__(self, scope: Construct, cid: str, *, vpc: ec2.Vpc,
                  service_sg: ec2.SecurityGroup, ecr_repo: ecr.Repository,
                  db: rds.DatabaseInstance, db_secret_arn: str,
-                 app_secret: secretsmanager.Secret, **kwargs) -> None:
+                 app_secret: secretsmanager.Secret,
+                 cognito_user_pool_id: str = "", cognito_app_client_id: str = "",
+                 **kwargs) -> None:
         super().__init__(scope, cid, **kwargs)
 
         # Infrastructure role:讓 ECS Express 代為建 ALB / SG / ACM 憑證 / autoscaling
@@ -104,6 +106,8 @@ class EcsExpressStack(Stack):
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="ALLOWED_ORIGINS", value="*"),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="SEED_ON_START", value="true"),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="ALLOW_LEGACY_HEADER_AUTH", value="True"),
+                    ecs.CfnExpressGatewayService.KeyValuePairProperty(name="COGNITO_USER_POOL_ID", value=cognito_user_pool_id),
+                    ecs.CfnExpressGatewayService.KeyValuePairProperty(name="COGNITO_APP_CLIENT_ID", value=cognito_app_client_id),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="SNS_APNS_SANDBOX_PLATFORM_APPLICATION_ARN", value=sns_apns_sandbox_arn),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="SNS_APNS_PLATFORM_APPLICATION_ARN", value=sns_apns_arn),
                 ],

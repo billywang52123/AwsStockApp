@@ -130,6 +130,24 @@ struct LoginView: View {
                             .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 3)
                         }
                         
+                        // ── Cognito Hosted UI (email / password, AWS User Pool) ──
+                        Button(action: {
+                            HapticManager.shared.triggerImpact(style: .medium)
+                            authService.signInWithCognito(onSuccess: onLoginSuccess)
+                        }) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "envelope.circle.fill").font(.title3)
+                                Text("使用 Email 登入 / 註冊").fontWeight(.bold)
+                            }
+                            .font(.system(.body, design: .rounded))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(AppColor.primary)
+                            .cornerRadius(14)
+                            .shadow(color: AppColor.primary.opacity(0.25), radius: 6, x: 0, y: 3)
+                        }
+
                         // ── Guest / Browse Route ──
                         Button(action: {
                             HapticManager.shared.triggerImpact(style: .medium)

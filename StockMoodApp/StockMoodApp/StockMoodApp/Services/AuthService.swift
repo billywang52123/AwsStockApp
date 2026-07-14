@@ -192,6 +192,34 @@ final class AuthService: ObservableObject {
         onSuccess()
     }
 
+    // MARK: - Cognito (Hosted UI email / password)
+
+    /// Sign in via the Cognito Hosted UI. The obtained access token replaces the
+    /// legacy self-issued session JWT — APIClient sends it as Bearer unchanged,
+    /// and the backend resolves the user as "cognito-<sub>".
+    func signInWithCognito(onSuccess: @escaping () -> Void) {
+        isAuthenticating = true
+        authError = nil
+        Task {
+            do {
+                let session = try await CognitoAuthService.shared.signIn()
+                AppPreferenceStore.shared.signIn(userId: session.userId)
+                PushDeviceService.shared.registerForRemoteNotificationsIfPermitted()
+                PushDeviceService.shared.applyPendingRegistration()
+                HapticManager.shared.triggerNotification(type: .success)
+                isAuthenticating = false
+                onSuccess()
+            } catch CognitoAuthError.cancelled {
+                // User dismissed the sheet — not an error state
+                isAuthenticating = false
+            } catch {
+                authError = "登入失敗：\(error.localizedDescription)"
+                HapticManager.shared.triggerNotification(type: .error)
+                isAuthenticating = false
+            }
+        }
+    }
+
     // MARK: - Guest session
 
     /// Sign in locally as guest and register the guest id with the backend to
@@ -220,9 +248,15 @@ final class AuthService: ObservableObject {
     /// Guests can re-register silently; Apple/Google users keep using the
     /// legacy header until they sign in again.
     func ensureSessionToken() async {
-        guard AppPreferenceStore.shared.isLoggedIn,
-              KeychainStore.shared.sessionToken == nil,
-              AppPreferenceStore.shared.currentUserId.hasPrefix("guest-") else { return }
+        guard AppPreferenceStore.shared.isLoggedIn else { return }
+        let userId = AppPreferenceStore.shared.currentUserId
+        if userId.hasPrefix("cognito-") {
+            // Cognito access tokens last 1h — renew silently ahead of expiry.
+            await CognitoAuthService.shared.refreshIfNeeded()
+            return
+        }
+        guard KeychainStore.shared.sessionToken == nil,
+              userId.hasPrefix("guest-") else { return }
         await registerGuestSession()
     }
 
@@ -252,6 +286,7 @@ final class AuthService: ObservableObject {
         if GIDSignIn.sharedInstance.currentUser != nil {
             GIDSignIn.sharedInstance.signOut()
         }
+        CognitoAuthService.shared.clearSession()
         AppPreferenceStore.shared.signOut()
         NotificationCenter.default.post(name: .authSessionDidEnd, object: nil)
     }
