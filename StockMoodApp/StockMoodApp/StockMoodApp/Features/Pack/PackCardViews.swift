@@ -452,53 +452,82 @@ struct ReasoningStepRow: View {
     }
 }
 
-// MARK: - 15h · 陪伴卡完成態 `CompanionCard`
+// MARK: - 15h · 社群卡完成態 `CommunityCard`(同學會溫度計)
+// 鐵則:社群結構性偏多,只顯示相對這檔自身 30 日基準的變化,絕不顯示絕對多空比
 
-struct CompanionCardView: View {
+struct CommunityCardView: View {
     let pack: DailyPack
-    private var companion: CompanionCardData { pack.companion }
+    let onChip: (SourceChip) -> Void
+
+    private var community: CommunityCardData { pack.communityCard }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                CardTagPill(text: "AI 陪伴訊息", bg: TrustCardColor.companionLabelBg)
+                CardTagPill(text: "社群卡 · 同學會", bg: TrustCardColor.communityLabelBg)
                 Spacer()
-                Text("不含任何買賣暗示")
+                Text("這是氣氛,不是訊號")
                     .font(.system(size: 11, design: .rounded))
-                    .foregroundColor(TrustCardColor.companionText.opacity(0.7))
+                    .foregroundColor(TrustCardColor.communityText.opacity(0.7))
             }
-            .padding(.bottom, 18)
+            .padding(.bottom, 14)
 
             ScrollView(showsIndicators: false) {
-                // 正文:LXGW WenKai TC 手寫感,行高 2.05
-                Text(companion.text)
-                    .font(BrushFont.brush(20))
-                    .foregroundColor(TrustCardColor.companionText)
-                    .lineSpacing(21)
+                VStack(alignment: .leading, spacing: 14) {
+                    // 聚焦股(同學會討論最熱的一檔)
+                    HStack(spacing: 8) {
+                        Text(community.stockName)
+                            .font(.system(size: 17, weight: .heavy, design: .rounded))
+                            .foregroundColor(TrustCardColor.communityText)
+                        if !community.stockSymbol.isEmpty {
+                            Text(community.stockSymbol)
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundColor(TrustCardColor.communityText.opacity(0.55))
+                        }
+                        Spacer()
+                    }
+
+                    if community.hasData {
+                        heatSection
+                        Divider().overlay(TrustCardColor.communityBorder)
+                        sentimentSection
+                        if let chip = community.chip {
+                            SourceChipView(chip: chip, onTap: onChip)
+                        }
+                    } else {
+                        // 資料不足態:安撫語氣,不做空狀態插畫
+                        Text(community.heatText)
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundColor(TrustCardColor.communityText)
+                            .lineSpacing(8)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.vertical, 18)
+                    }
+                }
+                .padding(.bottom, 6)
+            }
+
+            Spacer(minLength: 10)
+
+            // 底部固定附註(分隔線上緣)
+            VStack(alignment: .leading, spacing: 8) {
+                Divider().overlay(TrustCardColor.communityBorder)
+                Text(community.note)
+                    .font(.system(size: 10.5, design: .rounded))
+                    .foregroundColor(TrustCardColor.communityText.opacity(0.75))
+                    .lineSpacing(6)
                     .fixedSize(horizontal: false, vertical: true)
             }
-
-            Spacer(minLength: 12)
-
-            HStack(alignment: .lastTextBaseline) {
-                Text(companion.signature)
-                    .font(BrushFont.brush(14))
-                    .foregroundColor(TrustCardColor.companionText.opacity(0.85))
-                Spacer()
-                Text("Day \(companion.dayCount)")
-                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .foregroundColor(TrustCardColor.companionText.opacity(0.6))
-            }
         }
-        .padding(20)
+        .padding(18)
         .background(
             ZStack {
-                LinearGradient(colors: TrustCardColor.companionBg,
+                LinearGradient(colors: TrustCardColor.communityBg,
                                startPoint: .top, endPoint: .bottom)
-                // 右上角 amber 光暈裝飾圓(不遮文字)
+                // 右上角 150×150 綠光暈裝飾圓(不遮文字)
                 Circle()
                     .fill(
-                        RadialGradient(colors: [AppColor.amberBadge.opacity(0.35), .clear],
+                        RadialGradient(colors: [TrustCardColor.communityLabelBg.opacity(0.28), .clear],
                                        center: .center, startRadius: 6, endRadius: 80)
                     )
                     .frame(width: 150, height: 150)
@@ -508,94 +537,354 @@ struct CompanionCardView: View {
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .strokeBorder(TrustCardColor.companionBorder, lineWidth: 1.5)
+                .strokeBorder(TrustCardColor.communityBorder, lineWidth: 1.5)
         )
         .shadow(color: Color(red: 120/255, green: 100/255, blue: 70/255).opacity(0.18),
                 radius: 25, x: 0, y: 24)
     }
+
+    // ── 討論量區:今日 vs 30 日均值,滿版綠條 + 白色均值刻度線 ──
+
+    private var heatSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("今日討論量")
+                    .font(.system(size: 11.5, design: .rounded))
+                    .foregroundColor(TrustCardColor.communityText.opacity(0.65))
+                Text("\(community.postsToday.formatted()) 則")
+                    .font(.system(size: 14, weight: .bold, design: .monospaced))
+                    .foregroundColor(TrustCardColor.communityText)
+                Spacer()
+                Text("30 日均值 \(Int(community.postsBaseline).formatted()) 則")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundColor(TrustCardColor.communityText.opacity(0.55))
+            }
+
+            // 9pt 高進度條:綠漸層滿版,白色刻度線標均值位置
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [TrustCardColor.communityLabelBg.opacity(0.55),
+                                         TrustCardColor.communityLabelBg],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
+                    Rectangle()
+                        .fill(Color.white)
+                        .frame(width: 2.5, height: 13)
+                        .offset(x: geo.size.width * community.baselineTickPercent / 100)
+                }
+            }
+            .frame(height: 9)
+            .padding(.vertical, 2)
+
+            Text(community.heatText)
+                .font(.system(size: 12.5, weight: .bold, design: .rounded))
+                .foregroundColor(TrustCardColor.communityText)
+                .lineSpacing(5)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    // ── 看多/看空溫度區:中線刻度條,中點 = 這檔自身 30 日基準 ──
+
+    private var sentimentSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("看多/看空溫度")
+                    .font(.system(size: 11.5, weight: .bold, design: .rounded))
+                    .foregroundColor(TrustCardColor.communityText.opacity(0.75))
+                Spacer()
+                Text("vs 這檔自己的 30 日基準")
+                    .font(.system(size: 10.5, design: .rounded))
+                    .foregroundColor(TrustCardColor.communityText.opacity(0.5))
+            }
+
+            if let shift = community.sentimentShiftPercent {
+                // 中點為自身基準;偏多向右橙色段、偏空向左(±30% 滿格)
+                GeometryReader { geo in
+                    let half = geo.size.width / 2
+                    let span = min(abs(shift) / 30.0, 1.0) * half
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(TrustCardColor.communityLabelBg.opacity(0.14))
+                        Rectangle()
+                            .fill(AppColor.amberBadge)
+                            .frame(width: max(span, 3), height: 9)
+                            .offset(x: shift >= 0 ? half : half - span)
+                        Rectangle()
+                            .fill(TrustCardColor.communityText.opacity(0.45))
+                            .frame(width: 2, height: 13)
+                            .offset(x: half - 1)
+                    }
+                }
+                .frame(height: 9)
+                .clipShape(Capsule())
+                .padding(.vertical, 2)
+            }
+
+            if let sentimentText = community.sentimentText {
+                Text(sentimentText)
+                    .font(.system(size: 12.5, weight: .bold, design: .rounded))
+                    .foregroundColor(TrustCardColor.communityText)
+                    .lineSpacing(5)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
 }
 
-// MARK: - 手牌態迷你卡(15e 扇形;186×270 比例,尺寸由外部給)
+// MARK: - 15e · TCG 質感卡背 `CardBackFace`
+// 各卡型專屬深色寶石漸層 + 雙層金屬細框 + 內縮 7/11pt 雙細線框 + 四角 L 形角飾
+// + 中央 84pt 圓形徽記(實/推/氛,呼吸光暈)+ 45° 菱形線框 ×2 + 卡名/飾線副標/羅馬序號
 
-struct MiniPackCard: View {
+struct CardBackFace: View {
     let kind: PackCardKind
-    let pack: DailyPack
+    /// 前景卡才跑光芒層/掃光/呼吸動畫(後方卡靜止省電)
+    var isForeground = false
+    /// 包內含閃卡:卡背金色光暈爆發 + 右上「✦ 內有閃卡」pill
+    var showsFlashHint = false
+
+    @State private var emblemPulsing = false
+    @State private var flashPulsing = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var gradient: [Color] {
+        switch kind {
+        case .fact: return TrustCardColor.cardBackFact
+        case .inference: return TrustCardColor.cardBackInference
+        case .community: return TrustCardColor.cardBackCommunity
+        }
+    }
+
+    private var emblemColor: Color {
+        switch kind {
+        case .fact: return TrustCardColor.cardBackEmblemFact
+        case .inference: return TrustCardColor.cardBackEmblemInference
+        case .community: return TrustCardColor.cardBackEmblemCommunity
+        }
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            CardTagPill(text: kind.tagText, bg: tagBg, fg: tagFg)
-            Spacer()
-            Text(headline)
-                .font(kind == .companion ? BrushFont.brush(17)
-                      : .system(size: 17, weight: .heavy, design: kind == .fact ? .monospaced : .rounded))
-                .foregroundColor(headlineColor)
-                .lineSpacing(6)
-                .lineLimit(4)
-            Spacer()
-            Text(kind.title)
-                .font(.system(size: 10, weight: .bold, design: .rounded))
-                .foregroundColor(headlineColor.opacity(0.55))
+        ZStack {
+            LinearGradient(colors: gradient,
+                           startPoint: .topLeading, endPoint: .bottomTrailing)
+
+            // 旋轉光芒層(rayRotate conic 微光,僅前景卡)
+            if isForeground && !reduceMotion {
+                CardBackRayLayer(tint: emblemColor)
+            }
+
+            // 內縮 7pt / 11pt 雙細線框
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(TrustCardColor.cardBackFrame, lineWidth: 1)
+                .padding(7)
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                .strokeBorder(TrustCardColor.cardBackFrame.opacity(0.45), lineWidth: 0.75)
+                .padding(11)
+
+            // 四角 26pt L 形金屬角飾
+            CornerOrnaments(color: TrustCardColor.packTrim, size: 26, inset: 13)
+
+            // 中央徽記 + 卡名
+            VStack(spacing: 0) {
+                Spacer()
+
+                ZStack {
+                    // 45° 菱形幾何線框 ×2
+                    Rectangle()
+                        .strokeBorder(TrustCardColor.cardBackFrame.opacity(0.4), lineWidth: 0.8)
+                        .frame(width: 116, height: 116)
+                        .rotationEffect(.degrees(45))
+                    Rectangle()
+                        .strokeBorder(TrustCardColor.cardBackFrame.opacity(0.25), lineWidth: 0.8)
+                        .frame(width: 138, height: 138)
+                        .rotationEffect(.degrees(45))
+
+                    // 呼吸光暈(emblemPulse 2.6s)
+                    Circle()
+                        .fill(
+                            RadialGradient(colors: [emblemColor.opacity(0.35), .clear],
+                                           center: .center, startRadius: 8, endRadius: 76)
+                        )
+                        .frame(width: 150, height: 150)
+                        .scaleEffect(emblemPulsing && !reduceMotion ? 1.12 : 1.0)
+                        .opacity(emblemPulsing || reduceMotion ? 0.95 : 0.6)
+
+                    // 84pt 圓形紋章:雙圈細框 + 單字大字
+                    Circle()
+                        .strokeBorder(emblemColor.opacity(0.75), lineWidth: 1.5)
+                        .frame(width: 84, height: 84)
+                    Circle()
+                        .strokeBorder(emblemColor.opacity(0.4), lineWidth: 0.8)
+                        .frame(width: 72, height: 72)
+                    Text(kind.emblemGlyph)
+                        .font(.system(size: 34, weight: .heavy, design: .serif))
+                        .foregroundColor(emblemColor)
+                        .shadow(color: emblemColor.opacity(0.85), radius: 9)
+                }
+                .frame(height: 160)
+
+                // 卡名 + 飾線夾副標 + 羅馬序號
+                Text(kind.title)
+                    .font(.system(size: 24, weight: .heavy, design: .serif))
+                    .kerning(7)
+                    .foregroundColor(emblemColor)
+                    .shadow(color: emblemColor.opacity(0.55), radius: 7)
+                    .padding(.top, 18)
+                    .padding(.leading, 7)   // 抵銷 kerning 尾端空隙,維持置中
+
+                HStack(spacing: 8) {
+                    ornamentLine
+                    Text(kind.backSubtitle)
+                        .font(.system(size: 10.5, weight: .semibold, design: .rounded))
+                        .kerning(2)
+                        .foregroundColor(emblemColor.opacity(0.7))
+                    ornamentLine
+                }
+                .padding(.top, 10)
+
+                Text(kind.romanNumeral)
+                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .foregroundColor(emblemColor.opacity(0.55))
+                    .padding(.top, 8)
+
+                Spacer()
+
+                if isForeground {
+                    Text("點擊翻牌")
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .kerning(1.5)
+                        .foregroundColor(emblemColor.opacity(0.55))
+                        .padding(.bottom, 14)
+                }
+            }
         }
-        .padding(14)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .background(cardBg)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        // 雙層金屬細框(外 3.5 暗金 + 內 2 亮金)
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(borderColor, lineWidth: isFlash ? 0 : 1.5)
+                .strokeBorder(TrustCardColor.packTrimDark, lineWidth: 3.5)
         )
-        .overlay { if isFlash { FlashcardRing(cornerRadius: 18, lineWidth: 2.5) } }
-        .shadow(color: Color.black.opacity(0.35), radius: 14, x: 0, y: 12)
-    }
-
-    private var isFlash: Bool { kind == .fact && pack.fact.flashcard != nil }
-
-    private var headline: String {
-        switch kind {
-        case .fact: return "\(pack.totalValueText)\n\(String(format: "%+.2f%%", pack.fact.totalChangePercent))"
-        case .inference: return pack.inference.conclusion
-        case .companion: return pack.companion.text
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(TrustCardColor.packTrim, lineWidth: 2)
+                .padding(1.5)
+        )
+        .modifier(ConditionalShimmer(enabled: isForeground && !reduceMotion))
+        // 閃卡預告:外緣金色光暈爆發(flashBurst 2.2s 呼吸)
+        .background {
+            if showsFlashHint {
+                Ellipse()
+                    .fill(TrustCardColor.flashAura)
+                    .blur(radius: 10)
+                    .padding(-26)
+                    .opacity(flashPulsing || reduceMotion ? 0.9 : 0.45)
+                    .scaleEffect(flashPulsing && !reduceMotion ? 1.04 : 0.98)
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if showsFlashHint {
+                Text("✦ 內有閃卡")
+                    .font(.system(size: 10.5, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
+                    .background(
+                        LinearGradient(colors: TrustCardColor.flashcardTag,
+                                       startPoint: .leading, endPoint: .trailing)
+                    )
+                    .clipShape(Capsule())
+                    .shadow(color: TrustCardColor.flashAura, radius: 8)
+                    .offset(x: 8, y: -9)
+            }
+        }
+        .onAppear {
+            guard !reduceMotion else { return }
+            if isForeground {
+                withAnimation(.easeInOut(duration: 2.6).repeatForever(autoreverses: true)) {
+                    emblemPulsing = true
+                }
+            }
+            if showsFlashHint {
+                withAnimation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true)) {
+                    flashPulsing = true
+                }
+            }
         }
     }
 
-    private var cardBg: some ShapeStyle {
-        switch kind {
-        case .fact:
-            return AnyShapeStyle(TrustCardColor.factBg)
-        case .inference:
-            return AnyShapeStyle(LinearGradient(colors: TrustCardColor.inferenceBg,
-                                                startPoint: .top, endPoint: .bottom))
-        case .companion:
-            return AnyShapeStyle(LinearGradient(colors: TrustCardColor.companionBg,
-                                                startPoint: .top, endPoint: .bottom))
-        }
+    private var ornamentLine: some View {
+        Rectangle()
+            .fill(emblemColor.opacity(0.4))
+            .frame(width: 26, height: 0.8)
     }
+}
 
-    private var borderColor: Color {
-        switch kind {
-        case .fact: return TrustCardColor.factBorder
-        case .inference: return TrustCardColor.inferenceBorder
-        case .companion: return TrustCardColor.companionBorder
+/// 卡背旋轉光芒層:conic 金/主色微光,14s linear 循環
+private struct CardBackRayLayer: View {
+    let tint: Color
+    @State private var rotating = false
+
+    var body: some View {
+        GeometryReader { geo in
+            AngularGradient(
+                colors: [TrustCardColor.packTrim.opacity(0.14), .clear,
+                         tint.opacity(0.10), .clear,
+                         TrustCardColor.packTrim.opacity(0.14), .clear,
+                         tint.opacity(0.10), .clear,
+                         TrustCardColor.packTrim.opacity(0.14)],
+                center: .center
+            )
+            .frame(width: geo.size.height * 1.7, height: geo.size.height * 1.7)
+            .position(x: geo.size.width / 2, y: geo.size.height / 2)
+            .rotationEffect(.degrees(rotating ? 360 : 0))
+            .animation(.linear(duration: 14).repeatForever(autoreverses: false),
+                       value: rotating)
         }
+        .allowsHitTesting(false)
+        .onAppear { rotating = true }
     }
+}
 
-    private var tagBg: Color {
-        switch kind {
-        case .fact: return TrustCardColor.factLabelBg
-        case .inference: return TrustCardColor.inferenceLabelBg
-        case .companion: return TrustCardColor.companionLabelBg
+/// 四角 L 形角飾(TCG 卡框裝飾;封面卡與卡背共用)
+struct CornerOrnaments: View {
+    let color: Color
+    var size: CGFloat = 26
+    var inset: CGFloat = 13
+    var lineWidth: CGFloat = 1.5
+    /// 只畫底部兩角(封面卡用)
+    var bottomOnly = false
+
+    var body: some View {
+        GeometryReader { geo in
+            let positions: [(x: CGFloat, y: CGFloat, angle: Double)] = bottomOnly
+                ? [(inset, geo.size.height - inset - size, 270),
+                   (geo.size.width - inset - size, geo.size.height - inset - size, 180)]
+                : [(inset, inset, 0),
+                   (geo.size.width - inset - size, inset, 90),
+                   (geo.size.width - inset - size, geo.size.height - inset - size, 180),
+                   (inset, geo.size.height - inset - size, 270)]
+            ForEach(Array(positions.enumerated()), id: \.offset) { _, p in
+                CornerL()
+                    .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                    .frame(width: size, height: size)
+                    .rotationEffect(.degrees(p.angle))
+                    .offset(x: p.x, y: p.y)
+            }
         }
+        .allowsHitTesting(false)
     }
+}
 
-    private var tagFg: Color {
-        kind == .fact ? TrustCardColor.factLabelText : .white
-    }
-
-    private var headlineColor: Color {
-        switch kind {
-        case .fact: return TrustCardColor.factNumber
-        case .inference: return TrustCardColor.inferenceText
-        case .companion: return TrustCardColor.companionText
-        }
+/// L 形線段(左上角基準,依旋轉擺四角)
+private struct CornerL: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: 0, y: rect.height))
+        path.addLine(to: .zero)
+        path.addLine(to: CGPoint(x: rect.width, y: 0))
+        return path
     }
 }

@@ -132,7 +132,7 @@ def test_today_pack_structure(client, db_session, afternoon):
     assert data["opened"] is False
     assert "萬" in data["total_value_text"]
 
-    # 三張卡固定齊備:事實 / 推論 / 陪伴
+    # 三張卡固定齊備:事實 / 推論 / 社群
     fact = data["fact"]
     assert len(fact["stocks"]) == 3
     assert fact["stocks"][0]["expanded_default"] is True     # 權重最大預設展開
@@ -147,9 +147,13 @@ def test_today_pack_structure(client, db_session, afternoon):
     assert inference["steps"][2]["glossary"] is not None     # 第 3 步行為財務學名詞小卡
     assert "可能有錯" in inference["caveat"]
 
-    companion = data["companion"]
-    assert companion["day_count"] == 1
-    assert companion["signature"].startswith("——")
+    # 社群卡(15h):SQLite 測試環境沒有 CMoney raw schema → 資料不足態,
+    # 但第三張卡必須存在,且附註固定寫明「只跟自己的歷史基準比」
+    community = data["community_card"]
+    assert community["has_data"] is False
+    assert community["stock_symbol"] == "2330"      # 聚焦權重最大檔
+    assert len(community["heat_text"]) > 0
+    assert "基準" in community["note"]
 
     # why_today 的出處 chips 不為空
     assert len(data["why_today"]["chips"]) == 2
@@ -160,7 +164,8 @@ def test_today_pack_idempotent(client, db_session, afternoon):
     first = client.get("/api/pack/today").json()["data"]
     second = client.get("/api/pack/today").json()["data"]
     assert first["fact"] == second["fact"]
-    assert first["companion"]["text"] == second["companion"]["text"]
+    assert first["community_card"] == second["community_card"]
+    assert first["inference"]["conclusion"] == second["inference"]["conclusion"]
 
 
 def test_no_banned_words(client, db_session, afternoon):
@@ -196,7 +201,8 @@ def test_empty_holdings_pack(client, afternoon):
     assert data["holdings_count"] == 0
     assert data["fact"]["stocks"] == []
     assert len(data["inference"]["steps"]) == 1
-    assert len(data["companion"]["text"]) > 0
+    assert data["community_card"]["has_data"] is False
+    assert len(data["community_card"]["note"]) > 0
 
 
 def test_open_marks_pack(client, db_session, afternoon):
@@ -236,7 +242,7 @@ def test_shelf(client, db_session, afternoon):
     assert data["packs"][0]["symbol"] == "2330"      # 依權重排序
     assert data["collected_count"] == 3
     assert len(data["recent_cards"]) == 3
-    assert {c["kind"] for c in data["recent_cards"]} == {"fact", "inference", "companion"}
+    assert {c["kind"] for c in data["recent_cards"]} == {"fact", "inference", "community"}
 
 
 # ── /pack/weekly-checkup ─────────────────────────────────────

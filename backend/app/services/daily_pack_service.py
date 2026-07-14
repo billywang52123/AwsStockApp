@@ -2,14 +2,14 @@
 
 資料來源(專案模擬):CMoney 提供 2025 全年資料(`raw` schema)。
 後端以「今天 − 1 年」作為模擬交易日,取當天收盤/法人/動能/同學會資料分析,
-分析後把數字交給 AI(OpenAI)生成推論結論與陪伴文字;AI 離線走規則式 fallback。
+分析後把數字交給 AI(OpenAI)生成推論結論措辭;AI 離線走規則式 fallback。
 
 設計原則(信任系統五大機制):
 - 事實卡全部以模擬日實際數據計算,每句結論掛出處 chip(欄位/原始值/算法/資料日期/來源)
 - 推理鏈每步是數字組合,不是形容詞;AI 只負責措辭,數字由後端算好
 - 閃卡觸發條件必須是寫死的數據事件(創歷史新高/創N日新高/法人連續買超/除息倒數/±3%),
   一律用 CMoney 官方旗標或閾值,絕不是 AI 判斷
-- 社群溫度計(股票同學會):只顯示相對自身歷史基準的變化,不顯示絕對多空比
+- 社群卡/溫度計(股票同學會):只顯示相對這檔自身歷史基準的變化,不顯示絕對多空比
 - 產生卡包時同步存下可對帳的 claims,週末體檢照實對帳(說錯也原樣寫出)
 每人每交易日一包,存檔後全天一致。
 """
@@ -19,7 +19,7 @@ from datetime import date, datetime, timedelta
 from typing import List, Optional, Tuple
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
 
 from app.models.daily_pack import DailyPackModel
@@ -49,8 +49,10 @@ def _now_taipei() -> datetime:
 
 
 def pack_trade_date(now: Optional[datetime] = None) -> date:
-    """今日卡包對應的(真實)日期:14:30 前算前一日(收盤後更新)。"""
-    return effective_trade_date(now or _now_taipei())
+    """今日卡包對應的(真實)日期:14:30 前算前一日(收盤後更新)。
+    now 為 None 時交給 effective_trade_date 處理(含模擬時鐘覆寫);
+    帶明確 now(單元測試)則照 14:30 規則、忽略覆寫。"""
+    return effective_trade_date(now)
 
 
 def _wan_text(value: float) -> str:
@@ -121,10 +123,12 @@ class DailyPackService:
         row = self._get_row(user_id, trade_date)
         if row and not force:
             payload = json.loads(row.pack_json)
-            payload["opened"] = bool(row.opened)
-            return payload
+            # 舊版卡包(陪伴卡時代)沒有社群卡 → 當場重生,自動遷移到新格式
+            if "community_card" in payload:
+                payload["opened"] = bool(row.opened)
+                return payload
         if row:
-            # force 重生(測試用):丟棄今日包,依當下持股重算
+            # force 重生(測試用)或舊格式遷移:丟棄今日包,依當下持股重算
             self.db.delete(row)
             self.db.flush()
 
@@ -149,12 +153,6 @@ class DailyPackService:
         self.db.flush()
         return True
 
-    def _day_count(self, user_id: str) -> int:
-        return int(self.db.scalar(
-            select(func.count()).select_from(DailyPackModel)
-            .where(DailyPackModel.user_id == user_id)
-        ) or 0)
-
     # ── 卡包內容 ─────────────────────────────────────────────
 
     def _build_pack(self, user_id: str, trade_date: date) -> dict:
@@ -175,15 +173,15 @@ class DailyPackService:
 
         fact = self._fact_card(holdings, total_value, weighted_change, data_date, ctx)
         community = self._community_meter(holdings, ctx)
+        community_card = self._community_card(holdings, ctx, data_date)
         inference, claims = self._inference_card(
             holdings, weighted_change, market_change, data_date, community
         )
-        companion = self._companion_card(user_id, holdings, weighted_change)
         why_today = self._why_today(holdings, weighted_change, market_change, fact, data_date)
 
-        # 分析完成 → 數字交給 AI 措辭(推論結論 + 陪伴訊息);失敗保留規則式
+        # 分析完成 → 數字交給 AI 措辭(推論結論);失敗保留規則式
         self._apply_ai_texts(
-            inference=inference, companion=companion,
+            inference=inference,
             holdings=holdings, weighted_change=weighted_change,
             market_change=market_change, community=community,
             flashcard=fact.get("flashcard"),
@@ -199,7 +197,7 @@ class DailyPackService:
             "why_today": why_today,
             "fact": fact,
             "inference": inference,
-            "companion": companion,
+            "community_card": community_card,
             "community": community,
             # 內部欄位:15k 對帳用,schema 不外露
             "claims": claims,
@@ -528,39 +526,81 @@ class DailyPackService:
         }
         return inference, claims
 
-    # ── 陪伴卡(15h):規則式 fallback;AI 覆寫在 _apply_ai_texts ──
+    # ── 社群卡(15h · 同學會溫度計):討論量 + 多空溫度,只比自身基準 ──
 
-    def _companion_card(self, user_id: str, holdings: List[_Holding],
-                        weighted_change: float) -> dict:
+    NOTE_COMMUNITY = ("社群情緒 ≠ 買賣訊號,但能告訴你現在的氣氛。"
+                      "社群結構性偏多,所以只跟這檔自己的歷史基準比。")
+
+    def _community_card(self, holdings: List[_Holding],
+                        ctx: Optional[_CMoneyContext], data_date: date) -> dict:
+        """聚焦「同學會討論最熱」的一檔;鐵則:只顯示相對自身 30 日基準的變化,
+        絕不顯示絕對多空比(社群結構性偏多)。無資料時回資料不足態。"""
+        focus: Optional[_Holding] = None
+        forum = None
+        if ctx:
+            for h in holdings:
+                f = ctx.cm.get_forum(h.symbol, ctx.sim_date, baseline_days=30)
+                if not f or f.posts <= 0 or not f.baseline_posts_avg:
+                    continue
+                if forum is None or f.posts > forum.posts:
+                    focus, forum = h, f
+
+        if not focus or not forum:
+            top = max(holdings, key=lambda h: h.weight_percent) if holdings else None
+            return {
+                "stock_name": top.name if top else "我的持股",
+                "stock_symbol": top.symbol if top else "",
+                "has_data": False,
+                "posts_today": 0,
+                "posts_baseline": 0.0,
+                "heat_text": "今天沒有足夠的同學會資料;資料齊備時,這裡會顯示討論熱度與多空溫度。",
+                "baseline_tick_percent": 50.0,
+                "sentiment_shift_percent": None,
+                "sentiment_text": None,
+                "bullish": 0,
+                "bearish": 0,
+                "neutral": 0,
+                "note": self.NOTE_COMMUNITY,
+                "chip": None,
+            }
+
+        ratio = forum.posts / forum.baseline_posts_avg
+        # 白色刻度線 = 均值在「今日討論量滿版條」上的位置;夾在 4–96% 免貼邊
+        tick = min(max(forum.baseline_posts_avg / forum.posts * 100, 4.0), 96.0)
+        heat_text = f"討論熱度是這檔 30 日均值的 {ratio:.1f} 倍"
+
+        shift = None
+        sentiment_text = None
+        if forum.baseline_bullish_ratio is not None and forum.posts > 0:
+            today_ratio = forum.bullish / forum.posts * 100
+            shift = round(today_ratio - forum.baseline_bullish_ratio, 1)
+            direction = "多" if shift >= 0 else "空"
+            sentiment_text = (f"較自身基準偏{direction} {shift:+.0f}%"
+                              f"(多 {forum.bullish}/空 {forum.bearish}/中性 {forum.neutral})")
+
         return {
-            "text": self._companion_fallback(holdings, weighted_change),
-            "signature": "—— 陪你看盤的 AI",
-            "day_count": self._day_count(user_id) + 1,
+            "stock_name": focus.name,
+            "stock_symbol": focus.symbol,
+            "has_data": True,
+            "posts_today": forum.posts,
+            "posts_baseline": round(forum.baseline_posts_avg, 1),
+            "heat_text": heat_text,
+            "baseline_tick_percent": round(tick, 1),
+            "sentiment_shift_percent": shift,
+            "sentiment_text": sentiment_text,
+            "bullish": forum.bullish,
+            "bearish": forum.bearish,
+            "neutral": forum.neutral,
+            "note": self.NOTE_COMMUNITY,
+            "chip": _chip("📊 同學會發文統計", f"{focus.symbol} 發文則數/看多/看空/中性",
+                          f"今日 {forum.posts} 則 / 30 日均 {forum.baseline_posts_avg:.0f} 則",
+                          "今日發文則數 ÷ 30 日均值;看多占比 − 自身 30 日看多占比均值",
+                          ctx.sim_date, FORUM_SOURCE),
         }
-
-    @staticmethod
-    def _companion_fallback(holdings: List[_Holding], weighted_change: float) -> str:
-        if not holdings:
-            return ("今天還沒有部位,也就沒有需要掛心的波動。"
-                    "把好奇的股票放進觀察清單,我們慢慢看、不急著決定。")
-        if weighted_change <= -1.5:
-            return ("今天的紅字看起來比較刺眼,先深呼吸。"
-                    "數字會每天變,你看懂市場的能力只會累積。"
-                    "波動是市場的呼吸,不是你的錯。今天照顧好情緒,就已經做得很好了。")
-        if weighted_change < 0:
-            return ("小幅回落的日子,最容易忍不住想做點什麼。"
-                    "其實靜靜看懂原因,就是今天最好的動作。"
-                    "你已經把數據看完了,剩下的交給時間。")
-        if weighted_change >= 1.5:
-            return ("順風的日子,心情好是應該的。"
-                    "也提醒自己:今天的好數字和昨天的壞數字,都只是過程的一格畫面。"
-                    "維持自己的節奏,比追著行情跑更重要。")
-        return ("平靜的一天,市場在等方向,你不用替它著急。"
-                "每天花五分鐘看懂自己的庫存,這個習慣本身就在保護你。")
 
     # ── 分析後交給 AI:數字算好 → AI 只負責措辭,禁字直接退回 ──
 
-    def _apply_ai_texts(self, inference: dict, companion: dict,
+    def _apply_ai_texts(self, inference: dict,
                         holdings: List[_Holding], weighted_change: float,
                         market_change: float, community: Optional[dict],
                         flashcard: Optional[dict]) -> None:
@@ -586,11 +626,6 @@ class DailyPackService:
         conclusion = data.get("conclusion")
         if isinstance(conclusion, str) and conclusion.strip() and not _contains_banned(conclusion):
             inference["conclusion"] = conclusion.strip()
-
-        companion_text = data.get("companion")
-        if isinstance(companion_text, str) and companion_text.strip() \
-                and not _contains_banned(companion_text):
-            companion["text"] = companion_text.strip()
 
     # ── 15a「今天為什麼值得看」──────────────────────────────
 
@@ -644,7 +679,7 @@ class DailyPackService:
         recent: list = []
         for row in rows:
             payload = json.loads(row.pack_json)
-            kinds = ["fact", "inference", "companion"]
+            kinds = ["fact", "inference", "community"]
             if payload.get("fact", {}).get("flashcard"):
                 kinds[0] = "flash"
             collected += 3

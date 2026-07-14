@@ -40,8 +40,17 @@ CLOSE_UPDATE = time(14, 30)
 
 def effective_trade_date(now: Optional[datetime] = None) -> date:
     """全 App 統一的「今日交易日」:14:30 收盤資料更新前算前一日。
-    每日卡包、個股價格快取、大盤快取都以這個日期為準,確保吃同一份模擬數據。"""
-    now = now or datetime.now(TAIPEI)
+    每日卡包、個股價格快取、大盤快取都以這個日期為準,確保吃同一份模擬數據。
+
+    展示用途:sim_clock 若設了模擬今天覆寫(且呼叫端沒帶明確 now),
+    直接回覆寫值,整個 App 的「今天」一起移動 → 模擬交易日(今天 − 1 年)隨之改變。
+    帶明確 now(如單元測試)時忽略覆寫,照 14:30 規則計算。"""
+    if now is None:
+        from app.services import sim_clock
+        override = sim_clock.get_override()
+        if override is not None:
+            return override
+        now = datetime.now(TAIPEI)
     d = now.date()
     return d - timedelta(days=1) if now.time() < CLOSE_UPDATE else d
 

@@ -28,7 +28,14 @@ class StockRepository:
         return self.db.scalars(stmt).first()
 
     def get_daily_price(self, symbol: str) -> Optional[StockDailyPrice]:
-        stmt = select(StockDailyPrice).where(StockDailyPrice.symbol == symbol).order_by(StockDailyPrice.trade_date.desc())
+        stmt = select(StockDailyPrice).where(StockDailyPrice.symbol == symbol)
+        # 模擬時鐘覆寫到過去時,把上限鎖在「有效今天」,不讓較晚日期的舊列(未來價)外洩。
+        # 未覆寫時維持原行為(回最新一筆),避免與測試/正常時序耦合。
+        from app.services import sim_clock
+        override = sim_clock.get_override()
+        if override is not None:
+            stmt = stmt.where(StockDailyPrice.trade_date <= override)
+        stmt = stmt.order_by(StockDailyPrice.trade_date.desc())
         return self.db.scalars(stmt).first()
 
 class PortfolioRepository:

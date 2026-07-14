@@ -72,9 +72,13 @@ struct AppColor {
 
 // MARK: - 每日抽卡包 + AI 信任系統色票(spec 06 · tokens.color.trustCard)
 struct TrustCardColor {
-    // 卡包封面(藍紫漸層 165°)
-    static let packGradient = [Color(hex: "8B8FE0"), Color(hex: "6C70C4"), Color(hex: "54589E")]
-    static let packGlow = Color(hex: "54589E").opacity(0.35)
+    // 卡包封面(TCG 質感:深靛藍寶石漸層 160° + 金箔框 + 撕條)
+    static let packGradient = [Color(hex: "3B3F80"), Color(hex: "252858"), Color(hex: "15173A")]
+    static let packTrim = Color(hex: "E2D1A0").opacity(0.55)          // 亮金描邊
+    static let packTrimDark = Color(hex: "8A7440").opacity(0.65)      // 暗金外層描邊
+    static let packTearStrip = Color(hex: "F0E2B8").opacity(0.8)      // 撕條金箔
+    static let packGlow = Color(hex: "191B46").opacity(0.5)
+    static let packTitleInk = Color(hex: "F6F1E2")                    // 「我的庫存」米金
 
     // 事實卡:灰底冷靜、等寬數字
     static let factBg = Color(hex: "F2F3F5")
@@ -94,11 +98,21 @@ struct TrustCardColor {
     static let inferenceChipText = Color(hex: "4E5CB8")
     static let inferenceMuted = Color(hex: "8A93B8")
 
-    // 陪伴卡:暖色手寫感
-    static let companionBg = [Color(hex: "FBF3E6"), Color(hex: "F4E6CE")]
-    static let companionBorder = Color(hex: "EAD9B8")
-    static let companionLabelBg = Color(hex: "C98A4A")
-    static let companionText = Color(hex: "6A5232")
+    // 社群卡:綠色系同學會溫度計(取代陪伴卡)
+    static let communityBg = [Color(hex: "EDF6F1"), Color(hex: "DCEDE3")]
+    static let communityBorder = Color(hex: "BCD8C8")
+    static let communityLabelBg = Color(hex: "4E8A7C")
+    static let communityText = Color(hex: "2E5546")
+
+    // TCG 卡背(15e 卡疊覆蓋態):各卡型專屬深色寶石漸層 + 金屬框 + 徽記
+    static let cardBackFact = [Color(hex: "2E3140"), Color(hex: "1C1E2B"), Color(hex: "101220")]
+    static let cardBackInference = [Color(hex: "272B58"), Color(hex: "181B3E"), Color(hex: "0E1029")]
+    static let cardBackCommunity = [Color(hex: "1E3A31"), Color(hex: "0E241D"), Color(hex: "081712")]
+    static let cardBackFrame = Color(hex: "D4DAEB").opacity(0.5)
+    static let cardBackEmblemFact = Color(hex: "EAEEF8")
+    static let cardBackEmblemInference = Color(hex: "C9CCF5")
+    static let cardBackEmblemCommunity = Color(hex: "BFE8D4")
+    static let flashAura = Color(hex: "E8BA78").opacity(0.5)          // 閃卡金光爆發
 
     // 出處 chip
     static let sourceChipBg = Color(hex: "E8E9EE")

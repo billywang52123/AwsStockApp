@@ -383,8 +383,8 @@ class OpenAIService:
     @classmethod
     async def fetch_pack_ai_text(cls, metrics: Dict[str, Any]) -> Dict[str, Any]:
         """每日卡包(spec 06):後端把 CMoney 模擬日數據分析完,交給 AI 措辭。
-        AI 只生成「推論卡結論句」與「陪伴卡訊息」,數字一律沿用輸入,不可自創。
-        離線或失敗回空 dict,由 DailyPackService 用規則式 fallback。"""
+        AI 只生成「推論卡結論句」(社群卡為純統計數字,不經 AI),
+        數字一律沿用輸入,不可自創。離線或失敗回空 dict,走規則式 fallback。"""
         if not settings.OPENAI_API_KEY:
             logger.info("OPENAI_API_KEY is not set. Using rule-based pack text.")
             return {}
@@ -400,7 +400,7 @@ class OpenAIService:
 
         prompt = (
             "你是投資新手 App 的 AI 分析員。後端已用 CMoney 收盤資料算好以下數字,"
-            "你只負責把它們寫成兩段文字,不可自創任何數字或事件：\n"
+            "你只負責把它們寫成一句結論,不可自創任何數字或事件：\n"
             f"{holdings_desc}\n"
             f"庫存加權漲跌 {metrics.get('weighted_change', 0):+.2f}%；"
             f"大盤 {metrics.get('market_change', 0):+.2f}%。\n"
@@ -409,9 +409,7 @@ class OpenAIService:
             "請生成 JSON：\n"
             "{\n"
             '  "conclusion": "推論卡結論句（40-70 字繁體中文）：對整體庫存的一句判斷,'
-            "必須引用上面提供的實際數字,語氣冷靜、標明這是依數字推論\",\n"
-            '  "companion": "陪伴卡訊息（80-120 字繁體中文,3-4 句）：手寫信語氣,只安撫情緒,'
-            "不提個股名稱、不預測漲跌\"\n"
+            "必須引用上面提供的實際數字,語氣冷靜、標明這是依數字推論\"\n"
             "}\n"
             "硬性限制：全程繁體中文；不得出現「建議」二字,也不得出現「買進、賣出、加碼、減碼、"
             "停損、停利、攤平、進場、出場、獲利了結、目標價」等任何引導操作的字眼；"
@@ -444,7 +442,6 @@ class OpenAIService:
                     logger.info("Successfully generated pack AI text via GPT-4o-mini")
                     return {
                         "conclusion": result.get("conclusion"),
-                        "companion": result.get("companion"),
                     }
                 logger.warning(f"OpenAI returned error code {response.status_code}: {response.text}")
         except Exception as e:

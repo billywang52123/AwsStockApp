@@ -21,15 +21,22 @@ from app.models.watchlist import Watchlist, WatchlistItem
 from app.models.fortune import FortuneResultModel
 from app.models.daily_pack import DailyPackModel
 from app.models.push_device import PushDevice
+from app.models.app_setting import AppSetting
 
 # Routes
 from app.api.routes import (
-    auth, portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis, holdings, privacy, watchlists, fortune, push_devices, pack
+    auth, portfolio, stocks, anxiety, daily_summary, cards, market, recommendations, reminders, admin_import, achievements, scan, analysis, holdings, privacy, watchlists, fortune, push_devices, pack, admin_sim
 )
 from app.db.migrations import run_light_migrations
+from app.db.database import SessionLocal
+from app.services import sim_clock
 
 Base.metadata.create_all(bind=engine)
 run_light_migrations(engine)
+
+# 啟動時載入模擬今天覆寫(若有),讓 effective_trade_date() 無 session 也能讀
+with SessionLocal() as _startup_db:
+    sim_clock.load_from_db(_startup_db)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -85,6 +92,7 @@ app.include_router(watchlists.router, prefix=settings.API_V1_STR)
 app.include_router(fortune.router, prefix=settings.API_V1_STR)
 app.include_router(pack.router, prefix=settings.API_V1_STR)
 app.include_router(push_devices.router, prefix=settings.API_V1_STR)
+app.include_router(admin_sim.router, prefix=settings.API_V1_STR)
 
 @app.get("/health", tags=["Health"])
 def health_check():

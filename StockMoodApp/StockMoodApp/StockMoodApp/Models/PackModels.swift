@@ -1,7 +1,7 @@
 import Foundation
 
 // MARK: - 每日抽卡包 + AI 信任系統(spec 06 · 15a–15k,取代御神籤)
-// 三張卡固定順序(不可亂序,順序本身是信任設計):事實 → 推論 → 陪伴
+// 三張卡固定順序(不可亂序,順序本身是信任設計):事實 → 推論 → 社群
 
 /// 出處 chip(15i):所有 AI 結論句尾掛的可點小標籤
 struct SourceChip: Codable, Hashable, Identifiable {
@@ -70,10 +70,23 @@ struct InferenceCardData: Codable, Hashable {
     let caveat: String
 }
 
-struct CompanionCardData: Codable, Hashable {
-    let text: String
-    let signature: String
-    let dayCount: Int
+/// 社群卡(15h · 同學會溫度計):討論量 vs 30 日均值、看多看空 vs 自身基準。
+/// 鐵則:社群結構性偏多,只顯示相對自身歷史基準的變化,絕不顯示絕對多空比。
+struct CommunityCardData: Codable, Hashable {
+    let stockName: String            // 聚焦股名(同學會討論最熱的一檔)
+    let stockSymbol: String
+    let hasData: Bool                // 無同學會資料時顯示資料不足態
+    let postsToday: Int              // 今日討論量(則)
+    let postsBaseline: Double        // 30 日均值(則)
+    let heatText: String             // 「討論熱度是這檔 30 日均值的 2.3 倍」
+    let baselineTickPercent: Double  // 討論量條上白色刻度線位置(0–100)
+    let sentimentShiftPercent: Double?   // 較自身基準偏多/空(百分點)
+    let sentimentText: String?       // 「較自身基準偏多 +14%(多 118/空 17/中性 997)」
+    let bullish: Int
+    let bearish: Int
+    let neutral: Int
+    let note: String                 // 「社群情緒 ≠ 買賣訊號…」
+    let chip: SourceChip?
 }
 
 /// 15a「今天為什麼值得看」卡
@@ -90,7 +103,7 @@ struct DailyPack: Codable, Hashable {
     let whyToday: WhyToday
     let fact: FactCardData
     let inference: InferenceCardData
-    let companion: CompanionCardData
+    let communityCard: CommunityCardData
     let opened: Bool
 }
 
@@ -98,15 +111,15 @@ struct DailyPack: Codable, Hashable {
 enum PackCardKind: Int, CaseIterable, Identifiable {
     case fact = 0
     case inference
-    case companion
+    case community
 
     var id: Int { rawValue }
 
     var title: String {
         switch self {
         case .fact: return "事實卡"
-        case .inference: return "推論卡"
-        case .companion: return "陪伴卡"
+        case .inference: return "AI 推論卡"
+        case .community: return "社群卡"
         }
     }
 
@@ -114,7 +127,36 @@ enum PackCardKind: Int, CaseIterable, Identifiable {
         switch self {
         case .fact: return "事實卡 · 可驗證"
         case .inference: return "AI 推論"
-        case .companion: return "AI 陪伴訊息"
+        case .community: return "社群卡 · 同學會"
+        }
+    }
+
+    // ── 15e TCG 卡背素材 ──
+
+    /// 徽記單字(實/推/氛)
+    var emblemGlyph: String {
+        switch self {
+        case .fact: return "實"
+        case .inference: return "推"
+        case .community: return "氛"
+        }
+    }
+
+    /// 飾線夾副標(可驗證數據 / AI 的判斷 / 同學會氣氛)
+    var backSubtitle: String {
+        switch self {
+        case .fact: return "可驗證數據"
+        case .inference: return "AI 的判斷"
+        case .community: return "同學會氣氛"
+        }
+    }
+
+    /// 羅馬數字序號
+    var romanNumeral: String {
+        switch self {
+        case .fact: return "I"
+        case .inference: return "II"
+        case .community: return "III"
         }
     }
 }
@@ -131,7 +173,7 @@ struct ShelfPack: Codable, Hashable, Identifiable {
     let insightNote: String?
 }
 
-/// 歷史卡片圖鑑小卡;kind: fact / inference / companion / flash
+/// 歷史卡片圖鑑小卡;kind: fact / inference / community / flash(舊資料可能為 companion)
 struct CollectionCard: Codable, Hashable, Identifiable {
     var id: String { kind + dateText }
     let kind: String

@@ -84,12 +84,25 @@ class InferenceCardData(BaseModel):
     caveat: str                               # 「這是 AI 依上列數字做的推論,可能有錯…」
 
 
-class CompanionCardData(BaseModel):
+class CommunityCardData(BaseModel):
+    """社群卡(15h · 同學會溫度計):討論量 vs 30 日均值、看多看空 vs 自身基準。
+    鐵則:社群結構性偏多,只顯示相對這檔自身歷史基準的變化,絕不顯示絕對多空比。"""
     model_config = _NO_NAN
 
-    text: str
-    signature: str      # 「—— 陪你看盤的 AI」
-    day_count: int      # Day N(累計開包天數)
+    stock_name: str                # 聚焦股名(同學會討論最熱的一檔)
+    stock_symbol: str
+    has_data: bool                 # 無同學會資料時 False,前端顯示資料不足態
+    posts_today: int               # 今日討論量(則)
+    posts_baseline: float          # 30 日均值(則)
+    heat_text: str                 # 「討論熱度是這檔 30 日均值的 2.3 倍」
+    baseline_tick_percent: float   # 討論量條上白色刻度線位置(均值 ÷ 今日,0–100)
+    sentiment_shift_percent: Optional[float] = None   # 較自身基準偏多/空(百分點)
+    sentiment_text: Optional[str] = None   # 「較自身基準偏多 +14%(多 118/空 17/中性 997)」
+    bullish: int = 0
+    bearish: int = 0
+    neutral: int = 0
+    note: str                      # 底部固定附註「社群情緒 ≠ 買賣訊號…」
+    chip: Optional[SourceChip] = None
 
 
 class CommunityMeter(BaseModel):
@@ -123,8 +136,8 @@ class DailyPackRead(BaseModel):
     why_today: WhyToday
     fact: FactCardData
     inference: InferenceCardData
-    companion: CompanionCardData
-    community: Optional[CommunityMeter] = None   # 15e 卡疊完成態的社群溫度計 widget
+    community_card: CommunityCardData            # 15h 第三張卡:社群卡(同學會溫度計)
+    community: Optional[CommunityMeter] = None   # 內部彙總溫度計(推理鏈第 3 步引用)
     opened: bool                 # 今日已看過開包動畫
 
 
@@ -142,7 +155,7 @@ class ShelfPack(BaseModel):
 
 
 class CollectionCard(BaseModel):
-    """歷史卡片圖鑑小卡。kind: fact / inference / companion / flash"""
+    """歷史卡片圖鑑小卡。kind: fact / inference / community / flash(舊資料可能為 companion)"""
     kind: str
     date_text: str
 
