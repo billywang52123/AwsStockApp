@@ -4,7 +4,7 @@
 - 上市:證交所 OpenAPI(t187ap03_L)
 - 上櫃:櫃買中心 OpenAPI(mopsfin_t187ap03_O)
 兩份合計約 2,000 檔,記憶體快取 24 小時;來源掛掉時回 None,
-由呼叫端退回 Yahoo 英文名,搜尋不會因此失敗。
+由呼叫端退回 CMoney 目錄名稱,搜尋不會因此失敗。
 """
 import logging
 import time

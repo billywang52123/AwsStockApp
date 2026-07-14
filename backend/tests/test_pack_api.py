@@ -23,6 +23,7 @@ from app.models.portfolio import PortfolioItem
 from app.models.daily_pack import DailyPackModel
 from app.services import daily_pack_service
 from app.services.daily_pack_service import TAIPEI, pack_trade_date
+from app.services.cmoney_service import simulated_target
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
@@ -113,6 +114,12 @@ def test_pack_trade_date_boundary():
     assert pack_trade_date(datetime(2026, 7, 10, 14, 30, tzinfo=TAIPEI)) == date(2026, 7, 10)
 
 
+def test_simulated_target_minus_one_year():
+    """專案模擬:CMoney 資料為 2025 年,分析日 = 今天 − 1 年(2/29 對映 2/28)。"""
+    assert simulated_target(date(2026, 7, 14)) == date(2025, 7, 14)
+    assert simulated_target(date(2028, 2, 29)) == date(2027, 2, 28)
+
+
 # ── /pack/today ──────────────────────────────────────────────
 
 def test_today_pack_structure(client, db_session, afternoon):
@@ -131,7 +138,7 @@ def test_today_pack_structure(client, db_session, afternoon):
     assert fact["stocks"][0]["expanded_default"] is True     # 權重最大預設展開
     assert fact["stocks"][0]["symbol"] == "2330"             # 3000 股台積電權重最大
     for s in fact["stocks"]:
-        assert len(s["rows"]) == 3
+        assert len(s["rows"]) >= 3    # SQLite fallback 3 行;CMoney 資料下另有外資/法人列
         for row in s["rows"]:
             assert row["chip"]["source"]                     # 每行掛出處 chip
 

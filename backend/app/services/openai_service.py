@@ -119,7 +119,7 @@ class OpenAIService:
 
         回傳 [{"symbol", "name", "reason"}, ...];未設 key 或失敗回 None,
         由 StockService 退回主題式 fallback。GPT 給的代號一律要再經
-        StockService 驗證(Yahoo 有價格)才會回給前端,幻覺代號會被丟掉。"""
+        StockService 驗證(CMoney 模擬日有價格)才會回給前端,幻覺代號會被丟掉。"""
         if not settings.OPENAI_API_KEY:
             logger.info("OPENAI_API_KEY is not set. Using rule-based fallback stock screen.")
             return None
@@ -379,3 +379,75 @@ class OpenAIService:
             logger.error(f"Failed to fetch companion text from OpenAI: {str(e)}")
 
         return None
+
+    @classmethod
+    async def fetch_pack_ai_text(cls, metrics: Dict[str, Any]) -> Dict[str, Any]:
+        """每日卡包(spec 06):後端把 CMoney 模擬日數據分析完,交給 AI 措辭。
+        AI 只生成「推論卡結論句」與「陪伴卡訊息」,數字一律沿用輸入,不可自創。
+        離線或失敗回空 dict,由 DailyPackService 用規則式 fallback。"""
+        if not settings.OPENAI_API_KEY:
+            logger.info("OPENAI_API_KEY is not set. Using rule-based pack text.")
+            return {}
+
+        holdings_lines = [
+            f"- {h['name']} ({h['symbol']})：漲跌 {h['change_percent']:+.2f}%,"
+            f"庫存占比 {h['weight_percent']:.1f}%,產業 {h.get('industry', '其他')}"
+            for h in metrics.get("holdings") or []
+        ]
+        holdings_desc = "\n".join(holdings_lines) if holdings_lines else "（目前沒有持股）"
+        community_line = metrics.get("community_heat_text") or "（無社群數據）"
+        flash_line = metrics.get("flashcard_event") or "（今日無閃卡事件）"
+
+        prompt = (
+            "你是投資新手 App 的 AI 分析員。後端已用 CMoney 收盤資料算好以下數字,"
+            "你只負責把它們寫成兩段文字,不可自創任何數字或事件：\n"
+            f"{holdings_desc}\n"
+            f"庫存加權漲跌 {metrics.get('weighted_change', 0):+.2f}%；"
+            f"大盤 {metrics.get('market_change', 0):+.2f}%。\n"
+            f"社群(股票同學會)：{community_line}\n"
+            f"閃卡事件：{flash_line}\n\n"
+            "請生成 JSON：\n"
+            "{\n"
+            '  "conclusion": "推論卡結論句（40-70 字繁體中文）：對整體庫存的一句判斷,'
+            "必須引用上面提供的實際數字,語氣冷靜、標明這是依數字推論\",\n"
+            '  "companion": "陪伴卡訊息（80-120 字繁體中文,3-4 句）：手寫信語氣,只安撫情緒,'
+            "不提個股名稱、不預測漲跌\"\n"
+            "}\n"
+            "硬性限制：全程繁體中文；不得出現「建議」二字,也不得出現「買進、賣出、加碼、減碼、"
+            "停損、停利、攤平、進場、出場、獲利了結、目標價」等任何引導操作的字眼；"
+            "不預測明天漲跌;可描述現況,但不告訴用戶該做什麼交易動作。"
+        )
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://api.openai.com/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "gpt-4o-mini",
+                        "messages": [
+                            {"role": "system", "content": "你是一個專門輸出 JSON、依提供數據措辭、語氣冷靜安撫的投資解讀助手。"},
+                            {"role": "user", "content": prompt}
+                        ],
+                        "response_format": {"type": "json_object"},
+                        "temperature": 0.7
+                    },
+                    timeout=6.0
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    import json
+                    result = json.loads(data["choices"][0]["message"]["content"])
+                    logger.info("Successfully generated pack AI text via GPT-4o-mini")
+                    return {
+                        "conclusion": result.get("conclusion"),
+                        "companion": result.get("companion"),
+                    }
+                logger.warning(f"OpenAI returned error code {response.status_code}: {response.text}")
+        except Exception as e:
+            logger.error(f"Failed to fetch pack AI text from OpenAI: {str(e)}")
+
+        return {}

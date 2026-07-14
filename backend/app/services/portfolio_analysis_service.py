@@ -45,7 +45,7 @@ class _Holding:
         self.name = stock.name if stock else item.symbol
         self.industry = (stock.industry if stock and stock.industry else "") or OTHER_INDUSTRY
         self.shares = item.shares
-        # NaN(匯入異常或早盤 Yahoo 壞資料)一律視為缺值,避免污染整個投組加總
+        # NaN(匯入異常或來源壞資料)一律視為缺值,避免污染整個投組加總
         self.cost = float(item.cost_price) if is_finite_number(item.cost_price) else None
         self.close = float(price.close_price) if price and is_finite_number(price.close_price) else None
         self.change = float(price.change_percent) if price and is_finite_number(price.change_percent) else 0.0
