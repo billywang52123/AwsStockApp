@@ -57,6 +57,16 @@ struct PortfolioHabitMetrics: Codable, Hashable {
     let buyCount30d: Int
     let sellCount30d: Int
     let costCompletionRatio: Double
+
+    // convertFromSnakeCase 會把 `activity_count_30d` 轉成 `activityCount30D`
+    // (`.capitalized` 讓數字後的字母變大寫),必須手動對齊,否則整頁解碼失敗。
+    enum CodingKeys: String, CodingKey {
+        case holdingCount, industryCount, topHoldingWeight, top3Weight, techWeight
+        case activityCount30d = "activityCount30D"
+        case buyCount30d = "buyCount30D"
+        case sellCount30d = "sellCount30D"
+        case costCompletionRatio
+    }
 }
 
 struct InvestmentProfileRead: Codable, Hashable {
