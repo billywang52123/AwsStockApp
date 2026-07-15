@@ -55,6 +55,13 @@ class EcsExpressStack(Stack):
             actions=["bedrock:InvokeModel"],
             resources=["*"],
         ))
+        task_role.add_to_policy(iam.PolicyStatement(
+            actions=[
+                "bedrock-agentcore:InvokeAgentRuntime",
+                "bedrock-agentcore:ListAgentRuntimes",
+            ],
+            resources=["*"],
+        ))
         db.secret.grant_read(task_role)
 
         sns_apns_sandbox_arn = self.node.try_get_context("sns_apns_sandbox_arn") or ""
@@ -103,6 +110,8 @@ class EcsExpressStack(Stack):
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="AWS_REGION", value="us-east-1"),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="BEDROCK_VISION_MODEL_ID", value="us.anthropic.claude-sonnet-4-5-20250929-v1:0"),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="BEDROCK_TEXT_MODEL_ID", value="us.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+                    ecs.CfnExpressGatewayService.KeyValuePairProperty(name="AGENTCORE_RUNTIME_ARN", value="arn:aws:bedrock-agentcore:us-east-1:846592848305:runtime/PortfolioInsight_PortfolioInsight-zQ0d0ECOEv"),
+                    ecs.CfnExpressGatewayService.KeyValuePairProperty(name="AGENTCORE_STOCK_ANALYSIS_ENABLED", value="True"),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="DB_SECRET_ARN", value=db_secret_arn),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="ALLOWED_ORIGINS", value="*"),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="SEED_ON_START", value="true"),

@@ -108,7 +108,58 @@ class PortfolioAnalysisService:
         tech_percent = round(sum(h.weight_percent for h in holdings if h.is_tech), 1)
         risk_score, risk_note = self._risk_score(holdings, exposure, tech_percent)
         anxiety = AnxietyScoreService(self.db).calculate_anxiety(user_id)
-        notices = self._risk_notices(holdings, exposure, tech_percent)
+        notices = self._risk_notices(holdings, exposure, tech_percent, user_id)
+
+        return {
+            "total_market_value": round(total_value, 0),
+            "total_cost": round(total_cost, 0),
+            "unrealized_pnl": round(pnl, 0),
+            "unrealized_pnl_percent": round(pnl_percent, 2),
+            "holdings_count": len(holdings),
+            "risk_score": risk_score,
+            "risk_note": risk_note,
+            "anxiety_score": anxiety["score"],
+            "anxiety_note": anxiety["main_reason"],
+            "exposure": exposure,
+            "tech_exposure_percent": tech_percent,
+            "exposure_note": self._exposure_note(exposure, tech_percent),
+            "holdings": [
+                {
+                    "id": h.id,
+                    "symbol": h.symbol,
+                    "name": h.name,
+                    "industry": h.industry,
+                    "shares": h.shares,
+                    "cost_price": h.cost,
+                    "close_price": h.close,
+                    "market_value": round(h.market_value, 0),
+                    "pnl": round(h.pnl, 0),
+                    "pnl_percent": round(h.pnl_percent, 2),
+                    "weight_percent": h.weight_percent,
+                    "change_percent": round(h.change, 2),
+                }
+                for h in sorted(holdings, key=lambda x: x.weight_percent, reverse=True)
+            ],
+            "risk_notices": notices,
+        }
+
+    def get_analysis_raw(self, user_id: str = "demo-user") -> dict:
+        """規則式庫存分析(供 AgentCore 工具使用,不觸發 AgentCore 避免循環)。"""
+        holdings = _load_holdings(self.db, user_id)
+        if not holdings:
+            return self._empty_analysis()
+
+        total_value = sum(h.market_value for h in holdings)
+        total_cost = sum(h.cost_value for h in holdings)
+        pnl = total_value - total_cost
+        pnl_percent = (pnl / total_cost * 100.0) if total_cost > 0 else 0.0
+
+        exposure = self._exposure(holdings)
+        tech_percent = round(sum(h.weight_percent for h in holdings if h.is_tech), 1)
+        risk_score, risk_note = self._risk_score(holdings, exposure, tech_percent)
+        anxiety = AnxietyScoreService(self.db).calculate_anxiety(user_id)
+        # 直接走規則式,不呼叫 AgentCore
+        notices = self._rule_based_risk_notices(holdings, exposure, tech_percent)
 
         return {
             "total_market_value": round(total_value, 0),
@@ -202,7 +253,63 @@ class PortfolioAnalysisService:
             note = "配置相對分散,風險在健康範圍內"
         return score, note
 
-    def _risk_notices(self, holdings: List[_Holding], exposure: List[dict], tech_percent: float) -> List[dict]:
+    def _risk_notices(self, holdings: List[_Holding], exposure: List[dict], tech_percent: float, user_id: str = "demo-user") -> List[dict]:
+        """產生風險提醒卡片。啟用 AgentCore 時,用 AI 根據多維度資料產生;
+        失敗時退回規則式。回傳格式不變:severity/badge/title/body/highlight/plain_talk。"""
+        from app.core.config import settings
+
+        if settings.AGENTCORE_STOCK_ANALYSIS_ENABLED:
+            ai_notices = self._agentcore_risk_notices(user_id)
+            if ai_notices:
+                return ai_notices
+
+        return self._rule_based_risk_notices(holdings, exposure, tech_percent)
+
+    def _agentcore_risk_notices(self, user_id: str) -> List[dict] | None:
+        """呼叫 AgentCore 產生 AI 風險提醒,回傳 RiskNotice 格式或 None。"""
+        import logging
+        from starlette.concurrency import run_in_threadpool
+        from app.services.agentcore_service import get_agentcore_service
+        from app.services.services import run_async
+
+        logger = logging.getLogger(__name__)
+        try:
+            agentcore = get_agentcore_service()
+            result = run_async(run_in_threadpool(agentcore.get_stock_insight, user_id))
+            if not result or not result.get("insight_summary"):
+                return None
+
+            notices = []
+            notices.append({
+                "severity": "rose",
+                "badge": "AI 觀察",
+                "title": "AI 看出要留意的地方",
+                "body": result["insight_summary"],
+                "highlight": "",
+                "plain_talk": result["insight_summary"],
+            })
+
+            for note in result.get("holding_notes", [])[:2]:
+                symbol = note.get("symbol", "")
+                note_text = note.get("note", "")
+                if not note_text:
+                    continue
+                notices.append({
+                    "severity": "amber",
+                    "badge": "留意",
+                    "title": f"{symbol} 觀察提醒",
+                    "body": note_text,
+                    "highlight": symbol,
+                    "plain_talk": note_text,
+                })
+
+            logger.info("AgentCore risk_notices generated (%d items)", len(notices))
+            return notices if notices else None
+        except Exception:
+            logger.exception("AgentCore risk_notices failed, using rule-based")
+            return None
+
+    def _rule_based_risk_notices(self, holdings: List[_Holding], exposure: List[dict], tech_percent: float) -> List[dict]:
         notices = []
 
         top_holding = max(holdings, key=lambda h: h.weight_percent)

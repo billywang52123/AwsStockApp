@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     AWS_REGION: str = "us-east-1"
     # Text generation model for all AI features (stock analysis, card pack, fortune, etc.)
     BEDROCK_TEXT_MODEL_ID: str = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+    # AgentCore Runtime ARN (auto-discovered if empty; set to skip discovery latency)
+    AGENTCORE_RUNTIME_ARN: str = ""
+    # Enable AgentCore for stock analysis (set to "true" to use agent instead of direct Bedrock)
+    AGENTCORE_STOCK_ANALYSIS_ENABLED: bool = True
     # us-east-1 需先在 Bedrock console 開通此模型存取權。
     # 用跨區 inference profile 形式(us. 前綴)。注意 Bedrock 模型會 EOL,
     # 過期會回 ResourceNotFoundException("model version has reached end of life"),

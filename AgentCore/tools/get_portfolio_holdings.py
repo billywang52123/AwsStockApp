@@ -3,4 +3,4 @@ from backend_client import call_backend_tool  # Lambda 打包後是平面模組
 
 
 def handler(event, context):
-    return call_backend_tool("/api/portfolio/analysis", event)
+    return call_backend_tool("/api/internal/portfolio-raw", event)
