@@ -249,6 +249,34 @@ def test_shelf(client, db_session, afternoon):
     assert {c["kind"] for c in data["recent_cards"]} == {"fact", "inference", "community"}
 
 
+def test_shelf_dedupes_same_trade_date(client, db_session, afternoon):
+    """同一天重複列(模擬日期切換 + 表無唯一鍵)只上架最新一列,不重複。"""
+    seed_portfolio(db_session)
+    pack = client.get("/api/pack/today").json()["data"]
+
+    # 模擬 race / 重抽留下的舊列:同一 trade_date 再塞一列較舊的快照
+    trade_date = db_session.query(DailyPackModel).first().trade_date
+    stale = dict(json.loads(db_session.query(DailyPackModel).first().pack_json))
+    stale["why_today"] = {"text": "stale duplicate", "chips": []}
+    db_session.add(DailyPackModel(
+        user_id="demo-user", trade_date=trade_date, opened=False,
+        pack_json=json.dumps(stale, ensure_ascii=False),
+    ))
+    db_session.commit()
+
+    data = client.get("/api/pack/shelf").json()["data"]
+    assert len(data["packs"]) == 1                       # 架上每天只一包
+    assert data["collected_count"] == 3                  # 圖鑑也不重複計數
+    # 取的是最新一列(後插入的 stale 列 id 較大 → 這裡故意驗證「最新優先」)
+    assert data["packs"][0]["content_summary"] == "stale duplicate"
+
+    # get_today 會順手清掉重複列,只留一列
+    client.get("/api/pack/today")
+    rows = db_session.query(DailyPackModel).filter(
+        DailyPackModel.trade_date == trade_date).count()
+    assert rows == 1
+
+
 # ── /pack/weekly-checkup ─────────────────────────────────────
 
 def test_weekly_checkup_reconciles_claims(client, db_session, afternoon):

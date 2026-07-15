@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 分析分頁:庫存分析(8a/8b/8c)與個股 AI 觀點(8d),個股列點擊 push 至觀點詳情(8e)。
+/// 分析分頁:庫存分析(8a/8b/8c)與個股 AI 觀點(8d/11f 列表),個股列點擊深連結至 17a 統一詳情頁。
 struct PortfolioAnalysisView: View {
     @Binding var activeTab: Int
     @StateObject private var viewModel = AnalysisViewModel()
@@ -65,16 +65,16 @@ struct PortfolioAnalysisView: View {
             }
             .navigationTitle("分析")
             .navigationBarTitleDisplayMode(.inline)
+            // 17b 入口整併:8e 退役,列點擊一律深連結到 17a 統一個股詳情頁
             .navigationDestination(for: StockInsightSummary.self) { item in
-                StockInsightDetailView(symbol: item.symbol, name: item.name)
+                StockDetailView(symbol: item.symbol, name: item.name, entry: .analysis)
             }
             .navigationDestination(for: HoldingDetail.self) { holding in
-                StockInsightDetailView(symbol: holding.symbol, name: holding.name)
+                StockDetailView(symbol: holding.symbol, name: holding.name, entry: .analysis)
             }
-            // 11f 觀察清單觀點列點入:同 8e 詳情,白話總結改為「觀察風向」
+            // 11f 觀察清單觀點列點入:同一頁,白話總結改為「觀察風向」、不顯示焦慮 chip
             .navigationDestination(for: WatchInsightItem.self) { item in
-                StockInsightDetailView(symbol: item.symbol, name: item.name,
-                                       plainSummaryLabel: "觀察風向")
+                StockDetailView(symbol: item.symbol, name: item.name, entry: .watchlist)
             }
             .task { await viewModel.load() }
         }
@@ -211,23 +211,6 @@ struct PortfolioAnalysisView: View {
                             .entrance(index: index, stagger: 0.12)
                     }
                 }
-                .padding(.top, 20)
-
-                // CTA:抽安心卡
-                Button {
-                    HapticManager.shared.triggerImpact(style: .light)
-                    activeTab = 1
-                } label: {
-                    Text("求一支安心籤，看怎麼辦")
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background(AppColor.primary)
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                        .shadow(color: AppColor.primary.opacity(0.35), radius: 13, x: 0, y: 10)
-                }
-                .buttonStyle(PressScaleButtonStyle())
                 .padding(.top, 20)
             }
 

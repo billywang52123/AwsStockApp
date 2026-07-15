@@ -106,6 +106,25 @@ class RemoteHoldingService: HoldingServiceProtocol {
         // 分帳就是一筆 PortfolioItem,沿用既有刪除端點
         let _: Bool = try await APIClient.shared.request("/portfolio/items/\(id)", method: "DELETE")
     }
+
+    func updateLot(id: String, broker: String?, shares: Int, price: Double?) async throws {
+        // 分帳就是一筆 PortfolioItem,直接依 id 更新(含改券商名),不走合併邏輯
+        let _: LotUpdateResult = try await APIClient.shared.requestBody(
+            "/portfolio/items/\(id)", method: "PATCH",
+            body: LotUpdateBody(broker: broker, shares: shares, costPrice: price)
+        )
+    }
+}
+
+private struct LotUpdateBody: Encodable {
+    let broker: String?
+    let shares: Int
+    let costPrice: Double?
+}
+
+/// PATCH 回傳 PortfolioItemRead,前端更新後會重新 load,這裡只需能解碼
+private struct LotUpdateResult: Codable {
+    let id: String
 }
 
 // MARK: - Remote Privacy Service(隱私儀表板 · spec 05)
@@ -277,6 +296,33 @@ class RemoteAnalysisService: AnalysisServiceProtocol {
     func getInsightDetail(symbol: String) async throws -> StockInsightDetail {
         let encoded = symbol.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? symbol
         return try await APIClient.shared.request("/insights/\(encoded)", method: "GET")
+    }
+}
+
+// MARK: - Remote Investment Profile Service(投資風格 16a–16e)
+class RemoteInvestmentProfileService: InvestmentProfileServiceProtocol {
+    func getQuestionnaire() async throws -> QuestionnaireRead {
+        return try await APIClient.shared.request("/investment-profile/questionnaire", method: "GET")
+    }
+
+    func submitQuestionnaire(answers: [String: String]) async throws -> InvestmentProfileRead {
+        return try await APIClient.shared.requestBody("/investment-profile/questionnaire", method: "PUT", body: answers)
+    }
+
+    func getProfile() async throws -> InvestmentProfileRead {
+        return try await APIClient.shared.request("/investment-profile", method: "GET")
+    }
+
+    func getHistory(limit: Int) async throws -> [HabitSnapshotRead] {
+        return try await APIClient.shared.request("/investment-profile/history?limit=\(limit)", method: "GET")
+    }
+
+    func refresh() async throws -> HabitSnapshotRead {
+        return try await APIClient.shared.request("/investment-profile/refresh", method: "POST")
+    }
+
+    func getPromptContext() async throws -> PromptContextRead {
+        return try await APIClient.shared.request("/investment-profile/prompt-context", method: "GET")
     }
 }
 

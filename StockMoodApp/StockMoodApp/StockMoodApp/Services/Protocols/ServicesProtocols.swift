@@ -18,6 +18,7 @@ protocol HoldingServiceProtocol {
     func getActivities(symbol: String) async throws -> [HoldingActivity]
     func deleteActivity(id: String) async throws
     func deleteLot(id: String) async throws
+    func updateLot(id: String, broker: String?, shares: Int, price: Double?) async throws
 }
 
 /// 隱私儀表板(spec 05 · 10a)
@@ -85,4 +86,16 @@ protocol AnalysisServiceProtocol {
 protocol ReminderServiceProtocol {
     func getReminderSetting() async throws -> ReminderSetting
     func saveReminderSetting(_ setting: ReminderSetting) async throws
+}
+
+/// 投資風格與投資習慣(spec 07 · 16a–16e)
+protocol InvestmentProfileServiceProtocol {
+    func getQuestionnaire() async throws -> QuestionnaireRead
+    /// 交卷:answers 的 key 必須是題目 id(如 investment_horizon)、value 是選項 code
+    func submitQuestionnaire(answers: [String: String]) async throws -> InvestmentProfileRead
+    func getProfile() async throws -> InvestmentProfileRead
+    func getHistory(limit: Int) async throws -> [HabitSnapshotRead]
+    /// 手動重算習慣快照(正常買賣/匯入後後端會自動建立)
+    func refresh() async throws -> HabitSnapshotRead
+    func getPromptContext() async throws -> PromptContextRead
 }

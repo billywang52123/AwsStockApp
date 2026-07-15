@@ -3,13 +3,14 @@ import SwiftUI
 import Combine
 
 // MARK: - 每日抽卡包(spec 06 · 15a–15k)
-// 15a 入口 → 15b–15e 開包動畫 4 關鍵幀 → 卡疊覆蓋態(卡背朝上)→ 點擊翻牌(15f/g/h)左右滑切換
+// 15a 入口 → 15b 撕開動畫 → 卡疊覆蓋態(卡背朝上)→ 點擊翻牌(15f/g/h)左右滑切換
+// 卡片內容一律等使用者點擊卡背翻牌才揭曉,開包動畫不先露出內容
 @MainActor
 class DailyPackViewModel: ObservableObject {
     enum Phase: Equatable {
         case loading                 // 開頁查今日狀態
         case entry                   // 15a 今日卡包入口
-        case opening(keyframe: Int)  // 15b–15d:KF1 撕開 / KF2 事實卡 / KF3 推論卡
+        case opening                 // 15b 撕開動畫(不露卡片內容)
         case stack                   // 15e 卡疊覆蓋態(三張卡背朝上,滑動選卡、點擊翻牌)
         case browsing(index: Int)    // 15f/g/h 完成態,左右滑切換
     }
@@ -86,7 +87,8 @@ class DailyPackViewModel: ObservableObject {
         }
     }
 
-    /// CTA「開啟今日卡包」:今天已開過(或設定總是跳過/減少動態)直達卡疊,否則跑 4 關鍵幀
+    /// CTA「開啟今日卡包」:今天已開過(或設定總是跳過/減少動態)直達卡疊,
+    /// 否則播撕開動畫後亮出三張卡背,等使用者自己點擊翻牌
     func openPack(reduceMotion: Bool) {
         guard let pack, phase == .entry else { return }
         hasError = false
@@ -97,24 +99,17 @@ class DailyPackViewModel: ObservableObject {
             goToStack()
         } else {
             HapticManager.shared.triggerImpact(style: .light)
-            withAnimation(.easeInOut(duration: 0.35)) { phase = .opening(keyframe: 1) }
-            scheduleAutoAdvance(after: 0.9)   // KF1 撕開 ~600ms 後自動進 KF2
+            withAnimation(.easeInOut(duration: 0.35)) { phase = .opening }
+            scheduleAutoAdvance(after: 1.2)   // 撕開動畫播完自動亮出卡背
         }
     }
 
-    /// 全程可 tap 任一處加速:立即觸發下一關鍵幀
+    /// 撕開動畫中 tap 任一處加速:直接亮出卡背卡疊
     func advanceKeyframe() {
-        guard case .opening(let kf) = phase else { return }
+        guard phase == .opening else { return }
         autoAdvanceTask?.cancel()
         HapticManager.shared.triggerImpact(style: .light)
-        if kf >= 3 {
-            goToStack()
-            return
-        }
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.78)) {
-            phase = .opening(keyframe: kf + 1)
-        }
-        scheduleAutoAdvance(after: 1.5)   // 點一下接下一張 · 1.5 秒後自動
+        goToStack()
     }
 
     /// 右上「跳過」:直達 15e 卡疊覆蓋態,不觸發任何一段動畫

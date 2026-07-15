@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 from typing import Optional
@@ -85,3 +86,43 @@ class SnsPushService:
     def delete_endpoint(self, endpoint_arn: Optional[str]) -> None:
         if endpoint_arn:
             self.client.delete_endpoint(EndpointArn=endpoint_arn)
+
+    def publish(
+        self,
+        endpoint_arn: str,
+        *,
+        title: str,
+        body: str,
+        data: Optional[dict] = None,
+    ) -> str:
+        """Publish one APNs push to an SNS mobile endpoint.
+
+        Returns "sent" / "disabled" / "failed". "disabled" means APNs reported
+        the token dead (app uninstalled etc.); callers should stop using the
+        device instead of retrying.
+        """
+        apns_payload: dict = {
+            "aps": {"alert": {"title": title, "body": body}, "sound": "default"},
+        }
+        if data:
+            apns_payload.update(data)
+        apns_json = json.dumps(apns_payload, ensure_ascii=False)
+        # 同時帶 APNS 與 APNS_SANDBOX:endpoint 掛在哪種 platform application,
+        # SNS 就取對應的 key,單一 payload 兩個環境都能用。
+        message = json.dumps(
+            {"default": body, "APNS": apns_json, "APNS_SANDBOX": apns_json},
+            ensure_ascii=False,
+        )
+        try:
+            self.client.publish(
+                TargetArn=endpoint_arn,
+                Message=message,
+                MessageStructure="json",
+            )
+            return "sent"
+        except ClientError as exc:
+            code = exc.response.get("Error", {}).get("Code", "")
+            if code in ("EndpointDisabled", "NotFound"):
+                return "disabled"
+            logger.warning("SNS publish failed", exc_info=True)
+            return "failed"

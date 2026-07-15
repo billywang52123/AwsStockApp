@@ -64,6 +64,12 @@ class PortfolioRepository:
         self.db.refresh(item)
         return item
         
+    def get_item(self, item_id: str, user_id: str = "demo-user") -> Optional[PortfolioItem]:
+        stmt = select(PortfolioItem).where(
+            and_(PortfolioItem.id == item_id, PortfolioItem.user_id == user_id)
+        )
+        return self.db.scalars(stmt).first()
+
     def delete_item(self, item_id: str, user_id: str = "demo-user") -> bool:
         stmt = delete(PortfolioItem).where(
             and_(PortfolioItem.id == item_id, PortfolioItem.user_id == user_id)

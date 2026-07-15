@@ -48,20 +48,19 @@ struct BrokerLotsView: View {
                 title: "編輯 \(lot.brokerDisplayName)",
                 broker: lot.broker ?? "",
                 shares: lot.shares,
-                price: lot.avgPrice,
-                brokerEditable: false
+                price: lot.avgPrice
             ) { broker, shares, price in
                 Task {
-                    if await viewModel.saveLot(broker: broker, shares: shares, price: price, isEdit: true) {
+                    if await viewModel.updateLot(lot, broker: broker, shares: shares, price: price) {
                         onChanged?()
                     }
                 }
             }
         }
         .sheet(isPresented: $showAddLot) {
-            LotEditSheet(title: "新增券商帳戶", broker: "", shares: 0, price: nil, brokerEditable: true) { broker, shares, price in
+            LotEditSheet(title: "新增券商帳戶", broker: "", shares: 0, price: nil) { broker, shares, price in
                 Task {
-                    if await viewModel.saveLot(broker: broker, shares: shares, price: price, isEdit: false) {
+                    if await viewModel.addLot(broker: broker, shares: shares, price: price) {
                         onChanged?()
                     }
                 }
@@ -356,18 +355,15 @@ private struct LotEditSheet: View {
     @State var broker: String
     @State private var sharesText: String
     @State private var priceText: String
-    /// 編輯既有分帳時鎖住券商名,改名會變成另開分帳
-    let brokerEditable: Bool
     let onSave: (String, Int, Double?) -> Void
     @Environment(\.dismiss) private var dismiss
 
-    init(title: String, broker: String, shares: Int, price: Double?, brokerEditable: Bool,
+    init(title: String, broker: String, shares: Int, price: Double?,
          onSave: @escaping (String, Int, Double?) -> Void) {
         self.title = title
         self._broker = State(initialValue: broker)
         self._sharesText = State(initialValue: shares > 0 ? String(shares) : "")
         self._priceText = State(initialValue: price.map { $0.trimmedString } ?? "")
-        self.brokerEditable = brokerEditable
         self.onSave = onSave
     }
 
@@ -388,30 +384,27 @@ private struct LotEditSheet: View {
 
                         TextField("例如 富邦證券", text: $broker)
                             .font(.system(size: 16, weight: .bold, design: .rounded))
-                            .foregroundColor(brokerEditable ? AppColor.inkPrimary : AppColor.inkTertiary)
+                            .foregroundColor(AppColor.inkPrimary)
                             .padding(12)
                             .background(Color.white)
                             .cornerRadius(12)
-                            .disabled(!brokerEditable)
 
-                        if brokerEditable {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
-                                    ForEach(TaiwanBrokers.common, id: \.self) { name in
-                                        Button {
-                                            broker = name
-                                            HapticManager.shared.triggerSelection()
-                                        } label: {
-                                            Text(name)
-                                                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                                                .foregroundColor(broker == name ? Color(hex: "5B5FA8") : AppColor.inkSecondary)
-                                                .padding(.vertical, 6)
-                                                .padding(.horizontal, 12)
-                                                .background(broker == name ? Color(hex: "EEEEFA") : AppColor.bgTrack)
-                                                .clipShape(Capsule())
-                                        }
-                                        .buttonStyle(.plain)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(TaiwanBrokers.common, id: \.self) { name in
+                                    Button {
+                                        broker = name
+                                        HapticManager.shared.triggerSelection()
+                                    } label: {
+                                        Text(name)
+                                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                                            .foregroundColor(broker == name ? Color(hex: "5B5FA8") : AppColor.inkSecondary)
+                                            .padding(.vertical, 6)
+                                            .padding(.horizontal, 12)
+                                            .background(broker == name ? Color(hex: "EEEEFA") : AppColor.bgTrack)
+                                            .clipShape(Capsule())
                                     }
+                                    .buttonStyle(.plain)
                                 }
                             }
                         }

@@ -18,6 +18,7 @@ class DependencyContainer: ObservableObject {
     let reminderService: ReminderServiceProtocol = RemoteReminderService()
     let analysisService: AnalysisServiceProtocol = RemoteAnalysisService()
     let watchlistService: WatchlistServiceProtocol = RemoteWatchlistService()
+    let investmentProfileService: InvestmentProfileServiceProtocol = RemoteInvestmentProfileService()
 
     private init() {}
 }

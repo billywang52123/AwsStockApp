@@ -346,6 +346,31 @@ class PortfolioService:
             "created_at": saved.created_at
         }
         
+    def update_item(self, item_id: str, user_id: str = "demo-user", *,
+                    broker: Optional[str] = None, cost_price: Optional[float] = None,
+                    shares: Optional[int] = None):
+        """編輯單一券商分帳(含改券商名):直接依 id 更新該筆,不走合併邏輯."""
+        item = self.repo.get_item(item_id, user_id)
+        if item is None:
+            return None
+        item.broker = broker
+        item.cost_price = cost_price
+        item.shares = shares
+        self.repo.db.flush()
+        from app.services.investment_profile_service import InvestmentProfileService
+        InvestmentProfileService(self.repo.db).capture_habit_snapshot(user_id, "holding_updated")
+        stock = self.stock_repo.get_stock(item.symbol)
+        name = stock.name if stock else item.symbol
+        return {
+            "id": item.id,
+            "symbol": item.symbol,
+            "name": name,
+            "cost_price": float(item.cost_price) if item.cost_price is not None else None,
+            "shares": item.shares,
+            "broker": item.broker,
+            "created_at": item.created_at,
+        }
+
     def delete_item(self, item_id: str, user_id: str = "demo-user") -> bool:
         deleted = self.repo.delete_item(item_id, user_id)
         if deleted:

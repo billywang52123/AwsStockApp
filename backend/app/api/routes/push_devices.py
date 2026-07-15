@@ -26,6 +26,22 @@ def register_push_device(
     return ApiResponse(success=True, data=result)
 
 
+@router.post("/test", response_model=ApiResponse[dict])
+def send_test_push(
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+):
+    """對自己的所有已註冊裝置發一則測試推播(設定頁診斷用)。"""
+    sent = PushDeviceService(db).send_to_user(
+        user_id,
+        title="測試推播",
+        body="推播鏈路正常，之後風格轉變等提醒會從這裡送達。",
+        data={"type": "diagnostic"},
+    )
+    db.commit()
+    return ApiResponse(success=True, data={"sent": sent})
+
+
 @router.get("", response_model=ApiResponse[list[PushDeviceRead]])
 def list_push_devices(
     db: Session = Depends(get_db),

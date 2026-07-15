@@ -5,85 +5,110 @@ import Photos
 // MARK: - 15L / 15m · 分享卡片
 
 /// 分享圖只整理可公開轉貼的內容。持股市值是唯一可選的個人金額，且預設隱藏。
+struct ShareDetailRow: Identifiable {
+    let id = UUID()
+    let label: String
+    let value: String
+    let changePercent: Double?   // 有值時 value 用台股漲跌色
+
+    init(label: String, value: String, changePercent: Double? = nil) {
+        self.label = label
+        self.value = value
+        self.changePercent = changePercent
+    }
+}
+
+/// 分享的是「翻開後的卡片內容」（重點句 + 數據列 / 推理鏈），不是卡背樣式。
 struct ShareCardContent {
     let kind: PackCardKind
     let title: String
     let subtitle: String
-    let primaryValue: String
-    let summary: String
+    let headline: String              // 卡片重點句（數據事件 / 推論結論 / 討論熱度）
+    let detailRows: [ShareDetailRow]  // 事實卡個股列、社群卡討論量列
+    let steps: [String]               // 推論卡推理鏈摘要
     let source: String
     let dataDate: String
     let flashLabel: String?
     let personalValue: String
 
     static func make(pack: DailyPack, kind: PackCardKind) -> ShareCardContent {
+        let personalValue = "我的庫存市值 \(pack.totalValueText)"
         switch kind {
         case .fact:
-            let flashEvent = pack.fact.flashcard?.eventText
-            let stock = pack.fact.stocks.first(where: { flashEvent?.contains($0.name) == true })
-                ?? pack.fact.stocks.first
-            let publicRow = stock?.rows.first(where: { $0.label == "收盤價" }) ?? stock?.rows.first
-            let sourceChip = publicRow?.chip ?? pack.fact.flashcard?.chip ?? pack.fact.totalChip
-            let summary: String
-            if let event = flashEvent {
-                summary = event
-            } else if let stock, let publicRow {
-                summary = "\(stock.name) \(publicRow.label) \(publicRow.value)"
-            } else {
-                summary = "今日公開市場資料整理"
+            let fact = pack.fact
+            let sourceChip = fact.flashcard?.chip ?? fact.totalChip
+            let rows = fact.stocks.prefix(3).map { stock -> ShareDetailRow in
+                let close = stock.rows.first(where: { $0.label == "收盤價" })?.value ?? "—"
+                return ShareDetailRow(
+                    label: "\(stock.name) \(stock.symbol)",
+                    value: "收盤 \(close) · \(String(format: "%+.2f%%", stock.changePercent))",
+                    changePercent: stock.changePercent
+                )
             }
             return ShareCardContent(
                 kind: kind,
-                title: stock?.name ?? "今日市場事實",
-                subtitle: stock?.symbol ?? "可驗證數據",
-                primaryValue: publicRow?.value ?? "資料卡",
-                summary: summary,
+                title: "今日市場事實",
+                subtitle: "收盤後可驗證數據",
+                headline: fact.flashcard?.eventText
+                    ?? "\(pack.holdingsCount) 檔持股的收盤數據，券商 App 都查得到",
+                detailRows: rows,
+                steps: [],
                 source: sourceChip.source,
                 dataDate: sourceChip.dataDate,
-                flashLabel: pack.fact.flashcard == nil ? nil : "閃卡 · 數據事件",
-                personalValue: "我的庫存市值 \(pack.totalValueText)"
+                flashLabel: fact.flashcard == nil ? nil : "閃卡 · 數據事件",
+                personalValue: personalValue
             )
 
         case .inference:
-            let sourceChip = pack.inference.steps.compactMap(\.chip).first
+            let inference = pack.inference
+            let sourceChip = inference.steps.compactMap(\.chip).first
             return ShareCardContent(
                 kind: kind,
                 title: "庫存數據推論",
                 subtitle: "這是判斷，不是事實",
-                primaryValue: "AI 推論",
-                summary: pack.inference.conclusion,
+                headline: inference.conclusion,
+                detailRows: [],
+                steps: inference.steps.prefix(3).map { "\($0.number). \($0.text)" },
                 source: sourceChip?.source ?? "公開市場資料",
                 dataDate: sourceChip?.dataDate ?? pack.dataDate,
                 flashLabel: nil,
-                personalValue: "我的庫存市值 \(pack.totalValueText)"
+                personalValue: personalValue
             )
 
         case .community:
             let community = pack.communityCard
-            let sourceChip = community.chip
-            let summary = community.hasData
-                ? [community.heatText, community.sentimentText].compactMap { $0 }.joined(separator: " · ")
-                : "目前公開討論資料不足"
+            var rows: [ShareDetailRow] = []
+            if community.hasData {
+                rows.append(ShareDetailRow(label: "今日討論",
+                                           value: "\(community.postsToday.formatted()) 則"))
+                rows.append(ShareDetailRow(label: "30 日均值",
+                                           value: "\(String(format: "%.0f", community.postsBaseline)) 則"))
+                if let sentiment = community.sentimentText {
+                    rows.append(ShareDetailRow(label: "多空溫度", value: sentiment))
+                }
+            }
             return ShareCardContent(
                 kind: kind,
                 title: community.stockName.isEmpty ? "社群討論" : community.stockName,
                 subtitle: community.stockSymbol.isEmpty ? "同學會氣氛" : community.stockSymbol,
-                primaryValue: community.hasData ? "\(community.postsToday.formatted()) 則" : "資料不足",
-                summary: summary,
-                source: sourceChip?.source ?? "同學會發文統計",
-                dataDate: sourceChip?.dataDate ?? pack.dataDate,
+                headline: community.hasData ? community.heatText : "目前公開討論資料不足",
+                detailRows: rows,
+                steps: [],
+                source: community.chip?.source ?? "同學會發文統計",
+                dataDate: community.chip?.dataDate ?? pack.dataDate,
                 flashLabel: nil,
-                personalValue: "我的庫存市值 \(pack.totalValueText)"
+                personalValue: personalValue
             )
         }
     }
 
     var shareText: String {
-        "\(title)｜\(summary)\n資料截至 \(dataDate)\n股感安心卡 · 非投資建議"
+        "\(title)｜\(headline)\n資料截至 \(dataDate)\n股感安心卡 · 非投資建議"
     }
 }
 
 /// 可匯出的 360×450pt 畫布，以 scale 3 輸出精確 1080×1350 px。
+/// 版面沿用翻開後的卡片正面（淺色底 + 標籤 pill + 重點句 + 數據列），分享的是內容不是卡背。
 struct ShareCardImage: View {
     let content: ShareCardContent
     let hidesHoldingAmount: Bool
@@ -91,33 +116,16 @@ struct ShareCardImage: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: backgroundGradient,
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
+            background
 
-            AngularGradient(
-                colors: [TrustCardColor.packTrim.opacity(0.26), .clear,
-                         accentColor.opacity(0.22), .clear,
-                         TrustCardColor.packTrim.opacity(0.26)],
-                center: .center
-            )
-            .scaleEffect(1.35)
-            .rotationEffect(.degrees(22))
-
-            Circle()
-                .fill(accentColor.opacity(0.34))
-                .frame(width: 250, height: 250)
-                .blur(radius: 48)
-                .offset(x: 118, y: -178)
-
-            RoundedRectangle(cornerRadius: 25, style: .continuous)
-                .strokeBorder(TrustCardColor.packTrimDark, lineWidth: 4)
-                .padding(12)
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(TrustCardColor.packTrim.opacity(0.78), lineWidth: 1.5)
-                .padding(18)
+                .strokeBorder(borderColor, lineWidth: 1.5)
+                .padding(10)
 
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .top) {
+                    CardTagPill(text: content.kind.tagText, bg: tagBg, fg: tagFg)
+                    Spacer()
                     if let flashLabel = content.flashLabel {
                         Label(flashLabel, systemImage: "sparkles")
                             .font(.system(size: 11, weight: .heavy, design: .rounded))
@@ -130,74 +138,78 @@ struct ShareCardImage: View {
                             )
                             .clipShape(Capsule())
                     }
-                    Spacer()
-                    Text(content.kind.tagText)
-                        .font(.system(size: 10.5, weight: .bold, design: .rounded))
-                        .foregroundColor(.white.opacity(0.9))
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 6)
-                        .background(.white.opacity(0.12))
-                        .clipShape(Capsule())
-                }
-
-                Spacer(minLength: 14)
-
-                HStack {
-                    Spacer()
-                    ZStack {
-                        Circle()
-                            .fill(
-                                RadialGradient(colors: [accentColor.opacity(0.55), .clear],
-                                               center: .center, startRadius: 8, endRadius: 65)
-                            )
-                            .frame(width: 130, height: 130)
-                        Circle()
-                            .strokeBorder(TrustCardColor.packTrim.opacity(0.72), lineWidth: 1.5)
-                            .frame(width: 82, height: 82)
-                        Circle()
-                            .strokeBorder(.white.opacity(0.28), lineWidth: 1)
-                            .frame(width: 68, height: 68)
-                        Text(content.kind.emblemGlyph)
-                            .font(.system(size: 34, weight: .heavy, design: .serif))
-                            .foregroundColor(.white)
-                            .shadow(color: accentColor, radius: 12)
-                    }
-                    Spacer()
                 }
 
                 Text(content.title)
-                    .font(.system(size: 28, weight: .heavy, design: .serif))
-                    .foregroundColor(TrustCardColor.packTitleInk)
+                    .font(.system(size: 25, weight: .heavy, design: .serif))
+                    .foregroundColor(ink)
                     .lineLimit(1)
                     .minimumScaleFactor(0.72)
+                    .padding(.top, 16)
 
                 Text(content.subtitle)
                     .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.62))
+                    .foregroundColor(muted)
                     .padding(.top, 4)
 
-                Text(content.primaryValue)
-                    .font(.system(size: 38, weight: .heavy, design: .monospaced))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.65)
-                    .padding(.top, 12)
+                Text(content.headline)
+                    .font(.system(size: 17, weight: .heavy, design: .rounded))
+                    .foregroundColor(ink)
+                    .lineSpacing(7)
+                    .lineLimit(4)
+                    .minimumScaleFactor(0.85)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 14)
 
-                Text(content.summary)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white.opacity(0.84))
-                    .lineSpacing(6)
-                    .lineLimit(3)
-                    .minimumScaleFactor(0.8)
-                    .padding(.top, 8)
+                if !content.steps.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(content.steps, id: \.self) { step in
+                            Text(step)
+                                .font(.system(size: 11.5, weight: .semibold, design: .rounded))
+                                .foregroundColor(ink.opacity(0.85))
+                                .lineSpacing(4)
+                                .lineLimit(2)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(Color.white.opacity(0.72))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .padding(.top, 12)
+                }
+
+                if !content.detailRows.isEmpty {
+                    VStack(spacing: 0) {
+                        ForEach(Array(content.detailRows.enumerated()), id: \.element.id) { index, row in
+                            if index > 0 { Divider().overlay(borderColor.opacity(0.6)) }
+                            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                                Text(row.label)
+                                    .font(.system(size: 12.5, weight: .bold, design: .rounded))
+                                    .foregroundColor(ink)
+                                    .lineLimit(1)
+                                Spacer(minLength: 8)
+                                Text(row.value)
+                                    .font(.system(size: 12.5, weight: .heavy, design: .monospaced))
+                                    .foregroundColor(row.changePercent.map(changeColor) ?? ink)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
+                            }
+                            .padding(.vertical, 10)
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .background(Color.white.opacity(0.72))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .padding(.top, 12)
+                }
 
                 if !hidesHoldingAmount {
                     Label(content.personalValue, systemImage: "lock.open.fill")
                         .font(.system(size: 10.5, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white.opacity(0.78))
+                        .foregroundColor(muted)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(.white.opacity(0.10))
+                        .background(Color.white.opacity(0.6))
                         .clipShape(Capsule())
                         .padding(.top, 10)
                 }
@@ -208,11 +220,11 @@ struct ShareCardImage: View {
                     Label("\(content.source) · 資料截至 \(content.dataDate)",
                           systemImage: "chart.bar.fill")
                         .font(.system(size: 9.5, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white.opacity(0.76))
+                        .foregroundColor(muted)
                         .lineLimit(2)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 7)
-                        .background(.black.opacity(0.18))
+                        .background(Color.white.opacity(0.55))
                         .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
                 }
 
@@ -223,30 +235,64 @@ struct ShareCardImage: View {
                     Text("現況描述 · 非投資建議")
                 }
                 .font(.system(size: 9.5, design: .rounded))
-                .foregroundColor(.white.opacity(0.48))
+                .foregroundColor(muted.opacity(0.85))
                 .padding(.top, 9)
             }
-            .padding(.horizontal, 32)
-            .padding(.vertical, 30)
+            .padding(.horizontal, 28)
+            .padding(.vertical, 26)
         }
         .frame(width: 360, height: 450)
         .clipped()
     }
 
-    private var backgroundGradient: [Color] {
+    @ViewBuilder
+    private var background: some View {
         switch content.kind {
-        case .fact: return TrustCardColor.cardBackFact
-        case .inference: return TrustCardColor.cardBackInference
-        case .community: return TrustCardColor.cardBackCommunity
+        case .fact:
+            TrustCardColor.factBg
+        case .inference:
+            LinearGradient(colors: TrustCardColor.inferenceBg,
+                           startPoint: .top, endPoint: .bottom)
+        case .community:
+            LinearGradient(colors: TrustCardColor.communityBg,
+                           startPoint: .top, endPoint: .bottom)
         }
     }
 
-    private var accentColor: Color {
+    private var ink: Color {
         switch content.kind {
-        case .fact: return TrustCardColor.cardBackEmblemFact
-        case .inference: return TrustCardColor.cardBackEmblemInference
-        case .community: return TrustCardColor.cardBackEmblemCommunity
+        case .fact: return TrustCardColor.factNumber
+        case .inference: return TrustCardColor.inferenceText
+        case .community: return TrustCardColor.communityText
         }
+    }
+
+    private var muted: Color {
+        switch content.kind {
+        case .fact: return TrustCardColor.factLabelText
+        case .inference: return TrustCardColor.inferenceMuted
+        case .community: return TrustCardColor.communityText.opacity(0.7)
+        }
+    }
+
+    private var borderColor: Color {
+        switch content.kind {
+        case .fact: return TrustCardColor.factBorder
+        case .inference: return TrustCardColor.inferenceBorder
+        case .community: return TrustCardColor.communityBorder
+        }
+    }
+
+    private var tagBg: Color {
+        switch content.kind {
+        case .fact: return TrustCardColor.factLabelBg
+        case .inference: return TrustCardColor.inferenceLabelBg
+        case .community: return TrustCardColor.communityLabelBg
+        }
+    }
+
+    private var tagFg: Color {
+        content.kind == .fact ? TrustCardColor.factLabelText : .white
     }
 }
 
@@ -307,13 +353,15 @@ struct ShareCardSheet: View {
 
     private var previewCard: some View {
         HStack(spacing: 18) {
-            ShareCardThumbnail(content: content)
+            ShareCardThumbnail(content: content,
+                               hidesHoldingAmount: hidesHoldingAmount,
+                               includesSource: includesSource)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(content.kind.title)
                     .font(.system(size: 16, weight: .heavy, design: .rounded))
                     .foregroundColor(AppColor.inkPrimary)
-                Text("分享的是卡片樣式；預設只保留可公開數據、出處與免責說明。")
+                Text("分享的是這張卡翻開後的內容；預設只保留可公開數據、出處與免責說明。")
                     .font(.system(size: 12.5, design: .rounded))
                     .foregroundColor(AppColor.inkTertiary)
                     .lineSpacing(6)
@@ -496,43 +544,26 @@ struct ShareCardSheet: View {
     }
 }
 
+/// 預覽縮圖 = 實際輸出圖的 1/3 縮小版,所見即所得(含隱私/出處開關狀態)。
 private struct ShareCardThumbnail: View {
     let content: ShareCardContent
+    let hidesHoldingAmount: Bool
+    let includesSource: Bool
 
     var body: some View {
-        ZStack {
-            LinearGradient(colors: gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(TrustCardColor.packTrim.opacity(0.75), lineWidth: 1.5)
-                .padding(5)
-            VStack(spacing: 8) {
-                Image(systemName: content.flashLabel == nil ? "sparkles" : "sparkles.rectangle.stack.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(TrustCardColor.packTrim)
-                Text(content.kind.emblemGlyph)
-                    .font(.system(size: 28, weight: .heavy, design: .serif))
-                    .foregroundColor(.white)
-                Text(content.title)
-                    .font(.system(size: 10.5, weight: .heavy, design: .rounded))
-                    .foregroundColor(.white)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-            }
-            .padding(8)
-        }
-        .frame(width: 104, height: 150)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .shadow(color: Color.black.opacity(0.18), radius: 8, x: 0, y: 6)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(content.kind.title)分享卡預覽")
-    }
-
-    private var gradient: [Color] {
-        switch content.kind {
-        case .fact: return TrustCardColor.cardBackFact
-        case .inference: return TrustCardColor.cardBackInference
-        case .community: return TrustCardColor.cardBackCommunity
-        }
+        ShareCardImage(content: content,
+                       hidesHoldingAmount: hidesHoldingAmount,
+                       includesSource: includesSource)
+            .scaleEffect(1.0 / 3.0)
+            .frame(width: 120, height: 150)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(AppColor.inkFaint, lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.18), radius: 8, x: 0, y: 6)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(content.kind.title)分享卡預覽")
     }
 }
 

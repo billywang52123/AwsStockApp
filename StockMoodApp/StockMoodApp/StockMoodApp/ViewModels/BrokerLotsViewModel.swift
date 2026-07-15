@@ -33,20 +33,33 @@ class BrokerLotsViewModel: ObservableObject {
         isLoading = false
     }
 
-    /// 新增/編輯券商分帳(9e):走 import/merge 的單筆決策
-    /// - 新增不同券商 → add_lot;同券商已存在 → replace_broker(視為最新數字)
-    func saveLot(broker: String, shares: Int, price: Double?, isEdit: Bool) async -> Bool {
+    /// 新增券商分帳(9e):走 import/merge 的單筆決策
+    /// - 新增不同券商 → add_lot;同券商已存在 → mergeAdd(加總攤平)
+    func addLot(broker: String, shares: Int, price: Double?) async -> Bool {
         guard shares > 0 else { return false }
-        let action: MergeAction = {
-            if isEdit { return .replaceBroker }
-            let exists = holding?.lots.contains { $0.broker == broker } ?? false
-            return exists ? .mergeAdd : .addLot
-        }()
+        let exists = holding?.lots.contains { $0.broker == broker } ?? false
+        let action: MergeAction = exists ? .mergeAdd : .addLot
         do {
             _ = try await container.holdingService.importMerge(decisions: [
                 MergeDecision(symbol: symbol, shares: shares, cost: price,
                               broker: broker, action: action.rawValue)
             ])
+            HapticManager.shared.triggerNotification(type: .success)
+            await load()
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
+    /// 編輯既有券商分帳:直接依 lot id 更新該筆(可改券商名/股數/均價)
+    func updateLot(_ lot: BrokerLot, broker: String, shares: Int, price: Double?) async -> Bool {
+        guard shares > 0 else { return false }
+        do {
+            try await container.holdingService.updateLot(
+                id: lot.id, broker: broker, shares: shares, price: price
+            )
             HapticManager.shared.triggerNotification(type: .success)
             await load()
             return true

@@ -1,5 +1,6 @@
 import SwiftUI
 import GoogleSignIn
+import UserNotifications
 
 @main
 struct StockMoodApp: App {
@@ -48,6 +49,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // 若通知權限已授權，啟動時就向 APNs 註冊，讓 token 保持最新。
         PushDeviceService.shared.registerForRemoteNotificationsIfPermitted()
 
+        // 接收遠端推播(前景顯示 + 點擊處理,如 16e 風格轉變紅點)
+        UNUserNotificationCenter.current().delegate = self
+
         // Configure GoogleSignIn with client ID from GoogleService-Info.plist
         guard let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
               let plist = NSDictionary(contentsOfFile: path),
@@ -87,5 +91,39 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
         print("⚠️ APNs 註冊失敗：\(error.localizedDescription)")
+    }
+}
+
+// MARK: - 通知接收(前景顯示 + 點擊路由)
+extension AppDelegate: UNUserNotificationCenterDelegate {
+
+    private func handlePushPayload(_ userInfo: [AnyHashable: Any]) {
+        // 後端 SNS payload 把自訂欄位放在 aps 同層(見 sns_push_service.publish)
+        guard let type = userInfo["type"] as? String else { return }
+        if type == "style_shift" {
+            Task { @MainActor in
+                StyleShiftCenter.shared.flagFromPush()
+            }
+        }
+    }
+
+    /// App 在前景時也顯示橫幅,並同步紅點狀態。
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        handlePushPayload(notification.request.content.userInfo)
+        completionHandler([.banner, .sound])
+    }
+
+    /// 使用者點了通知(背景/關閉狀態進來)。
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        handlePushPayload(response.notification.request.content.userInfo)
+        completionHandler()
     }
 }

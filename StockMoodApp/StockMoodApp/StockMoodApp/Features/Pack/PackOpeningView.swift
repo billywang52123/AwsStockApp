@@ -1,8 +1,8 @@
 import SwiftUI
 
 // MARK: - 15b–15e · 開包動畫舞台(深色模式,光效在深色下最漂亮)
-// KF1 撕開 → KF2 事實卡飛出翻面 → KF3 推論卡接續 → KF4 卡疊覆蓋態(卡背朝上)
-// 全程可 tap 任一處加速;右上「跳過」直達卡疊;完成態(15f/g/h)也在此舞台上
+// 撕開動畫 → 卡疊覆蓋態(三張卡背朝上),內容一律等使用者點擊卡背翻牌才揭曉
+// 撕開中可 tap 任一處加速;右上「跳過」直達卡疊;完成態(15f/g/h)也在此舞台上
 
 struct PackOpeningStage: View {
     @ObservedObject var viewModel: DailyPackViewModel
@@ -13,8 +13,9 @@ struct PackOpeningStage: View {
 
             if let pack = viewModel.pack {
                 switch viewModel.phase {
-                case .opening(let keyframe):
-                    keyframeContent(pack: pack, keyframe: keyframe)
+                case .opening:
+                    PackTearKeyframe(pack: pack)
+                        .transition(.opacity)
                         .allowsHitTesting(false)   // 動畫中卡片不吃點擊,tap 一律加速
                 case .stack:
                     PackStackView(pack: pack, viewModel: viewModel)
@@ -25,8 +26,8 @@ struct PackOpeningStage: View {
                 }
             }
 
-            // 右上「跳過」pill:KF1–KF4 全程存在
-            if case .opening = viewModel.phase {
+            // 右上「跳過」pill:撕開動畫全程存在
+            if viewModel.phase == .opening {
                 VStack {
                     HStack {
                         Spacer()
@@ -52,24 +53,9 @@ struct PackOpeningStage: View {
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            if case .opening = viewModel.phase {
+            if viewModel.phase == .opening {
                 viewModel.advanceKeyframe()
             }
-        }
-    }
-
-    @ViewBuilder
-    private func keyframeContent(pack: DailyPack, keyframe: Int) -> some View {
-        switch keyframe {
-        case 1:
-            PackTearKeyframe(pack: pack)
-                .transition(.opacity)
-        case 2:
-            PackFactFlyKeyframe(pack: pack)
-                .transition(.opacity)
-        default:
-            PackInferenceKeyframe(pack: pack)
-                .transition(.opacity)
         }
     }
 }
@@ -129,93 +115,7 @@ struct PackTearKeyframe: View {
     }
 }
 
-// MARK: - KF2 · 事實卡飛出翻面(15c):spring 彈出定位 -6°,下一張卡背等待
-
-struct PackFactFlyKeyframe: View {
-    let pack: DailyPack
-    @State private var landed = false
-
-    var body: some View {
-        GeometryReader { geo in
-            let cardWidth = min(geo.size.width - 88, 308)
-            let cardHeight = cardWidth * 472 / 308
-
-            ZStack {
-                // 下一張卡(推論卡)卡背已就位等待
-                CardBackFace(kind: .inference)
-                    .frame(width: cardWidth * 0.6, height: cardHeight * 0.57)
-                    .opacity(0.45)
-                    .offset(y: geo.size.height * 0.32)
-
-                FactCardView(pack: pack, onChip: { _ in })
-                    .frame(width: cardWidth, height: cardHeight)
-                    .rotationEffect(.degrees(landed ? -6 : 4))
-                    .scaleEffect(landed ? 1.0 : 0.72)
-                    .offset(y: landed ? -geo.size.height * 0.04 : geo.size.height * 0.18)
-                    .opacity(landed ? 1 : 0)
-                    .shadow(color: .black.opacity(0.45), radius: 16, x: 0, y: 18)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        .onAppear {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) { landed = true }
-        }
-    }
-}
-
-// MARK: - KF3 · 推論卡接續(15d):事實卡縮成已讀縮圖貼頂,推論卡飛入 +4°
-
-struct PackInferenceKeyframe: View {
-    let pack: DailyPack
-    @State private var landed = false
-
-    var body: some View {
-        GeometryReader { geo in
-            let cardWidth = min(geo.size.width - 88, 308)
-            let cardHeight = cardWidth * 472 / 308
-
-            VStack(spacing: 0) {
-                // 事實卡已讀縮圖(150×64)
-                HStack(spacing: 8) {
-                    Text("事實卡 · 已讀 ✓")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                        .foregroundColor(TrustCardColor.factLabelText)
-                    Text(pack.totalValueText)
-                        .font(.system(size: 12, weight: .heavy, design: .monospaced))
-                        .foregroundColor(TrustCardColor.factNumber)
-                }
-                .frame(width: 150, height: 64)
-                .background(TrustCardColor.factBg)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .opacity(0.8)
-                .scaleEffect(0.96)
-                .padding(.top, 66)
-
-                Spacer()
-
-                InferenceCardView(pack: pack, onChip: { _ in }, onGlossary: { _ in })
-                    .frame(width: cardWidth, height: cardHeight)
-                    .rotationEffect(.degrees(landed ? 4 : -2))
-                    .offset(y: landed ? 0 : geo.size.height * 0.4)
-                    .opacity(landed ? 1 : 0)
-                    .shadow(color: .black.opacity(0.45), radius: 16, x: 0, y: 18)
-
-                Spacer()
-
-                Text("點一下接下一張 · 1.5 秒後自動")
-                    .font(.system(size: 11, design: .rounded))
-                    .foregroundColor(.white.opacity(0.38))
-                    .padding(.bottom, 54)
-            }
-            .frame(maxWidth: .infinity)
-        }
-        .onAppear {
-            withAnimation(.spring(response: 0.45, dampingFraction: 0.74)) { landed = true }
-        }
-    }
-}
-
-// MARK: - KF4 / 15e · 卡疊覆蓋態:三張卡背朝上收攏成疊,滑動選卡、點擊翻牌
+// MARK: - 15e · 卡疊覆蓋態:三張卡背朝上收攏成疊,滑動選卡、點擊翻牌
 
 struct PackStackView: View {
     let pack: DailyPack

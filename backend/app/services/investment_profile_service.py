@@ -335,7 +335,33 @@ class InvestmentProfileService:
         )
         self.db.add(snapshot)
         self.db.flush()
+        self._notify_style_shift(user_id, trigger, previous, observed)
         return self._snapshot_dict(snapshot)
+
+    def _notify_style_shift(self, user_id: str, trigger: str, previous, observed: dict) -> None:
+        """持股異動導致觀察風格轉變時,推播提示進 16e 風格轉變頁。
+
+        只在 holding_* 觸發時發送(問卷交卷與手動重算時使用者就在 App 內,不打擾);
+        推播失敗絕不能擋住買賣/匯入主流程,一律吞掉例外。
+        """
+        if not trigger.startswith("holding"):
+            return
+        if previous is None or previous.observed_style_code == observed["code"]:
+            return
+        try:
+            from app.services.push_device_service import PushDeviceService
+            PushDeviceService(self.db).send_to_user(
+                user_id,
+                title="投資風格轉變",
+                body=(
+                    f"你更新了持股，觀察風格從「{previous.observed_style_label}」"
+                    f"變成「{observed['label']}」。風格沒有好壞，打開看看維度變化。"
+                ),
+                data={"type": "style_shift"},
+            )
+        except Exception:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).warning("style shift push failed", exc_info=True)
 
     def history(self, user_id: str, limit: int = 30) -> List[dict]:
         rows = self.db.scalars(

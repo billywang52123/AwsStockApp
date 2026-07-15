@@ -186,6 +186,47 @@ def test_import_replace_broker_is_snapshot(client):
     assert len(holding["lots"]) == 1
 
 
+def test_update_lot_assigns_broker_without_creating_duplicate(client):
+    """編輯「未指定券商」分帳並指定券商:就地更新該筆,不會另開新分帳."""
+    _seed(client, shares=500, cost=1000.0)
+    holding = _holding(client)
+    assert len(holding["lots"]) == 1
+    lot_id = holding["lots"][0]["id"]
+    assert holding["lots"][0]["broker"] is None
+
+    resp = client.patch(f"/api/portfolio/items/{lot_id}", json={
+        "broker": "富邦證券", "shares": 800, "cost_price": 950,
+    })
+    assert resp.status_code == 200
+
+    holding = _holding(client)
+    assert len(holding["lots"]) == 1
+    assert holding["lots"][0]["broker"] == "富邦證券"
+    assert holding["lots"][0]["shares"] == 800
+    assert holding["total_shares"] == 800
+    assert holding["avg_price"] == pytest.approx(950.0)
+
+
+def test_update_lot_can_clear_price(client):
+    """編輯時均價留空 → 清掉買價,聚合掛 incomplete."""
+    _seed(client, shares=500, cost=1000.0)
+    lot_id = _holding(client)["lots"][0]["id"]
+    resp = client.patch(f"/api/portfolio/items/{lot_id}", json={
+        "broker": "國泰證券", "shares": 500, "cost_price": None,
+    })
+    assert resp.status_code == 200
+    holding = _holding(client)
+    assert holding["lots"][0]["avg_price"] is None
+    assert holding["avg_price_incomplete"] is True
+
+
+def test_update_lot_missing_returns_404(client):
+    resp = client.patch("/api/portfolio/items/does-not-exist", json={
+        "broker": "富邦證券", "shares": 100, "cost_price": 900,
+    })
+    assert resp.status_code == 404
+
+
 def test_import_replace_all_deletes_other_lots(client):
     _seed(client, shares=2000, cost=900.0)
     client.post("/api/portfolio/import/merge", json={"decisions": [

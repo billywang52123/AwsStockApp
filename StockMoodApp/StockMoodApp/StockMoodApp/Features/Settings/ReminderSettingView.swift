@@ -3,6 +3,7 @@ import SwiftUI
 struct ReminderSettingView: View {
     @StateObject private var viewModel = ReminderSettingViewModel()
     @ObservedObject private var privacy = PrivacyManager.shared
+    @ObservedObject private var styleShiftCenter = StyleShiftCenter.shared
     @State private var showSignOutConfirm = false
     @State private var alwaysSkipPackAnimation = AppPreferenceStore.shared.alwaysSkipPackAnimation
 
@@ -18,7 +19,7 @@ struct ReminderSettingView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 AppColor.background
                     .edgesIgnoringSafeArea(.all)
@@ -63,6 +64,45 @@ struct ReminderSettingView: View {
                                     .foregroundColor(AppColor.primary)
                                 Text("我的冷靜成就")
                                     .foregroundColor(AppColor.textPrimary)
+                            }
+                        }
+                    }
+
+                    // 16a–16e 投資風格與投資習慣(spec 07)
+                    Section(
+                        header: Text("投資風格").font(.system(.footnote, design: .rounded)),
+                        footer: Text("風格只用來調整 AI 說明的口吻與重點，不會改變任何數據。")
+                            .font(.system(.caption2, design: .rounded))
+                    ) {
+                        NavigationLink(destination: StyleResultView(mode: .revisit)) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "person.text.rectangle.fill")
+                                    .foregroundColor(AppColor.primary)
+                                Text("我的投資風格")
+                                    .foregroundColor(AppColor.textPrimary)
+                            }
+                        }
+
+                        NavigationLink(destination: InvestHabitView()) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "chart.bar.doc.horizontal.fill")
+                                    .foregroundColor(AppColor.amberStrong)
+                                Text("投資習慣")
+                                    .foregroundColor(AppColor.textPrimary)
+                            }
+                        }
+
+                        NavigationLink(destination: StyleShiftView()) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .foregroundColor(AppColor.downText)
+                                Text("風格轉變")
+                                    .foregroundColor(AppColor.textPrimary)
+                                if styleShiftCenter.hasUnseenShift {
+                                    Circle()
+                                        .fill(AppColor.danger)
+                                        .frame(width: 8, height: 8)
+                                }
                             }
                         }
                     }

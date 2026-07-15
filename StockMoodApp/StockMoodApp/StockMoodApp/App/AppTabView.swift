@@ -3,6 +3,7 @@ import SwiftUI
 struct AppTabView: View {
     @State private var selectedTab = 0
     @ObservedObject private var achievementCenter = AchievementCenter.shared
+    @ObservedObject private var styleShiftCenter = StyleShiftCenter.shared
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -35,6 +36,8 @@ struct AppTabView: View {
                 .tabItem {
                     Label("設定", systemImage: "gearshape.fill")
                 }
+                // 16e 風格轉變未讀 → 設定 tab 紅點
+                .badge(styleShiftCenter.hasUnseenShift ? 1 : 0)
                 .tag(4)
         }
         .tint(AppColor.primary)

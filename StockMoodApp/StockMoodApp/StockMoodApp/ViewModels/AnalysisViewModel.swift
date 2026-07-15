@@ -58,31 +58,3 @@ class AnalysisViewModel: ObservableObject {
         }
     }
 }
-
-// MARK: - 個股觀點詳情(8e)
-@MainActor
-class StockInsightDetailViewModel: ObservableObject {
-    @Published var detail: StockInsightDetail?
-    @Published var isLoading = false
-    @Published var hasError = false
-    @Published var errorMessage = ""
-
-    private let container: DependencyContainer
-
-    init(container: DependencyContainer? = nil) {
-        self.container = container ?? .shared
-    }
-
-    func load(symbol: String) async {
-        isLoading = true
-        hasError = false
-        do {
-            detail = try await container.analysisService.getInsightDetail(symbol: symbol)
-        } catch {
-            hasError = true
-            errorMessage = error.localizedDescription
-            print("Load insight detail failed: \(error)")
-        }
-        isLoading = false
-    }
-}

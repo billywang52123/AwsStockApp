@@ -84,6 +84,34 @@ class PushDeviceService:
         ).all()
         return [self.serialize(device) for device in devices]
 
+    def send_to_user(
+        self, user_id: str, *, title: str, body: str, data: dict | None = None
+    ) -> int:
+        """Push to every enabled, SNS-registered device of the user.
+
+        Returns the number of devices the message was handed to SNS for.
+        Dead endpoints (app uninstalled) are disabled instead of retried.
+        """
+        devices = self.db.scalars(
+            select(PushDevice).where(
+                and_(PushDevice.user_id == user_id, PushDevice.enabled.is_(True))
+            )
+        ).all()
+        sent = 0
+        for device in devices:
+            if not device.sns_endpoint_arn:
+                continue
+            outcome = self.sns.publish(
+                device.sns_endpoint_arn, title=title, body=body, data=data
+            )
+            if outcome == "sent":
+                sent += 1
+            elif outcome == "disabled":
+                device.enabled = False
+                device.updated_at = _now()
+        self.db.flush()
+        return sent
+
     def delete(self, *, user_id: str, device_id: str) -> bool:
         device = self.db.scalars(
             select(PushDevice).where(

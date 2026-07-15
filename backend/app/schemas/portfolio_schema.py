@@ -12,6 +12,15 @@ class PortfolioItemCreate(BaseModel):
     shares: Optional[int] = Field(default=None, ge=0, le=1_000_000_000)
     broker: Optional[str] = None
 
+class PortfolioItemUpdate(BaseModel):
+    # 編輯單一券商分帳:broker/shares/cost_price 全部以送來的值為準
+    # (cost_price 留空 = 清掉買價,顯示「未填買價」)
+    model_config = ConfigDict(allow_inf_nan=False)
+
+    cost_price: Optional[float] = Field(default=None, ge=0, le=10_000_000)
+    shares: Optional[int] = Field(default=None, ge=0, le=1_000_000_000)
+    broker: Optional[str] = None
+
 class PortfolioItemRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

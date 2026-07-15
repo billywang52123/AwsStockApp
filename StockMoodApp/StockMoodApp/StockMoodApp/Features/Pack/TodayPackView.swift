@@ -49,7 +49,7 @@ struct TodayPackView: View {
         switch viewModel.phase {
         case .loading: return 0
         case .entry: return 1
-        case .opening(let kf): return 10 + kf
+        case .opening: return 10
         case .stack: return 20
         case .browsing: return 30
         }

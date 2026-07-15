@@ -111,16 +111,27 @@ class DailyPackService:
 
     # ── 查詢 / 產生 ──────────────────────────────────────────
 
+    def _get_rows(self, user_id: str, trade_date: date) -> List[DailyPackModel]:
+        """同一天的所有列,最新的在前(表無唯一鍵,模擬日期反覆切換可能留下重複列)。"""
+        return list(self.db.scalars(
+            select(DailyPackModel).where(and_(
+                DailyPackModel.user_id == user_id,
+                DailyPackModel.trade_date == trade_date,
+            )).order_by(DailyPackModel.id.desc())
+        ))
+
     def _get_row(self, user_id: str, trade_date: date) -> Optional[DailyPackModel]:
-        return self.db.scalars(select(DailyPackModel).where(and_(
-            DailyPackModel.user_id == user_id,
-            DailyPackModel.trade_date == trade_date,
-        ))).first()
+        rows = self._get_rows(user_id, trade_date)
+        return rows[0] if rows else None
 
     def get_today(self, user_id: str = "demo-user", force: bool = False) -> dict:
         """今日卡包;第一次請求時產生並存檔,之後全天回同一包。"""
         trade_date = pack_trade_date()
-        row = self._get_row(user_id, trade_date)
+        rows = self._get_rows(user_id, trade_date)
+        row = rows[0] if rows else None
+        # 同一天若累積出重複列,只保留最新一列,其餘順手清掉
+        for dup in rows[1:]:
+            self.db.delete(dup)
         if row and not force:
             payload = json.loads(row.pack_json)
             # 舊版卡包(陪伴卡時代)沒有社群卡 → 當場重生,自動遷移到新格式
@@ -663,12 +674,17 @@ class DailyPackService:
         rows = self.db.scalars(
             select(DailyPackModel)
             .where(DailyPackModel.user_id == user_id)
-            .order_by(DailyPackModel.trade_date.desc())
+            .order_by(DailyPackModel.trade_date.desc(), DailyPackModel.id.desc())
         ).all()
         packs: list = []
         collected = 0
         recent: list = []
+        seen_dates: set = set()
         for row in rows:
+            # 同一天重複列(模擬日期切換 + 無唯一鍵)只取最新一列,架上每天一包
+            if row.trade_date in seen_dates:
+                continue
+            seen_dates.add(row.trade_date)
             payload = json.loads(row.pack_json)
             # 陪伴卡舊格式無法完整回顧目前的三卡畫面,只保留在圖鑑計數中。
             if "community_card" in payload:

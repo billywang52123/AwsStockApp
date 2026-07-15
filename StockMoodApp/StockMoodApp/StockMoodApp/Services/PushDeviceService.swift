@@ -115,7 +115,17 @@ final class PushDeviceService {
         }
         switch await performUpload(token: token) {
         case .active(let id):
-            return "✅ active — SNS 已就緒，可實際發送推播（id: \(id)）"
+            // 註冊沒問題 → 直接請後端透過 SNS 發一則真的測試推播,完成端到端驗證
+            struct TestPushResult: Codable { let sent: Int }
+            if let result: TestPushResult = try? await APIClient.shared.request(
+                "/push-devices/test", method: "POST"
+            ) {
+                if result.sent > 0 {
+                    return "✅ active — 已請 SNS 發送測試推播到 \(result.sent) 台裝置，幾秒內應收到通知（id: \(id)）"
+                }
+                return "🟡 active — 註冊正常，但測試推播發送了 0 台（endpoint 可能已失效，請重開通知權限再試）"
+            }
+            return "✅ active — SNS 已就緒（id: \(id)）；測試推播端點尚未部署，請更新後端後再試"
         case .pending(let id):
             return "🟡 pending_sns_configuration — token 已存後端 RDS，等待 SNS 設定（id: \(id)）"
         case .unknown(let status):
