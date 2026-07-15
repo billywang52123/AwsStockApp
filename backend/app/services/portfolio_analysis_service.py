@@ -280,13 +280,15 @@ class PortfolioAnalysisService:
                 return None
 
             notices = []
+            summary = result["insight_summary"]
+            plain = result.get("plain_talk") or "不用急著做什麼,先知道自己的投組長什麼樣子就好。"
             notices.append({
                 "severity": "rose",
                 "badge": "AI 觀察",
                 "title": "AI 看出要留意的地方",
-                "body": result["insight_summary"],
+                "body": summary,
                 "highlight": "",
-                "plain_talk": result["insight_summary"],
+                "plain_talk": plain,
             })
 
             for note in result.get("holding_notes", [])[:2]:
@@ -294,13 +296,14 @@ class PortfolioAnalysisService:
                 note_text = note.get("note", "")
                 if not note_text:
                     continue
+                note_plain = note.get("plain_talk") or f"白話說：先觀察 {symbol} 的走勢,不需要急著反應。"
                 notices.append({
                     "severity": "amber",
                     "badge": "留意",
                     "title": f"{symbol} 觀察提醒",
                     "body": note_text,
                     "highlight": symbol,
-                    "plain_talk": note_text,
+                    "plain_talk": note_plain,
                 })
 
             logger.info("AgentCore risk_notices generated (%d items)", len(notices))

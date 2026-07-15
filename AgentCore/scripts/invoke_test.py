@@ -30,7 +30,8 @@ def main(user_id: str) -> None:
         payload=json.dumps({"user_id": user_id}).encode(),
         qualifier="DEFAULT",
     )
-    body = "".join(chunk.decode() for chunk in resp.get("response", []))
+    raw = b"".join(chunk for chunk in resp.get("response", []))
+    body = raw.decode("utf-8")
     data = json.loads(body)
     print(json.dumps(data, ensure_ascii=False, indent=2))
 
