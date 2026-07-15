@@ -55,9 +55,42 @@ TOOLS = [
         "取得指定股票代號的法人籌碼進出概況(目前為示意資料)。",
         SYMBOLS_SCHEMA,
     ),
+    (
+        "get_stock_valuation",
+        "取得指定股票的行情估值:收盤價、漲跌幅、本益比、股價淨值比、成交量、總市值。",
+        SYMBOLS_SCHEMA,
+    ),
+    (
+        "get_institutional_flow",
+        "取得指定股票的法人動向:外資/投信/自營商買賣超張數與持股比率。",
+        SYMBOLS_SCHEMA,
+    ),
+    (
+        "get_stock_momentum",
+        "取得指定股票的動能指標:創新高、連漲天數、乖離年線、近5/20/60日漲跌幅。",
+        SYMBOLS_SCHEMA,
+    ),
+    (
+        "get_forum_sentiment",
+        "取得指定股票的社群討論:同學會發文數、看多/看空/中性數量。",
+        SYMBOLS_SCHEMA,
+    ),
+    (
+        "get_stock_returns",
+        "取得指定股票的報酬率:日/週/月/季/年報酬率與殖利率。",
+        SYMBOLS_SCHEMA,
+    ),
 ]
 
-BACKEND_TOOLS = {"get_portfolio_holdings", "get_market_compare"}
+BACKEND_TOOLS = {
+    "get_portfolio_holdings",
+    "get_market_compare",
+    "get_stock_valuation",
+    "get_institutional_flow",
+    "get_stock_momentum",
+    "get_forum_sentiment",
+    "get_stock_returns",
+}
 
 
 class GatewayStack(Stack):
