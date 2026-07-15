@@ -25,7 +25,7 @@ private struct ScanAPIStock: Codable {
     let cost: String?
 }
 
-// MARK: - Stock Scan View (Real Camera + Photo Library + GPT-4o-mini OCR)
+// MARK: - Stock Scan View (Real Camera + Photo Library + AI OCR)
 struct StockScanSimulatorView: View {
     /// 回傳辨識到的持股,以及推測的來源券商(僅建議,手動頁仍要用戶確認)
     let onImport: ([ScannedStockResult], _ detectedBroker: String?) -> Void
@@ -121,7 +121,7 @@ struct StockScanSimulatorView: View {
                         Image(systemName: "doc.text.viewfinder")
                             .font(.system(size: 48))
                             .foregroundColor(AppColor.primary.opacity(0.5))
-                        Text("上傳對帳單或截圖\nGPT-4o-mini 自動識別股票代號與成本")
+                        Text("上傳對帳單或截圖")
                             .font(.system(.caption, design: .rounded))
                             .multilineTextAlignment(.center)
                             .foregroundColor(AppColor.textSecondary)
@@ -231,7 +231,7 @@ struct StockScanSimulatorView: View {
             VStack(spacing: 8) {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: AppColor.primary))
-                Text("GPT-4o-mini 正在分析對帳單...")
+                Text("正在分析對帳單...")
                     .font(.system(.subheadline, design: .rounded))
                     .foregroundColor(AppColor.textSecondary)
                 Text("AI 識別股票代號、股數與成本中")

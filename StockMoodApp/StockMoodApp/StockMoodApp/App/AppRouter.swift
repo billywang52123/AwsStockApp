@@ -4,7 +4,7 @@ enum AppRoute {
     case splash
     case login
     case onboarding
-    case scenario
+    case styleQuiz
     case portfolioInput
     case recommendation(symbols: [String])
     case mainApp
@@ -37,12 +37,16 @@ struct AppRouterView: View {
                 
             case .onboarding:
                 OnboardingView {
-                    currentRoute = .scenario
+                    currentRoute = .styleQuiz
                 }
-                
-            case .scenario:
-                UserScenarioView {
-                    currentRoute = .portfolioInput
+
+            // 18a 新 onboarding 第 1 步:風格測驗(可跳過),取代舊 1a-03 情境選擇;
+            // 跳過或完成都 crossfade 進 2/3 持股輸入
+            case .styleQuiz:
+                OnboardingStyleQuizView {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        currentRoute = .portfolioInput
+                    }
                 }
                 
             case .portfolioInput:

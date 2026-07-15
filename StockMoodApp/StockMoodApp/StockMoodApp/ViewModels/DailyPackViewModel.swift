@@ -3,14 +3,14 @@ import SwiftUI
 import Combine
 
 // MARK: - 每日抽卡包(spec 06 · 15a–15k)
-// 15a 入口 → 15b 撕開動畫 → 卡疊覆蓋態(卡背朝上)→ 點擊翻牌(15f/g/h)左右滑切換
+// 15a 入口 → 15b 撕開態(等使用者滑開撕條)→ 卡疊覆蓋態(卡背朝上)→ 點擊翻牌(15f/g/h)左右滑切換
 // 卡片內容一律等使用者點擊卡背翻牌才揭曉,開包動畫不先露出內容
 @MainActor
 class DailyPackViewModel: ObservableObject {
     enum Phase: Equatable {
         case loading                 // 開頁查今日狀態
         case entry                   // 15a 今日卡包入口
-        case opening                 // 15b 撕開動畫(不露卡片內容)
+        case opening                 // 15b 撕開態:等使用者滑開撕條(不露卡片內容)
         case stack                   // 15e 卡疊覆蓋態(三張卡背朝上,滑動選卡、點擊翻牌)
         case browsing(index: Int)    // 15f/g/h 完成態,左右滑切換
     }
@@ -31,7 +31,6 @@ class DailyPackViewModel: ObservableObject {
     @Published var activeGlossary: GlossaryTerm?
 
     private let container: DependencyContainer
-    private var autoAdvanceTask: Task<Void, Never>?
 
     init(container: DependencyContainer? = nil) {
         self.container = container ?? .shared
@@ -65,7 +64,6 @@ class DailyPackViewModel: ObservableObject {
 
     /// 模擬日期切換後強制重生該日期的卡包，讓使用者從未開封入口重新抽卡。
     func reloadAfterSimDateChange() async {
-        autoAdvanceTask?.cancel()
         phase = .loading
         pack = nil
         stackFront = 0
@@ -88,7 +86,7 @@ class DailyPackViewModel: ObservableObject {
     }
 
     /// CTA「開啟今日卡包」:今天已開過(或設定總是跳過/減少動態)直達卡疊,
-    /// 否則播撕開動畫後亮出三張卡背,等使用者自己點擊翻牌
+    /// 否則進入撕開態,等使用者沿撕條滑開後才亮出三張卡背
     func openPack(reduceMotion: Bool) {
         guard let pack, phase == .entry else { return }
         hasError = false
@@ -100,36 +98,22 @@ class DailyPackViewModel: ObservableObject {
         } else {
             HapticManager.shared.triggerImpact(style: .light)
             withAnimation(.easeInOut(duration: 0.35)) { phase = .opening }
-            scheduleAutoAdvance(after: 1.2)   // 撕開動畫播完自動亮出卡背
         }
     }
 
-    /// 撕開動畫中 tap 任一處加速:直接亮出卡背卡疊
-    func advanceKeyframe() {
+    /// 使用者沿撕條滑開卡包(撕開動畫播完由 view 呼叫):亮出卡背卡疊
+    func completeTear() {
         guard phase == .opening else { return }
-        autoAdvanceTask?.cancel()
-        HapticManager.shared.triggerImpact(style: .light)
         goToStack()
     }
 
     /// 右上「跳過」:直達 15e 卡疊覆蓋態,不觸發任何一段動畫
     func skipOpening() {
-        autoAdvanceTask?.cancel()
         goToStack()
-    }
-
-    private func scheduleAutoAdvance(after seconds: Double) {
-        autoAdvanceTask?.cancel()
-        autoAdvanceTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(seconds))
-            guard !Task.isCancelled else { return }
-            self?.advanceKeyframe()
-        }
     }
 
     /// KF4:卡疊覆蓋態(三張卡背朝上);到這裡就算「已開包」,通知後端
     private func goToStack() {
-        autoAdvanceTask?.cancel()
         stackFront = 0
         flippedKinds = []
         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) { phase = .stack }
@@ -203,14 +187,12 @@ class DailyPackViewModel: ObservableObject {
 
     /// 收起整個開包流程回入口
     func backToEntry() {
-        autoAdvanceTask?.cancel()
         withAnimation(.easeInOut(duration: 0.3)) { phase = .entry }
     }
 
     /// 離開抽卡分頁時收起暫存互動；保留已載入卡包及 opened 狀態，
     /// 下次回來直接顯示「今日卡包」入口與「再看今日卡包」。
     func prepareForNextVisit() {
-        autoAdvanceTask?.cancel()
         activeChip = nil
         activeGlossary = nil
         stackFront = 0

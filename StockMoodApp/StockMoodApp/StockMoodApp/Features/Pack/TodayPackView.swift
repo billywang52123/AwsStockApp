@@ -177,6 +177,8 @@ struct PackCoverCard: View {
     let pack: DailyPack
     /// KF1 撕開態:撕條光帶橫掃 + 放射光線
     let tearing: Bool
+    /// 撕開進度 0–1:撕條隨使用者滑動向右滑出卡面並淡出(15a 入口固定 0)
+    var tearProgress: CGFloat = 0
 
     @State private var sweeping = false
     @State private var emblemPulsing = false
@@ -219,6 +221,9 @@ struct PackCoverCard: View {
                 }
             }
             .frame(height: 44)
+            // 撕開進度:整條撕條向右滑出卡面(被卡片 clipShape 裁掉)並淡出
+            .offset(x: tearProgress * 230)
+            .opacity(1 - Double(tearProgress) * 0.85)
 
             Spacer()
 

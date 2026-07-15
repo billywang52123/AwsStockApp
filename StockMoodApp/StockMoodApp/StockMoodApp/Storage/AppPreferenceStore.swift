@@ -124,8 +124,24 @@ class AppPreferenceStore {
         set { UserDefaults.standard.set(newValue, forKey: userScopedKey(fortuneNightNotifyKey)) }
     }
 
+    // MARK: - 18b 首頁風格測驗提醒卡(spec 07,per-user)
+
+    private let styleNudgeDismissedKey = "com.stockmoodapp.styleNudgeDismissedAt"
+
+    /// 關閉提醒卡的時間;7 天內 `shouldShowStyleNudge == false`
+    var styleNudgeDismissedAt: Date? {
+        get { UserDefaults.standard.object(forKey: userScopedKey(styleNudgeDismissedKey)) as? Date }
+        set { UserDefaults.standard.set(newValue, forKey: userScopedKey(styleNudgeDismissedKey)) }
+    }
+
+    /// 18b:提醒卡是否已過 7 天冷卻期(未關閉過 = 可顯示)
+    var shouldShowStyleNudge: Bool {
+        guard let dismissedAt = styleNudgeDismissedAt else { return true }
+        return Date().timeIntervalSince(dismissedAt) > 7 * 24 * 60 * 60
+    }
+
     // Per-user: a different account signing in on this device goes through
-    // onboarding (scenario + portfolio input) with its own data
+    // onboarding (style quiz + portfolio input) with its own data
     var isOnboardingCompleted: Bool {
         get {
             UserDefaults.standard.bool(forKey: userScopedKey(onboardingKey))

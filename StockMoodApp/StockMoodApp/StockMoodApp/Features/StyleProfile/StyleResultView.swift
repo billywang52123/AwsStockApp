@@ -46,6 +46,10 @@ struct StyleResultView: View {
         .navigationDestination(isPresented: $showQuiz) {
             StyleQuizView(onFinished: onFinished)
         }
+        .onChange(of: showQuiz) { _, isPresented in
+            // 從測驗流程返回後重載(.task 只跑一次),讓再訪頁反映最新結果
+            if !isPresented { Task { await viewModel.load() } }
+        }
     }
 
     // MARK: - 尚未測驗

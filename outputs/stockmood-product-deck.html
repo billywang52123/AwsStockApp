@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="0; url=stockmood-product-deck-judge.html">
+  <title>正在開啟股感安心卡評審版</title>
+  <style>
+    html,body{height:100%;margin:0;background:#070812;color:#f7f5ff;font-family:Inter,"PingFang TC",system-ui,sans-serif}
+    body{display:grid;place-items:center}a{color:#8de8df}
+  </style>
+</head>
+<body>
+  <p>正在開啟評審版簡報；若沒有自動跳轉，<a id="open" href="stockmood-product-deck-judge.html">請點這裡</a>。</p>
+  <script>
+    const target = `stockmood-product-deck-judge.html${location.hash || ''}`;
+    document.getElementById('open').href = target;
+    location.replace(target);
+  </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 import SwiftUI
 
 // MARK: - 15b–15e · 開包動畫舞台(深色模式,光效在深色下最漂亮)
-// 撕開動畫 → 卡疊覆蓋態(三張卡背朝上),內容一律等使用者點擊卡背翻牌才揭曉
-// 撕開中可 tap 任一處加速;右上「跳過」直達卡疊;完成態(15f/g/h)也在此舞台上
+// 撕開態(等使用者沿撕條滑開)→ 卡疊覆蓋態(三張卡背朝上),內容一律等使用者點擊卡背翻牌才揭曉
+// 右上「跳過」直達卡疊;完成態(15f/g/h)也在此舞台上
 
 struct PackOpeningStage: View {
     @ObservedObject var viewModel: DailyPackViewModel
@@ -14,9 +14,8 @@ struct PackOpeningStage: View {
             if let pack = viewModel.pack {
                 switch viewModel.phase {
                 case .opening:
-                    PackTearKeyframe(pack: pack)
+                    PackTearKeyframe(pack: pack, viewModel: viewModel)
                         .transition(.opacity)
-                        .allowsHitTesting(false)   // 動畫中卡片不吃點擊,tap 一律加速
                 case .stack:
                     PackStackView(pack: pack, viewModel: viewModel)
                 case .browsing:
@@ -26,7 +25,7 @@ struct PackOpeningStage: View {
                 }
             }
 
-            // 右上「跳過」pill:撕開動畫全程存在
+            // 右上「跳過」pill:撕開態全程存在
             if viewModel.phase == .opening {
                 VStack {
                     HStack {
@@ -49,12 +48,6 @@ struct PackOpeningStage: View {
                     Spacer()
                 }
                 .zIndex(10)
-            }
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if viewModel.phase == .opening {
-                viewModel.advanceKeyframe()
             }
         }
     }
@@ -94,23 +87,64 @@ struct PackDarkStage: View {
 }
 
 // MARK: - KF1 · 撕開(15b):虛線區光帶橫掃 + 放射光線
+// 等使用者沿撕條向右滑:撕條跟著手指位移,放手未過門檻彈回,過門檻才真的撕開
 
 struct PackTearKeyframe: View {
     let pack: DailyPack
+    @ObservedObject var viewModel: DailyPackViewModel
+
+    /// 目前撕開位移(0 → tearDistance,映射成 PackCoverCard 的 tearProgress)
+    @State private var tearOffset: CGFloat = 0
+    @State private var torn = false
+
+    /// 撕條完全滑出卡面的位移量,與放手判定門檻
+    private let tearDistance: CGFloat = 150
+    private let tearThreshold: CGFloat = 90
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
-            PackCoverCard(pack: pack, tearing: true)
+            PackCoverCard(pack: pack, tearing: true,
+                          tearProgress: min(tearOffset / tearDistance, 1))
             Spacer()
-            Text("正在打開今日卡包…")
+            Text(torn ? "撕開了!" : "滑動撕開今日卡包")
                 .font(.system(size: 13, design: .rounded))
                 .foregroundColor(.white.opacity(0.6))
-            Text("輕點任一處可加速")
+            Text("沿「由此撕開」向右滑一下")
                 .font(.system(size: 11, design: .rounded))
                 .foregroundColor(.white.opacity(0.38))
                 .padding(.top, 6)
                 .padding(.bottom, 70)
+        }
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 8)
+                .onChanged { value in
+                    guard !torn else { return }
+                    tearOffset = max(0, value.translation.width)
+                }
+                .onEnded { value in
+                    guard !torn else { return }
+                    if value.translation.width > tearThreshold {
+                        tear()
+                    } else {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                            tearOffset = 0
+                        }
+                    }
+                }
+        )
+    }
+
+    /// 過門檻:撕條飛出卡面(0.22s)→ 亮出卡背卡疊
+    private func tear() {
+        torn = true
+        HapticManager.shared.triggerImpact(style: .medium)
+        withAnimation(.easeIn(duration: 0.22)) { tearOffset = tearDistance }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.26))
+            viewModel.completeTear()
         }
     }
 }

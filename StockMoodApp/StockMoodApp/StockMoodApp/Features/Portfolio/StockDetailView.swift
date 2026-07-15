@@ -673,7 +673,7 @@ struct AIAnalysisSheetView: View {
                     VStack(spacing: 20) {
                         ProgressView()
                             .scaleEffect(1.3)
-                        Text("正在整理對應的 GPT 專家白話分析...")
+                        Text("正在整理對應的專家白話分析...")
                             .font(.system(.subheadline, design: .rounded))
                             .foregroundColor(AppColor.textSecondary)
                     }

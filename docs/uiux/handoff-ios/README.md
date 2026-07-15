@@ -14,7 +14,7 @@
 | `specs/04-持股異動與多券商合併-切版規格.md` | 9a 更新入口 / 9b 加碼 / 9c 賣出 / 9d 匯入合併 / 9e 券商分帳(含均價計算與合併規則、動畫) |
 | `specs/05-觀察清單-切版規格.md` | 11a 清單切換 / 11b 新增清單 / 11c 觀察清單頁 / 11d 轉入庫存 / 11e 觀察清單分析 / 11f 觀點分頁 / 11g 推薦星標 |
 | `specs/06-每日抽卡包與AI信任系統-切版規格.md` | 15a 今日卡包入口 / 15b–15e 開包動畫 4 關鍵幀 / 15f 事實卡(閃卡)/ 15g 推論卡(推理鏈)/ 15h 社群卡 / 15i 出處 chip sheet / 15j 卡包架 / 15k 週末體檢 / 15L 分享 sheet / 15m 貼文預覽 |
-| `specs/07-投資風格與投資習慣-切版規格.md` | 16a 風格問卷 / 16b 風格結果(四維度光譜)/ 16c 風格 → GPT Prompt 對應 / 16d 持股投資習慣(自動推算)/ 16e 風格轉變(重算+時間軸) |
+| `specs/07-投資風格與投資習慣-切版規格.md` | 16a 風格問卷 / 16b 風格結果(四維度光譜)/ 16c 風格 → GPT Prompt 對應 / 16d 持股投資習慣(自動推算)/ 16e 風格轉變(重算+時間軸)/ **Onboarding 改版 18a–18c(風格測驗取代情境選擇,可跳過)** |
 | `specs/06...`附註 | 分享 `ShareCardSheet` / `ShareCardImage`(1080×1350),隱私切換 + 出處浮水印,只帶公開數據 | 15i 出處 chip sheet / 15j 卡包架 / 15k 週末體檢 |
 | `tokens/DesignTokens.json` | 全部色彩/圓角/陰影/字級 tokens(可轉 Asset Catalog,含觀察清單、每日抽卡包信任系統專屬色) |
 | `AppIcon.appiconset/` | 定案 App Icon 全套切版,直接拖入 Xcode Assets |
@@ -22,6 +22,7 @@
 ## 對照設計稿
 
 畫面設計稿在專案根目錄 `股感安心卡 設計畫布.dc.html`:
+- 第十六輪(Onboarding 改版):`18a` 新 Onboarding 第 1 步 = 風格測驗(可跳過)· `18b` 跳過後首頁提醒 · `18c` 設定補測入口(原 1a-03 情境選擇已淘汰)
 - 第十五輪:`17a` 統一個股詳情頁(白話翻譯器 + AI 觀點合併)· `17b` 入口整理規格
 - 第十四輪:`16a` 投資風格問卷 · `16b` 投資風格結果 · `16c` 風格 → Prompt 規格 · `16d` 持股投資習慣 · `16e` 風格轉變
 - 第十三輪:`15a` 今日卡包入口 · `15b–15e` 開包動畫 4 關鍵幀 · `15f` 事實卡(閃卡)· `15g` 推論卡(推理鏈)· `15h` 社群卡 · `15i` 出處 chip sheet · `15j` 卡包架 · `15k` 週末體檢
@@ -66,7 +67,9 @@
 - `HonestyScoreCard` / `ReconciliationRow` — 15k AI 本週誠實度卡與對帳列
 - `ShareCardSheet` — 15L 分享 bottom sheet(卡樣式預覽 + 隱私切換 + 去向列)
 - `ShareCardImage` — 15m 分享卡圖(1080×1350,TCG 質感 + 出處浮水印 + 免責)
-- `StyleQuizView` / `QuizOptionCard` — 16a 投資風格問卷與選項卡
+- `StyleQuizView` / `QuizOptionCard` — 16a 投資風格問卷與選項卡(18a onboarding 首步共用)
+- `HomeStyleNudgeCard` — 18b 跳過測驗後的首頁補測提醒卡(可關閉,7 天冷卻)
+- `SettingsPersonalizationSection` — 18c 設定「個人化」分組(風格 / 習慣兩列 + 未測金色 chip)
 - `StyleResultView` / `StyleHeroCard` / `StyleAxisCard` / `TonerPreviewCard` — 16b 風格結果(大卡 + 四維度光譜 + AI 口吻預覽)
 - `InvestHabitView` / `HabitTag` / `HabitStatCard` / `HabitConsistencyCard` — 16d 持股投資習慣(自動推算)
 - `StyleShiftView` / `ShiftCompareCard` / `StyleTimelineCard` / `ShiftAdviceCard` — 16e 風格轉變

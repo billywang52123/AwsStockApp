@@ -6,7 +6,7 @@ struct TodayDashboardView: View {
     @State private var showExplanationDetail = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 AppColor.background
                     .edgesIgnoringSafeArea(.all)
@@ -55,26 +55,26 @@ struct TodayDashboardView: View {
                                 }
                             }
                             
+                            // 18b 跳過測驗後的補測提醒(未測 + 未在 7 天冷卻內才出現)
+                            HomeStyleNudgeSection()
+
                             // Market Comparison Component
                             if let compare = viewModel.compareResult {
                                 MarketCompareCard(result: compare)
                             }
-                            
+
                             // Action Section
-                            VStack(spacing: 14) {
-                                NavigationLink(destination: DailyExplanationView(), isActive: $showExplanationDetail) {
-                                    EmptyView()
-                                }
-                                
-                                AppButton(title: "查看今天白話原因", icon: "doc.text.magnifyingglass") {
-                                    showExplanationDetail = true
-                                }
+                            AppButton(title: "查看今天白話原因", icon: "doc.text.magnifyingglass") {
+                                showExplanationDetail = true
                             }
-                            
+
                             DisclaimerView()
                         }
                         .padding(.horizontal, 20)
                         .padding(.vertical, 16)
+                    }
+                    .navigationDestination(isPresented: $showExplanationDetail) {
+                        DailyExplanationView()
                     }
                 }
             }
