@@ -1,14 +1,37 @@
-import httpx
+"""AI text generation service — now backed by AWS Bedrock (Claude Sonnet 4.5).
+
+Public interface is unchanged: all 6 class methods retain the same signatures
+so callers (stocks.py, fortune_service.py, daily_pack_service.py, cards.py)
+continue to work without modification.
+
+Migration notes:
+- Replaced httpx calls to OpenAI with synchronous boto3 Bedrock Converse.
+- All async methods now use ``run_in_threadpool`` internally to avoid blocking.
+- OPENAI_API_KEY is no longer required; the service uses IAM-based auth via
+  the ECS task role (or local AWS credentials for dev).
+- Fallback behaviour is preserved: any Bedrock error → rule-based template.
+"""
+
+import json
 import logging
-from typing import Dict, Any, Optional
-from app.core.config import settings
+from typing import Any, Dict, Optional
+
+from starlette.concurrency import run_in_threadpool
+
+from app.services.bedrock_llm_service import get_bedrock_llm
 
 logger = logging.getLogger(__name__)
 
+
 class OpenAIService:
+    """AI service using Bedrock Claude Sonnet 4.5 (name kept for import compatibility)."""
+
+    # ──────────────────────────────────────────────────────────────────────
+    # Fallbacks (unchanged)
+    # ──────────────────────────────────────────────────────────────────────
+
     @staticmethod
     def _generate_fallback_analysis(symbol: str, name: str, close_price: float, change_percent: float) -> str:
-        """Generates high-quality fallback stock analysis if GPT is offline."""
         if change_percent >= 0:
             return (
                 "【發生什麼】\n"
@@ -30,7 +53,6 @@ class OpenAIService:
 
     @staticmethod
     def _generate_fallback_card(avg_change: float, worst_name: Optional[str], worst_change: float, market_change: float) -> Dict[str, Any]:
-        """Generates high-quality fallback tarot card content if GPT is offline."""
         if worst_change < -2.0 and worst_name:
             return {
                 "card_type": "STOCK_EVENT",
@@ -51,7 +73,7 @@ class OpenAIService:
             return {
                 "card_type": "CONFIDENCE_RESTORE",
                 "title": "信心恢復卡",
-                "message": f"今天雖然持股略有修正，但仍在合理呼吸範圍內。請相信好公司需要時間開花結果，我們一起沉著應對。",
+                "message": "今天雖然持股略有修正，但仍在合理呼吸範圍內。請相信好公司需要時間開花結果，我們一起沉著應對。",
                 "action_text": "查看今日原因",
                 "motto": "波動是市場的呼吸，用時間的複利去平息眼前的風浪。"
             }
@@ -64,17 +86,17 @@ class OpenAIService:
                 "motto": "最好的投資，往往是學會靜靜觀察並過好當下的生活。"
             }
 
+    # ──────────────────────────────────────────────────────────────────────
+    # 1. Stock Analysis
+    # ──────────────────────────────────────────────────────────────────────
+
     @classmethod
     async def fetch_stock_analysis(
         cls, symbol: str, name: str, close_price: float, change_percent: float,
         user_context: str = "",
     ) -> str:
-        """Queries OpenAI completion to generate stock analysis, falling back to rule-based template if failing."""
-        if not settings.OPENAI_API_KEY:
-            logger.info("OPENAI_API_KEY is not set. Using rule-based fallback stock analysis.")
-            return cls._generate_fallback_analysis(symbol, name, close_price, change_percent)
-            
-        prompt = (
+        system = "你是一個說繁體中文、溫暖體貼的個人股票投資情緒輔導分析助理。只輸出分析文字,不輸出 JSON。"
+        user = (
             f"你是一位專業的股票心理輔導與分析專家。請針對 {symbol} (名稱: {name})，"
             f"今日收盤價為 {close_price:.2f}，漲跌幅為 {change_percent:+.2f}% 的表現，為股票新手生成一段溫暖、口語化且排版清晰的分析。\n"
             f"以下是後端依該使用者問卷與持股快照產生的個人化脈絡；只可用來調整解釋順序與深度：\n"
@@ -86,50 +108,29 @@ class OpenAIService:
             "硬性限制：全程繁體中文；全文不得出現「建議」二字，也不得出現「買進、賣出、加碼、減碼、停損、停利、攤平、進場、出場、獲利了結」等任何引導用戶操作的字眼；"
             "可以描述市場現象（例如：賣壓較重、買盤動能強、量能萎縮），也可以談論焦慮分數與情緒安撫，但絕不告訴用戶該做什麼交易動作。"
         )
-        
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "gpt-4o-mini",
-                        "messages": [
-                            {"role": "system", "content": "你是一個說繁體中文、溫暖體貼的個人股票投資情緒輔導分析助理。"},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "temperature": 0.7
-                    },
-                    timeout=5.0
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    analysis = data["choices"][0]["message"]["content"]
-                    logger.info(f"Successfully generated stock analysis via GPT-4o-mini for {symbol}")
-                    return analysis
-                else:
-                    logger.warning(f"OpenAI returned error code {response.status_code}: {response.text}")
-        except Exception as e:
-            logger.error(f"Failed to fetch stock analysis from OpenAI: {str(e)}")
-            
+            llm = get_bedrock_llm()
+            result = await run_in_threadpool(
+                llm.converse, system=system, user=user, temperature=0.7, max_tokens=1024
+            )
+            logger.info("Generated stock analysis via Bedrock for %s", symbol)
+            return result
+        except Exception:
+            logger.exception("Bedrock stock analysis failed for %s; using fallback", symbol)
+
         return cls._generate_fallback_analysis(symbol, name, close_price, change_percent)
+
+    # ──────────────────────────────────────────────────────────────────────
+    # 2. AI Stock Screen
+    # ──────────────────────────────────────────────────────────────────────
 
     @classmethod
     async def fetch_stock_screen(cls, query: str) -> Optional[list]:
-        """AI 找股(觀察清單加入股票用):自然語言條件 → 台股候選名單。
-
-        回傳 [{"symbol", "name", "reason"}, ...];未設 key 或失敗回 None,
-        由 StockService 退回主題式 fallback。GPT 給的代號一律要再經
-        StockService 驗證(CMoney 模擬日有價格)才會回給前端,幻覺代號會被丟掉。"""
-        if not settings.OPENAI_API_KEY:
-            logger.info("OPENAI_API_KEY is not set. Using rule-based fallback stock screen.")
-            return None
-
-        prompt = (
+        system = (
+            "你是一個專門輸出 JSON 格式、嚴謹的台股資料整理助手,只列真實存在的代號。"
+            "只回傳單一 JSON 物件,不要有任何額外文字。"
+        )
+        user = (
             "你是台股資料整理助手。用戶想找符合以下條件的台股(上市/上櫃個股或 ETF):\n"
             f"「{query}」\n\n"
             "請列出最多 8 檔最符合條件的標的,生成以下 JSON:\n"
@@ -143,41 +144,23 @@ class OpenAIService:
             "reason 不得出現「建議」二字,也不得出現「買進、賣出、加碼、減碼、停損、停利、攤平、進場、出場、獲利了結」等任何引導用戶操作的字眼;"
             "不得保證報酬或未來配息;若用戶的條件跟找股票無關,items 回傳空陣列。"
         )
-
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "gpt-4o-mini",
-                        "messages": [
-                            {"role": "system", "content": "你是一個專門輸出 JSON 格式、嚴謹的台股資料整理助手,只列真實存在的代號。"},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "response_format": {"type": "json_object"},
-                        "temperature": 0.3
-                    },
-                    timeout=12.0
-                )
-
-                if response.status_code == 200:
-                    data = response.json()
-                    import json
-                    result = json.loads(data["choices"][0]["message"]["content"])
-                    items = result.get("items")
-                    if isinstance(items, list):
-                        logger.info(f"Successfully generated stock screen via GPT-4o-mini for query: {query}")
-                        return items
-                else:
-                    logger.warning(f"OpenAI returned error code {response.status_code}: {response.text}")
-        except Exception as e:
-            logger.error(f"Failed to fetch stock screen from OpenAI: {str(e)}")
+            llm = get_bedrock_llm()
+            result = await run_in_threadpool(
+                llm.converse_json, system=system, user=user, temperature=0.3, max_tokens=1024
+            )
+            items = result.get("items")
+            if isinstance(items, list):
+                logger.info("Generated stock screen via Bedrock for query: %s", query)
+                return items
+        except Exception:
+            logger.exception("Bedrock stock screen failed for query: %s", query)
 
         return None
+
+    # ──────────────────────────────────────────────────────────────────────
+    # 3. Card Draw Message
+    # ──────────────────────────────────────────────────────────────────────
 
     @classmethod
     async def fetch_card_draw_message(
@@ -188,12 +171,7 @@ class OpenAIService:
         market_change: float,
         holdings: Optional[list] = None,
     ) -> Dict[str, Any]:
-        """Queries OpenAI to generate personalized card draw message and motto."""
         fallback_card = cls._generate_fallback_card(avg_change, worst_name, worst_change, market_change)
-
-        if not settings.OPENAI_API_KEY:
-            logger.info("OPENAI_API_KEY is not set. Using rule-based fallback card.")
-            return fallback_card
 
         holdings_lines = []
         for h in holdings or []:
@@ -203,7 +181,11 @@ class OpenAIService:
             holdings_lines.append(line)
         holdings_desc = "\n".join(holdings_lines) if holdings_lines else "（目前沒有持股資料）"
 
-        prompt = (
+        system = (
+            "你是一個專門輸出 JSON 格式、幽默風趣又暖心的投資情緒塔羅牌助手。"
+            "只回傳單一 JSON 物件,不要有任何額外文字。"
+        )
+        user = (
             "你是一位幽默風趣、有梗又暖心的投資情緒陪伴塔羅牌大師。以下是用戶今天的持股實況：\n"
             f"{holdings_desc}\n"
             f"持股平均漲跌幅 {avg_change:+.2f}%；大盤（加權指數）{market_change:+.2f}%。\n\n"
@@ -218,45 +200,27 @@ class OpenAIService:
             "硬性限制：全程繁體中文；全文不得出現「建議」二字，也不得出現「買進、賣出、加碼、減碼、停損、停利、攤平、進場、出場、獲利了結」等任何引導用戶操作的字眼；"
             "可以描述市場現象（例如：賣壓較重、買盤動能強），但絕不告訴用戶該做什麼交易動作。"
         )
-        
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "gpt-4o-mini",
-                        "messages": [
-                            {"role": "system", "content": "你是一個專門輸出 JSON 格式、幽默風趣又暖心的投資情緒塔羅牌助手。"},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "response_format": {"type": "json_object"},
-                        "temperature": 0.9
-                    },
-                    timeout=5.0
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    import json
-                    result = json.loads(data["choices"][0]["message"]["content"])
-                    logger.info("Successfully generated personalized card message via GPT-4o-mini")
-                    return {
-                        "card_type": result.get("card_type", fallback_card["card_type"]),
-                        "title": result.get("title", fallback_card["title"]),
-                        "message": result.get("message", fallback_card["message"]),
-                        "action_text": result.get("action_text", fallback_card["action_text"]),
-                        "motto": result.get("motto", fallback_card["motto"])
-                    }
-                else:
-                    logger.warning(f"OpenAI returned error code {response.status_code}: {response.text}")
-        except Exception as e:
-            logger.error(f"Failed to fetch card message from OpenAI: {str(e)}")
+            llm = get_bedrock_llm()
+            result = await run_in_threadpool(
+                llm.converse_json, system=system, user=user, temperature=0.9, max_tokens=512
+            )
+            logger.info("Generated card message via Bedrock")
+            return {
+                "card_type": result.get("card_type", fallback_card["card_type"]),
+                "title": result.get("title", fallback_card["title"]),
+                "message": result.get("message", fallback_card["message"]),
+                "action_text": result.get("action_text", fallback_card["action_text"]),
+                "motto": result.get("motto", fallback_card["motto"]),
+            }
+        except Exception:
+            logger.exception("Bedrock card message failed; using fallback")
 
         return fallback_card
+
+    # ──────────────────────────────────────────────────────────────────────
+    # 4. Fortune Text
+    # ──────────────────────────────────────────────────────────────────────
 
     @classmethod
     async def fetch_fortune_text(
@@ -266,19 +230,17 @@ class OpenAIService:
         market_change: float,
         holdings: Optional[list] = None,
     ) -> Dict[str, Any]:
-        """御神籤「說明 / 注意事項」文字(12c)。籤等由後端規則決定,
-        GPT 只補文字;離線或失敗時回空 dict,由 FortuneService 用規則式 fallback。"""
-        if not settings.OPENAI_API_KEY:
-            logger.info("OPENAI_API_KEY is not set. Using rule-based fortune text.")
-            return {}
-
         holdings_lines = [
             f"- {h['name']} ({h['symbol']})：今日 {h['change_percent']:+.2f}%，產業 {h.get('industry', '其他')}"
             for h in holdings or []
         ]
         holdings_desc = "\n".join(holdings_lines) if holdings_lines else "（目前沒有持股資料）"
 
-        prompt = (
+        system = (
+            "你是一個專門輸出 JSON 格式、溫暖安撫的日式御神籤解籤助手。"
+            "只回傳單一 JSON 物件,不要有任何額外文字。"
+        )
+        user = (
             "你是一位溫暖的日式御神籤解籤人,為投資新手寫今天的籤詩內容。用戶今天的狀況：\n"
             f"{holdings_desc}\n"
             f"持股平均漲跌 {avg_change:+.2f}%；大盤 {market_change:+.2f}%；"
@@ -291,43 +253,25 @@ class OpenAIService:
             "硬性限制：全程繁體中文；不得出現「建議」二字,也不得出現「買進、賣出、加碼、減碼、停損、停利、攤平、進場、出場、獲利了結」等任何引導操作的字眼；"
             "凶籤走安撫語氣,不製造恐慌;可描述市場現象,但不告訴用戶該做什麼交易動作。"
         )
-
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "gpt-4o-mini",
-                        "messages": [
-                            {"role": "system", "content": "你是一個專門輸出 JSON 格式、溫暖安撫的日式御神籤解籤助手。"},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "response_format": {"type": "json_object"},
-                        "temperature": 0.8
-                    },
-                    timeout=5.0
-                )
-
-                if response.status_code == 200:
-                    data = response.json()
-                    import json
-                    result = json.loads(data["choices"][0]["message"]["content"])
-                    logger.info("Successfully generated fortune text via GPT-4o-mini")
-                    notices = result.get("notices")
-                    return {
-                        "summary": result.get("summary"),
-                        "notices": notices if isinstance(notices, list) else None,
-                    }
-                else:
-                    logger.warning(f"OpenAI returned error code {response.status_code}: {response.text}")
-        except Exception as e:
-            logger.error(f"Failed to fetch fortune text from OpenAI: {str(e)}")
+            llm = get_bedrock_llm()
+            result = await run_in_threadpool(
+                llm.converse_json, system=system, user=user, temperature=0.8, max_tokens=512
+            )
+            logger.info("Generated fortune text via Bedrock")
+            notices = result.get("notices")
+            return {
+                "summary": result.get("summary"),
+                "notices": notices if isinstance(notices, list) else None,
+            }
+        except Exception:
+            logger.exception("Bedrock fortune text failed; using fallback")
 
         return {}
+
+    # ──────────────────────────────────────────────────────────────────────
+    # 5. Companion Text
+    # ──────────────────────────────────────────────────────────────────────
 
     @classmethod
     async def fetch_companion_text(
@@ -336,13 +280,11 @@ class OpenAIService:
         market_change: float,
         holdings_count: int,
     ) -> Optional[str]:
-        """陪伴卡(15h)文字:3–4 句安撫,零買賣暗示。
-        離線或失敗回 None,由 DailyPackService 用規則式 fallback。"""
-        if not settings.OPENAI_API_KEY:
-            logger.info("OPENAI_API_KEY is not set. Using rule-based companion text.")
-            return None
-
-        prompt = (
+        system = (
+            "你是一個專門輸出 JSON、語氣溫暖的陪伴訊息助手。"
+            "只回傳單一 JSON 物件,不要有任何額外文字。"
+        )
+        user = (
             "你是一位溫柔、不催促的 AI 陪伴者,為投資新手寫今天的陪伴訊息。\n"
             f"用戶今天的狀況:持股 {holdings_count} 檔,庫存加權 {avg_change:+.2f}%,大盤 {market_change:+.2f}%。\n\n"
             '請生成 JSON:{"text": "3-4 句繁體中文陪伴訊息(80-120 字),手寫信的語氣,安撫情緒"}\n'
@@ -350,50 +292,26 @@ class OpenAIService:
             "也不得出現「買進、賣出、加碼、減碼、停損、停利、攤平、進場、出場、獲利了結」"
             "等任何引導操作的字眼;只安撫情緒,永遠不給操作方向。"
         )
-
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "gpt-4o-mini",
-                        "messages": [
-                            {"role": "system", "content": "你是一個專門輸出 JSON、語氣溫暖的陪伴訊息助手。"},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "response_format": {"type": "json_object"},
-                        "temperature": 0.9
-                    },
-                    timeout=5.0
-                )
-                if response.status_code == 200:
-                    data = response.json()
-                    import json
-                    result = json.loads(data["choices"][0]["message"]["content"])
-                    text = result.get("text")
-                    if isinstance(text, str) and text.strip():
-                        logger.info("Successfully generated companion text via GPT-4o-mini")
-                        return text.strip()
-                else:
-                    logger.warning(f"OpenAI returned error code {response.status_code}: {response.text}")
-        except Exception as e:
-            logger.error(f"Failed to fetch companion text from OpenAI: {str(e)}")
+            llm = get_bedrock_llm()
+            result = await run_in_threadpool(
+                llm.converse_json, system=system, user=user, temperature=0.9, max_tokens=256
+            )
+            text = result.get("text")
+            if isinstance(text, str) and text.strip():
+                logger.info("Generated companion text via Bedrock")
+                return text.strip()
+        except Exception:
+            logger.exception("Bedrock companion text failed; using fallback")
 
         return None
 
+    # ──────────────────────────────────────────────────────────────────────
+    # 6. Pack AI Text
+    # ──────────────────────────────────────────────────────────────────────
+
     @classmethod
     async def fetch_pack_ai_text(cls, metrics: Dict[str, Any]) -> Dict[str, Any]:
-        """每日卡包(spec 06):後端把 CMoney 模擬日數據分析完,交給 AI 措辭。
-        AI 只生成「推論卡結論句」(社群卡為純統計數字,不經 AI),
-        數字一律沿用輸入,不可自創。離線或失敗回空 dict,走規則式 fallback。"""
-        if not settings.OPENAI_API_KEY:
-            logger.info("OPENAI_API_KEY is not set. Using rule-based pack text.")
-            return {}
-
         holdings_lines = [
             f"- {h['name']} ({h['symbol']})：漲跌 {h['change_percent']:+.2f}%,"
             f"庫存占比 {h['weight_percent']:.1f}%,產業 {h.get('industry', '其他')}"
@@ -404,7 +322,11 @@ class OpenAIService:
         flash_line = metrics.get("flashcard_event") or "（今日無閃卡事件）"
         user_context = metrics.get("user_prompt_context") or "（尚無使用者投資風格資料,使用中性分析）"
 
-        prompt = (
+        system = (
+            "你是一個專門輸出 JSON、依提供數據措辭、語氣冷靜安撫的投資解讀助手。"
+            "只回傳單一 JSON 物件,不要有任何額外文字。"
+        )
+        user = (
             "你是投資新手 App 的 AI 分析員。後端已用 CMoney 收盤資料算好以下數字,"
             "你只負責把它們寫成一句結論,不可自創任何數字或事件：\n"
             f"{holdings_desc}\n"
@@ -423,36 +345,14 @@ class OpenAIService:
             "停損、停利、攤平、進場、出場、獲利了結、目標價」等任何引導操作的字眼；"
             "不預測明天漲跌;可描述現況,但不告訴用戶該做什麼交易動作。"
         )
-
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": "gpt-4o-mini",
-                        "messages": [
-                            {"role": "system", "content": "你是一個專門輸出 JSON、依提供數據措辭、語氣冷靜安撫的投資解讀助手。"},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "response_format": {"type": "json_object"},
-                        "temperature": 0.7
-                    },
-                    timeout=6.0
-                )
-                if response.status_code == 200:
-                    data = response.json()
-                    import json
-                    result = json.loads(data["choices"][0]["message"]["content"])
-                    logger.info("Successfully generated pack AI text via GPT-4o-mini")
-                    return {
-                        "conclusion": result.get("conclusion"),
-                    }
-                logger.warning(f"OpenAI returned error code {response.status_code}: {response.text}")
-        except Exception as e:
-            logger.error(f"Failed to fetch pack AI text from OpenAI: {str(e)}")
+            llm = get_bedrock_llm()
+            result = await run_in_threadpool(
+                llm.converse_json, system=system, user=user, temperature=0.7, max_tokens=256
+            )
+            logger.info("Generated pack AI text via Bedrock")
+            return {"conclusion": result.get("conclusion")}
+        except Exception:
+            logger.exception("Bedrock pack AI text failed; using fallback")
 
         return {}

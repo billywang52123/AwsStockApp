@@ -102,6 +102,7 @@ class EcsExpressStack(Stack):
                 environment=[
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="AWS_REGION", value="us-east-1"),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="BEDROCK_VISION_MODEL_ID", value="us.anthropic.claude-sonnet-4-5-20250929-v1:0"),
+                    ecs.CfnExpressGatewayService.KeyValuePairProperty(name="BEDROCK_TEXT_MODEL_ID", value="us.anthropic.claude-sonnet-4-5-20250929-v1:0"),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="DB_SECRET_ARN", value=db_secret_arn),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="ALLOWED_ORIGINS", value="*"),
                     ecs.CfnExpressGatewayService.KeyValuePairProperty(name="SEED_ON_START", value="true"),
