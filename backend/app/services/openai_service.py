@@ -31,6 +31,47 @@ class OpenAIService:
     # ──────────────────────────────────────────────────────────────────────
 
     @staticmethod
+    def _normalize_analysis_format(text: str) -> str:
+        """Ensure Bedrock output matches the format iOS expects:
+        【發生什麼】\\n內容...\\n\\n【跟你有關】\\n內容...\\n\\n【可以留意】\\n內容...
+
+        iOS splits on \\n\\n then looks for 【】 in each part.
+        So each section must be: 【標題】\\n內容 (single newline after title),
+        and sections separated by \\n\\n.
+        """
+        import re
+        # Strip markdown artifacts
+        text = re.sub(r'#{1,3}\s*', '', text)
+        text = text.replace('**', '').replace('---', '').replace('```', '')
+
+        sections = []
+        markers = ['【發生什麼】', '【跟你有關】', '【可以留意】']
+
+        for i, marker in enumerate(markers):
+            start = text.find(marker)
+            if start == -1:
+                continue
+            content_start = start + len(marker)
+            # Find next marker or end
+            next_start = len(text)
+            for next_marker in markers[i + 1:]:
+                pos = text.find(next_marker, content_start)
+                if pos != -1:
+                    next_start = min(next_start, pos)
+                    break
+
+            content = text[content_start:next_start].strip()
+            # Remove internal double newlines to keep content as single block
+            content = re.sub(r'\n{2,}', '\n', content)
+            sections.append(f"{marker}\n{content}")
+
+        if not sections:
+            # If parsing failed, return raw text as fallback
+            return text
+
+        return "\n\n".join(sections)
+
+    @staticmethod
     def _generate_fallback_analysis(symbol: str, name: str, close_price: float, change_percent: float) -> str:
         if change_percent >= 0:
             return (
@@ -95,17 +136,24 @@ class OpenAIService:
         cls, symbol: str, name: str, close_price: float, change_percent: float,
         user_context: str = "",
     ) -> str:
-        system = "你是一個說繁體中文、溫暖體貼的個人股票投資情緒輔導分析助理。只輸出分析文字,不輸出 JSON。"
+        system = "你是一個說繁體中文、溫暖體貼的個人股票投資情緒輔導分析助理。只輸出純文字分析,不輸出 JSON,不使用 markdown 語法。"
         user = (
             f"你是一位專業的股票心理輔導與分析專家。請針對 {symbol} (名稱: {name})，"
-            f"今日收盤價為 {close_price:.2f}，漲跌幅為 {change_percent:+.2f}% 的表現，為股票新手生成一段溫暖、口語化且排版清晰的分析。\n"
+            f"今日收盤價為 {close_price:.2f}，漲跌幅為 {change_percent:+.2f}% 的表現，為股票新手生成一段溫暖、口語化的分析。\n"
             f"以下是後端依該使用者問卷與持股快照產生的個人化脈絡；只可用來調整解釋順序與深度：\n"
-            f"{user_context or '尚無完整風格資料，使用中性教學語氣。'}\n"
-            "分析必須包含以下三個段落（使用繁體中文）：\n"
-            "1. 【發生什麼】：說明今天個股的大致走勢與可能的市場因素。\n"
-            "2. 【跟你有關】：以對帳單與心理角度分析，持有這檔股票的人今天的心情與損益變動該如何看待。\n"
-            "3. 【可以留意】：提供接下來新手可以關注的指標（如支撐點、長期營收等），強調不需要急著做任何交易決定。\n"
-            "硬性限制：全程繁體中文；全文不得出現「建議」二字，也不得出現「買進、賣出、加碼、減碼、停損、停利、攤平、進場、出場、獲利了結」等任何引導用戶操作的字眼；"
+            f"{user_context or '尚無完整風格資料，使用中性教學語氣。'}\n\n"
+            "輸出格式（嚴格遵守,不可更改格式）:\n"
+            "【發生什麼】\n這裡寫第一段內容,說明今天個股走勢與市場因素\n\n"
+            "【跟你有關】\n這裡寫第二段內容,心理角度分析持股人的心情與損益\n\n"
+            "【可以留意】\n這裡寫第三段內容,新手可關注的指標\n\n"
+            "格式規則：\n"
+            "- 每個段落標題獨佔一行,用【】包住\n"
+            "- 標題後面緊接一個換行符,然後直接接內容文字（標題與內容之間只有一個換行）\n"
+            "- 段落與段落之間用兩個換行分隔\n"
+            "- 內容文字中不可包含額外的空行\n"
+            "- 禁止使用 markdown 語法（#、##、**、*、---、```）\n"
+            "- 每段內容 80-150 字\n\n"
+            "內容硬性限制：全程繁體中文；全文不得出現「建議」二字，也不得出現「買進、賣出、加碼、減碼、停損、停利、攤平、進場、出場、獲利了結」等任何引導用戶操作的字眼；"
             "可以描述市場現象（例如：賣壓較重、買盤動能強、量能萎縮），也可以談論焦慮分數與情緒安撫，但絕不告訴用戶該做什麼交易動作。"
         )
         try:
@@ -114,7 +162,7 @@ class OpenAIService:
                 llm.converse, system=system, user=user, temperature=0.7, max_tokens=1024
             )
             logger.info("Generated stock analysis via Bedrock for %s", symbol)
-            return result
+            return cls._normalize_analysis_format(result)
         except Exception:
             logger.exception("Bedrock stock analysis failed for %s; using fallback", symbol)
 
