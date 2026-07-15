@@ -694,6 +694,124 @@
       .metric-row { min-height:64px; }
     }
 
+    /* Projection edition: larger type and product screens for judge-room viewing */
+    @media (min-width:1101px) and (min-aspect-ratio:4/3) {
+      .shell { width:min(94vw,1600px); padding:3.4vh 0 3.1vh; }
+      .judge-core .shell,
+      .evidence-analysis .shell,
+      .profile-evidence .shell,
+      .trust-evidence .shell,
+      .weekly-evidence .shell,
+      .achievement-evidence .shell,
+      .success-system .shell { padding-top:3.2vh; padding-bottom:3.1vh; }
+
+      .eyebrow { font-size:clamp(13px,1.05vw,17px); }
+      h1 { font-size:clamp(62px,6.5vw,106px); }
+      h2 { font-size:clamp(44px,4.45vw,72px); }
+      h3 { font-size:clamp(24px,1.95vw,32px); }
+      .lead { font-size:clamp(21px,1.78vw,30px); line-height:1.48; }
+      .chip { font-size:clamp(12px,1vw,16px); padding:9px 14px; }
+      .slide-no { font-size:13px; }
+      .source { font-size:11px; }
+
+      .brand-name { font-size:clamp(24px,2.1vw,34px); }
+      .brand-tag { font-size:clamp(13px,1.05vw,17px); }
+      .hero-label { font-size:clamp(13px,1.08vw,17px); }
+
+      .judge-head h2,
+      .evidence-head h2,
+      .success-head h2 { font-size:clamp(42px,4.05vw,66px); }
+      .evidence-head .lead { max-width:520px; font-size:clamp(16px,1.3vw,21px); }
+      .judge-body { grid-template-columns:minmax(0,65fr) minmax(270px,35fr); gap:2.3vw; }
+      .judge-proof { height:min(54vh,560px); }
+      .proof-stamp { font-size:13px; padding:12px 15px; }
+      .proof-stamp strong { font-size:23px; }
+      .audience-item { min-height:66px; padding:12px 15px; }
+      .audience-item small { font-size:11.5px; }
+      .audience-item b { font-size:clamp(14px,1.12vw,18px); }
+      .solve-list { gap:7px; }
+      .solve-row { min-height:88px; padding:12px 14px; }
+      .solve-cause small,.solve-answer small { font-size:11.5px; }
+      .solve-cause b,.solve-answer b { font-size:clamp(15px,1.12vw,18px); }
+      .solve-cause span,.solve-answer span { font-size:13px; line-height:1.35; }
+      .solve-lenses { padding:10px 13px; }
+      .solve-lenses b { font-size:12.5px; }
+      .solve-lenses span { font-size:11.5px; padding:6px 9px; }
+
+      .success-stage { grid-template-columns:minmax(290px,37fr) minmax(0,63fr); gap:3vw; }
+      .success-phone { height:min(70vh,730px); }
+      .success-phone::after { font-size:12px; padding:10px 13px; }
+      .rhythm-step { min-height:72px; padding:11px; }
+      .rhythm-step small { font-size:10.5px; }
+      .rhythm-step b { font-size:14px; }
+      .metric-row { min-height:76px; grid-template-columns:100px 1fr; padding:12px 14px; }
+      .metric-phase small { font-size:10.5px; }
+      .metric-phase b { font-size:16px; }
+      .metric-kpis span { min-height:32px; font-size:12px; padding:7px 10px; }
+      .metric-disclaimer { font-size:11px; }
+
+      .trust-screen { height:min(70vh,730px); }
+      .trust-screen-tag { font-size:12px; padding:8px 14px; }
+
+      .weekly-stage { grid-template-columns:minmax(240px,1fr) minmax(320px,.95fr) minmax(240px,1fr); gap:2vw; }
+      .weekly-screen { height:min(68vh,710px); }
+      .weekly-state { min-width:210px; font-size:12px; padding:9px 14px; }
+      .weekly-logic { padding:clamp(24px,2.5vw,38px); }
+      .weekly-logic small { font-size:11.5px; }
+      .weekly-logic h3 { font-size:clamp(27px,2.2vw,36px); }
+      .weekly-logic > p { font-size:13px; }
+      .gate-case { padding:15px 16px; }
+      .gate-case b { font-size:16px; }
+      .gate-case span { font-size:12px; }
+      .gate-arrow { font-size:10.5px; }
+      .weekly-verdict { font-size:12px; }
+
+      .achievement-evidence-stage { grid-template-columns:minmax(330px,47fr) minmax(0,53fr); gap:3.2vw; }
+      .achievement-live-wrap { height:min(70vh,730px); }
+      .achievement-proof h3 { font-size:clamp(27px,2.4vw,39px); }
+      .achievement-proof > p { font-size:14px; }
+      .achievement-number span { font-size:12px; }
+      .achievement-trigger { font-size:12px; }
+      .profile-verdict { font-size:13px; }
+
+      .profile-evidence-stage { grid-template-columns:minmax(250px,1fr) minmax(250px,1fr) minmax(280px,.92fr); gap:1.8vw; }
+      .profile-shot { height:min(69vh,720px); }
+      .profile-label { font-size:12px; padding:9px 12px; }
+      .profile-step { padding:16px 17px; }
+      .profile-step b { font-size:16px; }
+      .profile-step span { font-size:12.5px; }
+
+      .analysis-evidence-stage { grid-template-columns:minmax(0,61fr) minmax(0,39fr); gap:3vw; }
+      .live-duo { height:min(70vh,730px); }
+      .evidence-metric { min-height:122px; padding:17px; }
+      .evidence-metric b { font-size:clamp(30px,2.65vw,44px); }
+      .evidence-metric span { font-size:13px; }
+      .evidence-metric.wide p { font-size:14px; }
+      .evidence-caption { font-size:12.5px; }
+
+      .entry .shell { grid-template-columns:49% 51%; gap:3.5vw; }
+      .entry-visual .phone { width:min(31vw,390px); height:84vh; }
+      .scan-card { width:min(27vw,380px); padding:24px; }
+      .scan-top { font-size:16px; }
+      .scan-window::before { font-size:14px; }
+      .local-badge,.privacy-note { font-size:14px; }
+      .target span { font-size:clamp(17px,1.35vw,22px); }
+      .step { padding:14px 16px; }
+      .step b { font-size:clamp(16px,1.3vw,20px); }
+      .step small { font-size:clamp(12px,.98vw,15px); }
+
+      .architecture { gap:12px; margin-top:2vh; }
+      .arch-node { min-height:232px; padding:19px 16px; }
+      .arch-node h3 { font-size:clamp(17px,1.35vw,22px); }
+      .arch-node p { font-size:clamp(13px,.98vw,16px); line-height:1.42; }
+      .arch-tag { font-size:11.5px; }
+      .guard { font-size:clamp(13px,1vw,16px); padding:14px 16px; }
+
+      .closing h2 { font-size:clamp(54px,4.8vw,82px); }
+      .closing .lead { font-size:clamp(20px,1.65vw,27px); }
+      .final-line { font-size:clamp(18px,1.45vw,23px); }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *,*::before,*::after { animation:none !important; transition-duration:.01ms !important; }
     }
@@ -823,7 +941,7 @@
       <div class="shell">
         <div class="evidence-head">
           <div><div class="eyebrow reveal">Trust by inspection</div><h2 class="reveal" style="--delay:.08s">每個 AI 結論，<br><span class="gradient-text">都能一路追到資料與推導。</span></h2></div>
-          <p class="lead reveal" style="--delay:.14s">來源 chips 可打開原始欄位；推論卡直接標示「這是判斷，不是事實」。</p>
+          <p class="lead reveal" style="--delay:.14s">來源 chips 可開原始欄位；推論卡清楚標示「這是判斷」。</p>
         </div>
         <div class="trust-evidence-stage">
           <div class="trust-screen reveal" style="--delay:.12s"><div class="live-shot"><img src="stockmood-deck-assets/fact-live.jpg" alt="可驗證事實卡與資料來源 chips 實機畫面"></div><span class="trust-screen-tag glass">1 · 事實卡／來源 chip</span></div>
@@ -865,8 +983,8 @@
       <div class="aurora"></div>
       <div class="shell">
         <div class="evidence-head">
-          <div><div class="eyebrow reveal">Adaptive personalization</div><h2 class="reveal" style="--delay:.08s">先看投資習慣，<br><span class="gradient-text">再調整 AI 怎麼說、怎麼判斷。</span></h2></div>
-          <p class="lead reveal" style="--delay:.14s">問卷偏好、持股行為與歷史轉變分開保存，不用一次答案永久貼標籤。</p>
+          <div><div class="eyebrow reveal">Adaptive personalization</div><h2 class="reveal" style="--delay:.08s">先看投資習慣，<br><span class="gradient-text">再讓 AI 判斷更像你。</span></h2></div>
+          <p class="lead reveal" style="--delay:.14s">問卷、持股行為與歷史轉變分開保存，不被一次答案定型。</p>
         </div>
         <div class="profile-evidence-stage">
           <div class="profile-shot reveal" style="--delay:.12s"><div class="live-shot"><img src="stockmood-deck-assets/habit-live.jpg" alt="投資習慣實機畫面，呈現集中度、產業、近三十日調整與買價完整度"><span class="profile-label glass">實際投資習慣</span></div></div>
