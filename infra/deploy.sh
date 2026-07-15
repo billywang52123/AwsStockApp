@@ -54,6 +54,8 @@ fi
 if command -v podman >/dev/null 2>&1; then CONTAINER=podman
 elif command -v docker >/dev/null 2>&1; then CONTAINER=docker
 else echo "ERROR: 需要 podman 或 docker"; exit 1; fi
+# CDK DockerImageAsset 預設呼叫 docker；Podman-only 環境需明確覆寫。
+export CDK_DOCKER="$CONTAINER"
 
 aws() { command aws --profile "$PROFILE" --region "$REGION" "$@"; }
 cdk() { (cd "$INFRA_DIR" && npx --yes aws-cdk@latest "$@" --profile "$PROFILE"); }
@@ -63,22 +65,22 @@ ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
 ECR_URI="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/stockmood-api"
 echo "==> Account=$ACCOUNT_ID"
 
-echo "==> [1/9] Python venv + CDK deps"
+echo "==> [1/10] Python venv + CDK deps"
 if [ ! -d "$INFRA_DIR/.venv" ]; then python -m venv "$INFRA_DIR/.venv"; fi
 "$INFRA_DIR/.venv/Scripts/python.exe" -m pip install -q -r "$INFRA_DIR/requirements.txt" 2>/dev/null \
   || "$INFRA_DIR/.venv/bin/python" -m pip install -q -r "$INFRA_DIR/requirements.txt"
 
-echo "==> [2/9] CDK bootstrap(一次性,已 bootstrap 會直接略過)"
+echo "==> [2/10] CDK bootstrap(一次性,已 bootstrap 會直接略過)"
 cdk bootstrap "aws://${ACCOUNT_ID}/${REGION}" >/dev/null
 
-echo "==> [3/9] Service-linked roles(已存在則忽略)"
+echo "==> [3/10] Service-linked roles(已存在則忽略)"
 aws iam create-service-linked-role --aws-service-name ecs.amazonaws.com >/dev/null 2>&1 || true
 aws iam create-service-linked-role --aws-service-name ecs.application-autoscaling.amazonaws.com >/dev/null 2>&1 || true
 
-echo "==> [4/9] Deploy Network + Data(先要有 ECR 才能推映像)"
+echo "==> [4/10] Deploy Network + Data(先要有 ECR 才能推映像)"
 cdk deploy StockMood-Network StockMood-Data --require-approval never >/dev/null
 
-echo "==> [5/9] 填 app 密鑰(缺 key 才補;OPENAI 先留空 → 走規則式 fallback)"
+echo "==> [5/10] 填 app 密鑰(缺 key 才補;OPENAI 先留空 → 走規則式 fallback)"
 if ! aws secretsmanager get-secret-value --secret-id stockmood/app \
       --query SecretString --output text 2>/dev/null | grep -q 'JWT_SECRET'; then
   JWT="$(python -c 'import secrets;print(secrets.token_urlsafe(48))')"
@@ -90,7 +92,7 @@ else
   echo "    -> 密鑰已存在,略過"
 fi
 
-echo "==> [6/9] SNS APNs Platform Application(冪等:已存在則沿用)"
+echo "==> [6/10] SNS APNs Platform Application(冪等:已存在則沿用)"
 # CloudFormation 不支援 AWS::SNS::PlatformApplication,只能走 CLI。
 # 建立需要 Apple 的 .p8 簽署金鑰(token-based auth,sandbox/production 共用);
 # 平台應用一旦存在,之後部署不帶 APNS_* 也會自動撈到 ARN 沿用。
@@ -156,15 +158,18 @@ if [ -n "$SNS_APNS_ARN" ]; then
   echo "    -> production ARN: $SNS_APNS_ARN"
 fi
 
-echo "==> [7/9] Build + push 映像($CONTAINER, linux/amd64)"
+echo "==> [7/10] Build + push 映像($CONTAINER, linux/amd64)"
 aws ecr get-login-password | "$CONTAINER" login --username AWS --password-stdin "${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
 "$CONTAINER" build --platform linux/amd64 -t "${ECR_URI}:${IMAGE_TAG}" "$BACKEND_DIR"
 "$CONTAINER" push "${ECR_URI}:${IMAGE_TAG}"
 
-echo "==> [8/9] Deploy ECS Express"
+echo "==> [8/10] Deploy ECS Express"
 cdk deploy StockMood-EcsExpress --require-approval never "${SNS_CONTEXT_ARGS[@]}" >/dev/null
 
-echo "==> [9/9] 強制滾動最新映像(cdk 對同 tag 不會偵測變更)"
+echo "==> [9/10] Deploy personalized notification Lambda(schedule defaults to DISABLED)"
+cdk deploy StockMood-Notifications --require-approval never >/dev/null
+
+echo "==> [10/10] 強制滾動最新映像(cdk 對同 tag 不會偵測變更)"
 aws ecs update-service --cluster default --service stockmood-api --force-new-deployment >/dev/null
 aws ecs wait services-stable --cluster default --services stockmood-api
 

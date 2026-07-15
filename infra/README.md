@@ -11,6 +11,7 @@ Phase 1 上雲:核心 FastAPI 跑在 **Amazon ECS Express Mode**(App Runner 2026
 | `StockMood-Network` | VPC(public / app / db 三層子網)、RDS SG、ECS service SG |
 | `StockMood-Data` | RDS PostgreSQL 16(私有)、app 密鑰、ECR repo |
 | `StockMood-EcsExpress` | `CfnExpressGatewayService` + infra/execution/task 三角色(task role → Bedrock + 讀 DB 密鑰),放 public 子網 → internet-facing ALB |
+| `StockMood-Notifications` | VPC Lambda Container + Secrets Manager/Bedrock Runtime/SNS Interface Endpoints + DynamoDB 防重 + 每日 EventBridge Scheduler(預設停用) |
 
 ## 一鍵部署
 
@@ -34,6 +35,34 @@ ECS 的 IAM 權限與環境變數：
 未設定 SNS 時，`POST /api/push-devices` 仍會先將 APNs device token
 綁定登入使用者並存入 RDS，狀態為 `pending_sns_configuration`；SNS 就緒後重新註冊，
 後端會建立 SNS EndpointArn，狀態改為 `active`。
+
+### 個人化持股推播 Lambda
+
+`StockMood-Notifications` 會從 `public.portfolio_items`、`public.push_devices` 與
+`raw.raw_01_price_valuation_2025` 選出指定日期波動最大的持股，使用 Bedrock Converse
+產生繁體中文文案（失敗時走安全模板），再由 SNS/APNs 發送。真實日期會保留月日並映射到
+2025；也可在 invoke payload 明確指定 `demo_date`。
+
+部署後先以單一使用者 dry-run 驗證，這不會發送 SNS：
+
+```bash
+aws lambda invoke --function-name stockmood-personalized-push \
+  --cli-binary-format raw-in-base64-out \
+  --payload '{"demo_date":"2025-07-14","user_id":"<user-id>","dry_run":true}' \
+  notification-response.json
+```
+
+確認回傳 candidate/content 後，再將 `dry_run` 改成 `false` 做實機推播。每日 14:30
+(`Asia/Taipei`) 的 EventBridge Scheduler **預設為 DISABLED**；完整串測成功後才啟用：
+
+```bash
+cd infra
+npx aws-cdk@latest deploy StockMood-Notifications \
+  -c notification_schedule_enabled=true --require-approval never
+```
+
+Scheduler 會以 `all_users=true`、`dry_run=false` 執行。Lambda 預設 reserved concurrency 為 1，
+且未指定 `user_id` 或明確 `all_users=true` 時會拒絕執行，避免誤發。
 
 `deploy.sh` 依序做:venv → `cdk bootstrap` → 建 service-linked roles → deploy Network/Data →
 填 app 密鑰 → SNS APNs Platform Application → build+push 映像(podman/docker)→
