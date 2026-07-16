@@ -4,6 +4,10 @@ import Combine
 
 @MainActor
 class PortfolioListViewModel: ObservableObject {
+    /// App 全域共用一份:啟動時 AppTabView 就先 loadPortfolio(),
+    /// 使用者點進「持股」分頁時資料已在記憶體,零等待。
+    static let shared = PortfolioListViewModel()
+
     /// 聚合後的持股:多券商分帳加總、加權均價(spec 04)
     @Published var holdings: [Holding] = []
     @Published var dailyPrices: [String: StockDailyPrice] = [:]
@@ -17,7 +21,21 @@ class PortfolioListViewModel: ObservableObject {
         self.container = container ?? .shared
     }
 
+    private var loadInFlight = false
+
+    /// 登出時清空共用資料,下一位登入者不會看到上一位的持股
+    func reset() {
+        holdings = []
+        dailyPrices = [:]
+        hasError = false
+        errorMessage = ""
+    }
+
     func loadPortfolio() async {
+        // 啟動預載與分頁 onAppear 可能同時觸發;已在載入中就不重打
+        if loadInFlight { return }
+        loadInFlight = true
+        defer { loadInFlight = false }
         isLoading = holdings.isEmpty
         hasError = false
         do {

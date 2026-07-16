@@ -52,8 +52,14 @@ struct AppTabView: View {
         }
         .task {
             // App 啟動先請後端預熱 /insights 快取(換日後第一次開 App 就開始算),
-            // 使用者稍後點「分析」分頁即可秒開;fire-and-forget,失敗無妨。
+            // fire-and-forget,失敗無妨。
             let _: String? = try? await APIClient.shared.request("/insights/prewarm", method: "POST")
+            // 接著把「分析」「持股」兩個分頁整頁預載進共用 ViewModel,
+            // 使用者點進分頁時資料已在記憶體,不再轉圈;
+            // 分析頁的 /insights 會與上面的預熱在後端 single-flight 合流,不會重算。
+            async let analysisPreload: Void = AnalysisViewModel.shared.load()
+            async let portfolioPreload: Void = PortfolioListViewModel.shared.loadPortfolio()
+            _ = await (analysisPreload, portfolioPreload)
         }
         .onAppear {
             // Apply standard UITabBar appearance for clear styling

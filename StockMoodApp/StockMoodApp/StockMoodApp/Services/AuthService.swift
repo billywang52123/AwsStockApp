@@ -296,6 +296,11 @@ final class AuthService: ObservableObject {
         }
         CognitoAuthService.shared.clearSession()
         AppPreferenceStore.shared.signOut()
+        // 共用 ViewModel(啟動預載用)要清空,換帳號登入才不會短暫看到上一位的資料
+        Task { @MainActor in
+            AnalysisViewModel.shared.reset()
+            PortfolioListViewModel.shared.reset()
+        }
         NotificationCenter.default.post(name: .authSessionDidEnd, object: nil)
     }
 

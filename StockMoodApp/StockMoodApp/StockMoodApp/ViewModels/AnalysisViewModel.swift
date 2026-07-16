@@ -5,6 +5,10 @@ import Combine
 // MARK: - 庫存分析 + 個股觀點總覽(8a–8d)+ 觀察清單分析/觀點(11e/11f)
 @MainActor
 class AnalysisViewModel: ObservableObject {
+    /// App 全域共用一份:啟動時 AppTabView 就先 load(),
+    /// 使用者點進「分析」分頁時資料已在記憶體,零等待。
+    static let shared = AnalysisViewModel()
+
     @Published var analysis: PortfolioAnalysis?
     @Published var insights: InsightList?
     @Published var isLoading = false
@@ -33,7 +37,26 @@ class AnalysisViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    private var loadInFlight = false
+
+    /// 登出時清空共用資料,下一位登入者不會看到上一位的分析
+    func reset() {
+        analysis = nil
+        insights = nil
+        watchAnalysis = nil
+        watchInsights = nil
+        watchlists = []
+        watchFilterId = nil
+        hasError = false
+        errorMessage = ""
+    }
+
     func load() async {
+        // 啟動預載與分頁 .task 可能幾乎同時觸發;已在載入中就不重打,
+        // 進行中的那次完成後會自動發佈到同一份共用資料
+        if loadInFlight { return }
+        loadInFlight = true
+        defer { loadInFlight = false }
         // 首次載入才顯示全頁 loading;下拉刷新時保留舊資料避免畫面閃爍
         if analysis == nil { isLoading = true }
         hasError = false

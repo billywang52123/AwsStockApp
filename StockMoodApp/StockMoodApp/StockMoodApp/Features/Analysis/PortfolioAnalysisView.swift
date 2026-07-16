@@ -3,7 +3,7 @@ import SwiftUI
 /// 分析分頁:庫存分析(8a/8b/8c)與個股 AI 觀點(8d/11f 列表),個股列點擊深連結至 17a 統一詳情頁。
 struct PortfolioAnalysisView: View {
     @Binding var activeTab: Int
-    @StateObject private var viewModel = AnalysisViewModel()
+    @ObservedObject private var viewModel = AnalysisViewModel.shared
     @State private var mode: AnalysisMode = .portfolio
     @State private var outlookFilter: Outlook? = nil
     // 11e/11f:持股與觀察清單分頁(資料嚴格分離,不合併列表)

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PortfolioListView: View {
-    @StateObject private var viewModel = PortfolioListViewModel()
+    @ObservedObject private var viewModel = PortfolioListViewModel.shared
     @StateObject private var watchlistVM = WatchlistViewModel()
     @ObservedObject private var privacy = PrivacyManager.shared
     @State private var showInputSheet = false
