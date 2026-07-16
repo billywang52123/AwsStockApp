@@ -38,16 +38,15 @@ def get_stock_insights(db: Session = Depends(get_db), user_id: str = Depends(get
 
 @router.post("/insights/prewarm", response_model=ApiResponse[str])
 def prewarm_insights(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
-    """App 啟動時呼叫:快取已是今天+目前持股+目前引擎就回 ready;
-    否則排背景預抓並立刻回 warming,使用者稍後進分析頁即可秒開。"""
+    """App 啟動時呼叫:排背景預抓(insights 總覽 + 每檔持股的個股白話分析,
+    各環節新鮮就自動跳過,不會重複打 AI)。insights 已新鮮回 ready,否則 warming。"""
     from app.services.insight_prefetch_service import get_fresh_payload, schedule_insight_prefetch
     from app.services.llm_router import current_provider
 
     provider = current_provider()
-    if get_fresh_payload(db, user_id, provider) is not None:
-        return ApiResponse(success=True, data="ready")
+    ready = get_fresh_payload(db, user_id, provider) is not None
     schedule_insight_prefetch(user_id, provider)
-    return ApiResponse(success=True, data="warming")
+    return ApiResponse(success=True, data="ready" if ready else "warming")
 
 
 @router.get("/insights/{symbol}", response_model=ApiResponse[StockInsightDetail])

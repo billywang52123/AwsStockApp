@@ -24,6 +24,7 @@ from app.models.push_device import PushDevice
 from app.models.app_setting import AppSetting
 from app.models.investment_profile import InvestmentProfileModel, InvestmentHabitSnapshotModel
 from app.models.insight_cache import InsightCache
+from app.models.stock_analysis_cache import StockAnalysisCache
 
 # Routes
 from app.api.routes import (

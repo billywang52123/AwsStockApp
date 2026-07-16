@@ -98,3 +98,31 @@ enum TaiwanBrokers {
         "玉山證券", "台新證券", "中國信託證券", "群益金鼎證券", "第一金證券",
     ]
 }
+
+// MARK: - 語音輸入持股(spec 08 · 19a–19c)
+
+/// AI 從逐字稿解析出的一筆持股;confidence == "low" 表示對不到台股代號(19c 金色卡)。
+struct VoiceParsedHolding: Codable, Hashable, Identifiable {
+    var id: String { symbol ?? mention }
+    let symbol: String?
+    let name: String?
+    /// 句中對這檔股票的原話稱呼
+    let mention: String
+    /// 換算後股數(「兩張」→ 2000);句子沒提到為 nil
+    let shares: Int?
+    /// 每股成本;沒提到為 nil(選填,不擋加入)
+    let costPrice: Double?
+    /// 口語換算依據註記(19c 卡底小字,例:「『兩張』= 2,000 股」)
+    let note: String?
+    let confidence: String
+
+    var isLowConfidence: Bool { confidence == "low" }
+}
+
+struct VoiceParseResult: Codable, Hashable {
+    /// 原句回顯(19c 引用盒逐字不省略)
+    let transcript: String
+    let items: [VoiceParsedHolding]
+    /// 解析不到東西時的安撫文案
+    let message: String?
+}

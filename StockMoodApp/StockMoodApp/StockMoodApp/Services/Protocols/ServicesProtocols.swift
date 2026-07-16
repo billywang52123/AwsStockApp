@@ -4,6 +4,8 @@ protocol PortfolioServiceProtocol {
     func getPortfolioItems() async throws -> [PortfolioItem]
     func addPortfolioItem(_ item: PortfolioItem) async throws
     func deletePortfolioItem(id: UUID) async throws
+    /// 語音輸入持股(spec 08):裝置端轉好的逐字稿 → AI 解析成結構化持股
+    func parseVoiceHoldings(text: String) async throws -> VoiceParseResult
 }
 
 /// 持股異動與多券商合併(spec 04 · 9a–9e)

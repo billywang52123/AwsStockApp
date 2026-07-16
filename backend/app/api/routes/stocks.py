@@ -53,38 +53,27 @@ def get_stock_summary(symbol: str, db: Session = Depends(get_db)):
 @router.get("/{symbol}/ai-analysis", response_model=ApiResponse[str])
 def get_stock_ai_analysis(symbol: str, db: Session = Depends(get_db),
                           user_id: str = Depends(get_current_user_id)):
-    service = StockService(db)
-    stock = service.repo.get_stock(symbol)
-    price = service.get_daily_price(symbol)
-    
-    if not price:
+    """個股 AI 白話分析(發生什麼/跟你有關/可以留意)。
+
+    持股異動後、App 啟動 prewarm 時已由背景逐檔算好放 stock_analysis_cache
+    (鍵含持股指紋/交易日/AI 引擎);命中直接秒回,未命中才同步計算
+    (single-flight,不會與背景預抓重複打 LLM)。"""
+    from app.services.insight_prefetch_service import get_fresh_analysis, refresh_stock_analysis
+    from app.services.llm_router import current_provider
+
+    provider = current_provider()
+    analysis_text = get_fresh_analysis(db, user_id, symbol, provider)
+    if analysis_text is None:
+        analysis_text = refresh_stock_analysis(user_id, symbol, provider)
+    if analysis_text is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Stock data not found for {symbol}"
         )
-        
-    name = stock.name if stock else symbol
-    close = float(price.close_price)
-    change = float(price.change_percent)
-    
-    from app.services.openai_service import OpenAIService
-    from app.services.services import run_async
-    from app.services.investment_profile_service import InvestmentProfileService
-    user_context = InvestmentProfileService(db).prompt_context(user_id)["prompt_text"]
-    
-    analysis_text = run_async(
-        OpenAIService.fetch_stock_analysis(
-            symbol=symbol,
-            name=name,
-            close_price=close,
-            change_percent=change,
-            user_context=user_context,
-        )
-    )
-    
+
     # Trigger first-time read achievement
     from app.services.services import AchievementService
     ach_service = AchievementService(db)
     ach_service.trigger_unlock("CALM_BEGINNER")
-    
+
     return ApiResponse(success=True, data=analysis_text)

@@ -28,6 +28,7 @@ from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
 from app.models.insight_cache import InsightCache
 from app.models.portfolio import PortfolioItem
+from app.models.stock_analysis_cache import StockAnalysisCache
 from app.services.cmoney_service import effective_trade_date
 from app.services.llm_router import (
     PROVIDER_OPENAI,
@@ -166,8 +167,104 @@ def refresh_insights(user_id: str, provider: str) -> dict:
             reset_provider(token)
 
 
+# ──────────────────────────────────────────────────────────────────────────
+# 個股 AI 白話分析(/stocks/{symbol}/ai-analysis)快取
+# ──────────────────────────────────────────────────────────────────────────
+
+
+def get_fresh_analysis(db: Session, user_id: str, symbol: str, provider: str) -> str | None:
+    """個股分析快取有效(同一天 + 持股沒變 + 同一引擎)就回內文,否則 None。"""
+    row = db.get(StockAnalysisCache, (user_id, symbol))
+    if row is None:
+        return None
+    if (row.provider or "claude") != provider:
+        return None
+    if row.trade_date != effective_trade_date():
+        return None
+    if row.fingerprint != holdings_fingerprint(db, user_id):
+        return None
+    return row.analysis
+
+
+def refresh_stock_analysis(user_id: str, symbol: str, provider: str) -> str | None:
+    """算一檔個股白話分析並存快取(single-flight)。
+
+    回傳 None 表示查無價格資料(呼叫端 route 據此回 404)。
+    LLM 失敗時 OpenAIService 會回規則式 fallback 文案 —
+    那不是真分析,照樣回應但不快取,下一次自動重試。
+    """
+    import asyncio
+
+    from app.services.openai_service import OpenAIService
+
+    with _flight_lock(f"{user_id}#{symbol}", provider):
+        token = set_provider_from_header(provider)
+        try:
+            with SessionLocal() as db:
+                cached = get_fresh_analysis(db, user_id, symbol, provider)
+                if cached is not None:
+                    return cached
+
+                from app.services.investment_profile_service import InvestmentProfileService
+                from app.services.services import StockService
+
+                service = StockService(db)
+                stock = service.repo.get_stock(symbol)
+                price = service.get_daily_price(symbol)
+                if not price:
+                    return None
+
+                name = stock.name if stock else symbol
+                close = float(price.close_price)
+                change = float(price.change_percent)
+                user_context = InvestmentProfileService(db).prompt_context(user_id)["prompt_text"]
+                fingerprint = holdings_fingerprint(db, user_id)
+                trade_date = effective_trade_date()
+
+                analysis = asyncio.run(
+                    OpenAIService.fetch_stock_analysis(
+                        symbol=symbol, name=name, close_price=close,
+                        change_percent=change, user_context=user_context,
+                    )
+                )
+
+                # fallback 模板是確定性的,直接比對即可辨識 LLM 失敗
+                fallback = OpenAIService._generate_fallback_analysis(symbol, name, close, change)
+                if analysis.strip() == fallback.strip():
+                    logger.warning("Stock analysis for %s/%s fell back; not caching", user_id, symbol)
+                    return analysis
+
+                row = db.get(StockAnalysisCache, (user_id, symbol))
+                if row is None:
+                    row = StockAnalysisCache(user_id=user_id, symbol=symbol)
+                    db.add(row)
+                row.trade_date = trade_date
+                row.fingerprint = fingerprint
+                row.provider = provider
+                row.analysis = analysis
+                db.commit()
+                return analysis
+        finally:
+            reset_provider(token)
+
+
+def _active_symbols(user_id: str) -> list[str]:
+    with SessionLocal() as db:
+        stmt = select(PortfolioItem.symbol).where(
+            and_(
+                PortfolioItem.user_id == user_id,
+                (PortfolioItem.status.is_(None)) | (PortfolioItem.status != "exited"),
+            )
+        ).distinct()
+        return list(db.scalars(stmt).all())
+
+
 def schedule_insight_prefetch(user_id: str, provider: str | None = None) -> None:
     """背景預抓:立即返回,不擋住呼叫端的回應。
+
+    一條背景執行緒依序把「/insights 總覽」與「每檔持股的個股白話分析」
+    都算好放快取;各環節內部都有 fresh-check + single-flight,
+    已是新鮮的就直接跳過,連續異動也不會重複打 AI。
 
     provider 預設取呼叫端 request 的 X-AI-Provider(必須在 request context
     內取,新 thread 讀不到 contextvar),再顯式帶進背景執行緒。
@@ -180,5 +277,10 @@ def schedule_insight_prefetch(user_id: str, provider: str | None = None) -> None
             logger.info("Insight prefetch done for %s via %s", user_id, resolved)
         except Exception:
             logger.exception("Insight prefetch failed for %s", user_id)
+        for symbol in _active_symbols(user_id):
+            try:
+                refresh_stock_analysis(user_id, symbol, resolved)
+            except Exception:
+                logger.exception("Stock analysis prefetch failed for %s/%s", user_id, symbol)
 
     threading.Thread(target=_run, daemon=True, name="insight-prefetch").start()

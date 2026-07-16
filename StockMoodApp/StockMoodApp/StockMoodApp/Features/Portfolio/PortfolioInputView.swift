@@ -3,6 +3,7 @@ import SwiftUI
 struct PortfolioInputView: View {
     @StateObject private var viewModel = PortfolioInputViewModel()
     @State private var showScanSheet = false
+    @State private var showVoiceSheet = false
     @State private var showCustomBrokerInput = false
     @State private var customBrokerText = ""
     @FocusState private var focusedField: String?
@@ -26,6 +27,10 @@ struct PortfolioInputView: View {
                         .foregroundColor(AppColor.textSecondary)
 
                     scanEntryCard
+
+                    // 19a 語音卡:截圖匯入卡與手動輸入列之間(spec 08)
+                    VoiceEntryCard { showVoiceSheet = true }
+                        .padding(.top, 8)
 
                     searchBox
 
@@ -100,6 +105,28 @@ struct PortfolioInputView: View {
                     onCompletion([])
                 }
             )
+        }
+        .sheet(isPresented: $showVoiceSheet) {
+            VoiceHoldingsFlowView(
+                onAddCompleted: { symbols in
+                    // 19c「加入這 N 檔持股」已直接寫入後端 → 關閉輸入頁讓列表刷新
+                    showVoiceSheet = false
+                    onCompletion(symbols)
+                },
+                onManualSupplement: { drafts in
+                    // 「有漏的?手動補上」:解析結果帶回手動輸入頁,結果保留
+                    showVoiceSheet = false
+                    for draft in drafts {
+                        guard let symbol = draft.base.symbol else { continue }
+                        let stock = Stock(symbol: symbol,
+                                          name: draft.base.name ?? symbol,
+                                          market: .tw,
+                                          industry: nil)
+                        viewModel.addScannedStock(stock, cost: draft.costText, shares: draft.sharesText)
+                    }
+                }
+            )
+            .interactiveDismissDisabled(false)
         }
         .alert("輸入券商名稱", isPresented: $showCustomBrokerInput) {
             TextField("例如 富邦證券", text: $customBrokerText)

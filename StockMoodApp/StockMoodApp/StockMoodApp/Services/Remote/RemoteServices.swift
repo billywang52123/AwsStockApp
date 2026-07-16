@@ -51,6 +51,18 @@ class RemotePortfolioService: PortfolioServiceProtocol {
         let _: Bool = try await APIClient.shared.request("/portfolio/items/\(id.uuidString.lowercased())", method: "DELETE")
         postDataChanged(.holdingsDidChange)
     }
+
+    func parseVoiceHoldings(text: String) async throws -> VoiceParseResult {
+        // 只傳裝置端轉好的純文字逐字稿,錄音檔不上傳(spec 08)
+        return try await APIClient.shared.requestBody(
+            "/portfolio/holdings/parse-voice",
+            body: VoiceParseRequestBody(text: text)
+        )
+    }
+}
+
+private struct VoiceParseRequestBody: Encodable {
+    let text: String
 }
 
 // MARK: - Remote Holding Service(持股異動與多券商合併 · spec 04)

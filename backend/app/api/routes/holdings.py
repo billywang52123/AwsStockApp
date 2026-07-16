@@ -1,4 +1,7 @@
-"""持股(券商分帳聚合)與異動 API — spec 04 · 9a–9e."""
+"""持股(券商分帳聚合)與異動 API — spec 04 · 9a–9e、spec 08 語音輸入。"""
+
+import time
+from collections import defaultdict, deque
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -9,11 +12,27 @@ from app.schemas.common_schema import ApiResponse
 from app.schemas.holding_schema import (
     HoldingRead, HoldingActivityRead, TradeRequest, OverrideRequest,
     TradeResult, ImportMergeRequest, ImportMergeResult,
+    VoiceParseRequest, VoiceParseResult,
 )
 from app.services.holding_service import HoldingService
 from app.services.insight_prefetch_service import schedule_insight_prefetch
 
 router = APIRouter(prefix="/portfolio", tags=["Holdings"])
+
+# 語音解析 per-user sliding-window rate limit(每次都打 Bedrock,沿用 scan.py 模式)
+VOICE_PARSE_RATE_LIMIT = 30           # requests
+VOICE_PARSE_RATE_WINDOW = 60 * 60     # per hour
+_voice_parse_history: dict[str, deque] = defaultdict(deque)
+
+
+def _check_voice_parse_rate_limit(user_id: str) -> None:
+    now = time.monotonic()
+    history = _voice_parse_history[user_id]
+    while history and now - history[0] > VOICE_PARSE_RATE_WINDOW:
+        history.popleft()
+    if len(history) >= VOICE_PARSE_RATE_LIMIT:
+        raise HTTPException(status_code=429, detail="語音解析次數已達上限,請一小時後再試")
+    history.append(now)
 
 
 def _service(db: Session) -> HoldingService:
@@ -77,6 +96,22 @@ def restore(symbol: str, db: Session = Depends(get_db),
     service = _service(db)
     result = _run_trade(db, service.restore, user_id, symbol)
     schedule_insight_prefetch(user_id)
+    return ApiResponse(success=True, data=result)
+
+
+@router.post("/holdings/parse-voice", response_model=ApiResponse[VoiceParseResult])
+def parse_voice(body: VoiceParseRequest, db: Session = Depends(get_db),
+                user_id: str = Depends(get_current_user_id)):
+    """語音逐字稿 → AI 解析成結構化持股(spec 08 · 19c)。
+
+    只收 iPhone 裝置端轉好的純文字,不經手錄音檔。解析失敗回空 items +
+    安撫文案(不回 5xx),由前端引導「再說一次」或手動輸入。
+    sync def:FastAPI 會丟 threadpool 跑,阻塞的 boto3 Converse 不卡 event loop。
+    """
+    _check_voice_parse_rate_limit(user_id)
+    from app.services.voice_holding_parser import parse_voice_holdings
+    result = parse_voice_holdings(db, body.text)
+    db.commit()  # _import_unknown_symbol 驗證新代號時會寫入 stocks 表
     return ApiResponse(success=True, data=result)
 
 

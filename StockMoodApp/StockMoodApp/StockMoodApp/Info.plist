@@ -17,6 +17,10 @@
 	</dict>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>將你選擇分享的卡片圖片儲存到照片。</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>用說的加持股:錄下你的語音,在手機上直接轉成文字,錄音不會上傳。</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>把你的語音在 iPhone 上轉成文字,AI 只會收到文字內容,錄音不會離開你的手機。</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

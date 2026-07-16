@@ -61,17 +61,23 @@ body{margin:0;background:#EBE9E3;}
     </div>
   </sc-if>
 
-  <!-- SCENARIO -->
-  <sc-if value="{{ isScenario }}" hint-placeholder-val="{{ false }}">
+  <!-- INVEST STYLE -->
+  <sc-if value="{{ isStyle }}" hint-placeholder-val="{{ false }}">
     <div style="height:100%;display:flex;flex-direction:column;padding:96px 24px 40px;box-sizing:border-box;animation:fadeUp 0.4s ease-out">
-      <div style="font-size:13px;font-weight:600;color:#A9A49B;letter-spacing:1px">1 / 3</div>
-      <div style="margin-top:10px;font-size:28px;font-weight:900;color:#3A3733;line-height:1.4">你最常遇到<br>哪種情況?</div>
-      <div style="margin-top:6px;font-size:14px;color:#8A857C">可以選一個最像你的,我們會照著調整內容。</div>
-      <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px">
-        <sc-for list="{{ scenarios }}" as="s" hint-placeholder-count="4">
-          <div onClick="{{ s.pick }}" style="background:{{ s.bg }};border:{{ s.border }};border-radius:20px;padding:17px;display:flex;align-items:center;gap:14px;box-shadow:{{ s.shadow }};cursor:pointer;transition:all 0.2s">
+      <div style="display:flex;align-items:center">
+        <div style="flex:1;font-size:13px;font-weight:600;color:#A9A49B;letter-spacing:1px">1 / 3</div>
+        <span onClick="{{ skipStyle }}" style="font-size:14px;font-weight:600;color:#A9A49B;padding:8px;cursor:pointer">略過</span>
+      </div>
+      <div style="margin-top:4px;font-size:28px;font-weight:900;color:#3A3733;line-height:1.4">你的投資習慣<br>比較像哪一種?</div>
+      <div style="margin-top:6px;font-size:14px;color:#8A857C;line-height:1.7">AI 會照你的風格調整說話口吻。這一步可以跳過,之後在「設定」裡隨時補上。</div>
+      <div style="margin-top:22px;display:flex;flex-direction:column;gap:12px">
+        <sc-for list="{{ styles }}" as="s" hint-placeholder-count="4">
+          <div onClick="{{ s.pick }}" style="background:{{ s.bg }};border:{{ s.border }};border-radius:20px;padding:15px 17px;display:flex;align-items:center;gap:14px;box-shadow:{{ s.shadow }};cursor:pointer;transition:all 0.2s">
             <div style="width:42px;height:42px;border-radius:14px;background:{{ s.iconBg }};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">{{ s.icon }}</div>
-            <div style="flex:1;font-size:16px;font-weight:{{ s.weight }};color:#3A3733;line-height:1.5">{{ s.label }}</div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+              <div style="font-size:16px;font-weight:{{ s.weight }};color:#3A3733">{{ s.name }}</div>
+              <div style="font-size:13px;color:#8A857C;line-height:1.5">{{ s.desc }}</div>
+            </div>
             <sc-if value="{{ s.selected }}" hint-placeholder-val="{{ false }}">
               <div style="width:24px;height:24px;border-radius:50%;background:#7B7FD4;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                 <svg width="12" height="10" viewBox="0 0 12 10"><path d="M1.5 5 L4.5 8 L10.5 1.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -81,7 +87,8 @@ body{margin:0;background:#EBE9E3;}
         </sc-for>
       </div>
       <div style="flex:1"></div>
-      <div onClick="{{ toInput }}" style="height:54px;border-radius:18px;background:#7B7FD4;box-shadow:0 10px 24px rgba(123,127,212,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:700;cursor:pointer" style-active="transform:scale(0.97)">下一步</div>
+      <div onClick="{{ toInput }}" style="height:54px;border-radius:18px;background:{{ styleBtnBg }};box-shadow:{{ styleBtnShadow }};display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;font-weight:700;cursor:pointer;transition:all 0.25s" style-active="transform:scale(0.97)">{{ styleBtnLabel }}</div>
+      <div onClick="{{ skipStyle }}" style="margin-top:12px;text-align:center;font-size:13px;font-weight:600;color:#A9A49B;cursor:pointer;padding:4px">先跳過,之後再設定</div>
     </div>
   </sc-if>
 
@@ -248,6 +255,18 @@ body{margin:0;background:#EBE9E3;}
         <sc-if value="{{ tabSettings }}" hint-placeholder-val="{{ false }}">
           <div style="height:100%;padding:88px 24px 0;box-sizing:border-box;display:flex;flex-direction:column;animation:fadeUp 0.35s ease-out">
             <div style="font-size:30px;font-weight:900;color:#3A3733">設定</div>
+            <div style="margin-top:22px;display:flex;align-items:center;padding:0 4px">
+              <div style="flex:1;font-size:14px;font-weight:700;color:#8A857C">我的投資風格</div>
+              <div style="font-size:12px;font-weight:600;color:{{ styleStatusColor }}">{{ styleStatus }}</div>
+            </div>
+            <div style="margin-top:10px;background:#FFFFFF;border-radius:20px;padding:14px 16px;box-shadow:0 6px 18px rgba(120,100,70,0.06);display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <sc-for list="{{ styleChips }}" as="ch" hint-placeholder-count="4">
+                  <div onClick="{{ ch.pick }}" style="padding:8px 14px;border-radius:99px;background:{{ ch.bg }};border:{{ ch.border }};font-size:13px;font-weight:700;color:{{ ch.color }};cursor:pointer;transition:all 0.2s">{{ ch.icon }} {{ ch.name }}</div>
+                </sc-for>
+              </div>
+              <div style="font-size:12px;color:#A9A49B;line-height:1.6">{{ styleHint }}</div>
+            </div>
             <div style="margin-top:22px;font-size:14px;font-weight:700;color:#8A857C;padding:0 4px">每天什麼時候提醒你?</div>
             <div style="margin-top:10px;background:#FFFFFF;border-radius:20px;overflow:hidden;box-shadow:0 6px 18px rgba(120,100,70,0.06)">
               <sc-for list="{{ times }}" as="t" hint-placeholder-count="4">
@@ -392,7 +411,7 @@ body{margin:0;background:#EBE9E3;}
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:520,&quot;height&quot;:960},&quot;anxietyScore&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:72,&quot;min&quot;:0,&quot;max&quot;:100,&quot;step&quot;:1,&quot;unit&quot;:&quot;分&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;今日數據&quot;},&quot;drawCardType&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;大盤影響&quot;,&quot;options&quot;:[&quot;大盤影響&quot;,&quot;冷靜觀察&quot;,&quot;小心震盪&quot;,&quot;個股事件&quot;,&quot;信心恢復&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;抽卡&quot;},&quot;startAtHome&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;流程&quot;}}">
 class Component extends DCLogic {
   state = {
-    screen: 'splash', onb: 0, scenario: 1, tab: 'today', flipped: false,
+    screen: 'splash', onb: 0, invStyle: null, tab: 'today', flipped: false,
     recAdded: { '2454': false, '2317': true },
     time: '收盤後', stock: '2330',
     notify: { score: true, card: true, alert: false }
@@ -430,11 +449,11 @@ class Component extends DCLogic {
     const cardName = this.props.drawCardType ?? '大盤影響';
     const card = cards[cardName] || cards['大盤影響'];
 
-    const scenarioData = [
-      { icon: '🤔', label: '我買了股票,但不知道該不該繼續放著' },
-      { icon: '📉', label: '股票一跌,我就開始焦慮' },
-      { icon: '📰', label: '我看不懂線圖和新聞' },
-      { icon: '☕️', label: '我只是想每天快速知道發生什麼事' }
+    const styleData = [
+      { icon: '🛡️', name: '穩健守成', desc: '波動小最重要,睡得著比賺得多優先' },
+      { icon: '🌱', name: '存股安心', desc: '長期持有、慢慢累積,領股息就安心' },
+      { icon: '🌊', name: '波段嘗試', desc: '偶爾低買高賣,想抓市場的節奏' },
+      { icon: '🚀', name: '積極衝刺', desc: '願意承擔波動,追求更高報酬' }
     ];
 
     const stocksData = [
@@ -475,7 +494,7 @@ class Component extends DCLogic {
     const tabCol = t => (S.tab === t ? '#7B7FD4' : '#A9A49B');
 
     return {
-      isSplash: S.screen === 'splash', isOnb: S.screen === 'onb', isScenario: S.screen === 'scenario',
+      isSplash: S.screen === 'splash', isOnb: S.screen === 'onb', isStyle: S.screen === 'style',
       isInput: S.screen === 'input', isRecommend: S.screen === 'recommend', isMain: S.screen === 'main',
       isReason: S.screen === 'reason', isStock: S.screen === 'stockDetail',
       tabToday: S.tab === 'today', tabDraw: S.tab === 'draw', tabHoldings: S.tab === 'holdings', tabSettings: S.tab === 'settings',
@@ -485,18 +504,35 @@ class Component extends DCLogic {
       onbCards: onbData.map((c, i) => ({ ...c, opacity: i === S.onb ? 1 : 0.55 })),
       onbDots: onbData.map((c, i) => ({ w: i === S.onb ? 20 : 7, bg: i === S.onb ? '#7B7FD4' : '#D8D3C8' })),
       onbBtnLabel: S.onb < 2 ? '下一張' : '開始了解我的持股',
-      onbNext: () => S.onb < 2 ? this.setState({ onb: S.onb + 1 }) : this.go('scenario'),
-      finishOnb: () => this.go('scenario'),
+      onbNext: () => S.onb < 2 ? this.setState({ onb: S.onb + 1 }) : this.go('style'),
+      finishOnb: () => this.go('style'),
 
-      scenarios: scenarioData.map((sc, i) => {
-        const sel = i === S.scenario;
-        return { ...sc, selected: sel, pick: () => this.setState({ scenario: i }),
+      styles: styleData.map((st, i) => {
+        const sel = i === S.invStyle;
+        return { ...st, selected: sel, pick: () => this.setState({ invStyle: sel ? null : i }),
           bg: sel ? '#F1F1FB' : '#FFFFFF',
           border: sel ? '2px solid #7B7FD4' : '1.5px solid rgba(120,100,70,0.06)',
           shadow: sel ? '0 8px 22px rgba(123,127,212,0.18)' : 'none',
           iconBg: sel ? '#E3E4F7' : '#F4EFE4', weight: sel ? 700 : 500 };
       }),
+      styleBtnLabel: S.invStyle === null ? '先跳過,直接下一步' : '下一步',
+      styleBtnBg: S.invStyle === null ? '#B4AFA5' : '#7B7FD4',
+      styleBtnShadow: S.invStyle === null ? '0 8px 20px rgba(120,100,70,0.18)' : '0 10px 24px rgba(123,127,212,0.3)',
+      skipStyle: () => this.setState({ invStyle: null, screen: 'input' }),
       toInput: () => this.go('input'),
+
+      styleChips: styleData.map((st, i) => {
+        const sel = i === S.invStyle;
+        return { ...st, pick: () => this.setState({ invStyle: sel ? null : i }),
+          bg: sel ? '#EEEEFA' : '#FDFBF7',
+          border: sel ? '1.5px solid #7B7FD4' : '1.5px solid #E3DFD4',
+          color: sel ? '#54589E' : '#8A857C' };
+      }),
+      styleStatus: S.invStyle === null ? '尚未設定' : '已設定',
+      styleStatusColor: S.invStyle === null ? '#B07A3E' : '#6E9A7F',
+      styleHint: S.invStyle === null
+        ? '你在開始時跳過了這一步。選一個最像你的,AI 就會用你的口吻說話。'
+        : 'AI 會用「' + styleData[S.invStyle].name + '」的口吻幫你解讀,隨時可以更換。',
 
       myStocks: stocksData.slice(0, 2), stockCount: 2,
       toRecommend: () => this.go('recommend'),

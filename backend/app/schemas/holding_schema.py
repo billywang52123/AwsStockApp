@@ -81,3 +81,26 @@ class HoldingActivityRead(BaseModel):
     realized_pnl: Optional[float] = None
     avg_price_after: Optional[float] = None
     created_at: datetime
+
+
+# ---- 語音輸入持股解析(spec 08 · 19a–19c) ----
+
+class VoiceParseRequest(BaseModel):
+    """iPhone 裝置端語音轉文字後的純文字逐字稿(不含音檔)。"""
+    text: str = Field(min_length=0, max_length=500)
+
+
+class VoiceParsedHolding(BaseModel):
+    symbol: Optional[str] = None          # 驗證通過的台股代號;低信心時為 None
+    name: Optional[str] = None            # 股名(來自本地 stocks 表)
+    mention: str                          # 句中對這檔股票的原話稱呼
+    shares: Optional[int] = None          # 換算後股數(「兩張」→ 2000);沒提到為 None
+    cost_price: Optional[float] = None    # 每股成本;沒提到為 None(選填,不擋加入)
+    note: Optional[str] = None            # 口語換算依據註記(19c 卡底小字)
+    confidence: Literal["high", "low"] = "high"
+
+
+class VoiceParseResult(BaseModel):
+    transcript: str                       # 原句回顯(19c 引用盒逐字不省略)
+    items: List[VoiceParsedHolding] = []
+    message: Optional[str] = None         # 解析不到東西時的安撫文案
