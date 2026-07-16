@@ -33,16 +33,20 @@ def finite_or_zero(value) -> float:
 
 def run_async(coro):
     import asyncio
+    import contextvars
     from concurrent.futures import ThreadPoolExecutor
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        
+
     if loop.is_running():
+        # copy_context:讓 X-AI-Provider 等 contextvar 帶進新 thread,
+        # 否則 AI 引擎切換在這條路徑會失效(永遠回到預設 Claude)。
+        ctx = contextvars.copy_context()
         with ThreadPoolExecutor(1) as executor:
-            return executor.submit(lambda: asyncio.run(coro)).result()
+            return executor.submit(ctx.run, lambda: asyncio.run(coro)).result()
     else:
         return loop.run_until_complete(coro)
 

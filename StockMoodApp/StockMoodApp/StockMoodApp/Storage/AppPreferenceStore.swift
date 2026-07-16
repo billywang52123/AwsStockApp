@@ -90,6 +90,17 @@ class AppPreferenceStore {
         UserDefaults.standard.removeObject(forKey: userScopedKey(faceIDLockKey))
     }
 
+    // MARK: - AI 分析引擎(per-user)
+
+    private let aiProviderKey = "com.stockmoodapp.aiProvider"
+
+    /// AI 文字生成引擎:"claude"(AWS Bedrock,預設)或 "openai"(回應較快)。
+    /// 值會以 X-AI-Provider header 帶給後端,只影響 AI 文字生成,不影響資料。
+    var aiProvider: String {
+        get { UserDefaults.standard.string(forKey: userScopedKey(aiProviderKey)) ?? "claude" }
+        set { UserDefaults.standard.set(newValue, forKey: userScopedKey(aiProviderKey)) }
+    }
+
     // MARK: - 每日抽卡包(spec 06,per-user)
 
     private let skipPackAnimationKey = "com.stockmoodapp.alwaysSkipPackAnimation"

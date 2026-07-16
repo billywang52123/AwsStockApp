@@ -5,6 +5,7 @@ struct ReminderSettingView: View {
     @ObservedObject private var privacy = PrivacyManager.shared
     @State private var showSignOutConfirm = false
     @State private var alwaysSkipPackAnimation = AppPreferenceStore.shared.alwaysSkipPackAnimation
+    @State private var aiProvider = AppPreferenceStore.shared.aiProvider
 
     private var accountLabel: String {
         let id = AppPreferenceStore.shared.currentUserId
@@ -114,6 +115,30 @@ struct ReminderSettingView: View {
                                     .font(.system(.caption, design: .rounded))
                                     .foregroundColor(AppColor.textSecondary.opacity(0.7))
                             }
+                        }
+                    }
+
+                    // AI 分析引擎切換:Claude(AWS Bedrock,預設)/ OpenAI(回應較快)
+                    Section(
+                        header: Text("AI 分析引擎").font(.system(.footnote, design: .rounded)),
+                        footer: Text("Claude 分析品質較穩定;OpenAI 回應速度較快。切換只影響 AI 文字生成,持股與帳號資料不受影響。")
+                            .font(.system(.caption2, design: .rounded))
+                    ) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "cpu.fill")
+                                .foregroundColor(AppColor.primary)
+                            Text("回應引擎")
+                                .foregroundColor(AppColor.textPrimary)
+                        }
+                        Picker("回應引擎", selection: $aiProvider) {
+                            Text("Claude").tag("claude")
+                            Text("OpenAI(較快)").tag("openai")
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .labelsHidden()
+                        .onChange(of: aiProvider) { _, newValue in
+                            AppPreferenceStore.shared.aiProvider = newValue
+                            HapticManager.shared.triggerImpact(style: .light)
                         }
                     }
 

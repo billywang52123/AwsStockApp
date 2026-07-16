@@ -64,6 +64,18 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
+# iOS 設定頁「AI 分析引擎」切換:每個請求帶 X-AI-Provider(claude/openai),
+# 存進 contextvar 讓底層 OpenAIService 選 LLM;沒帶 header 一律走 Claude(行為不變)。
+@app.middleware("http")
+async def ai_provider_middleware(request: Request, call_next):
+    from app.services.llm_router import set_provider_from_header, reset_provider
+    token = set_provider_from_header(request.headers.get("x-ai-provider"))
+    try:
+        return await call_next(request)
+    finally:
+        reset_provider(token)
+
+
 # CORS — use specific origins, not wildcard
 allowed_origins = [o.strip() for o in settings.ALLOWED_ORIGINS.split(",") if o.strip()]
 app.add_middleware(

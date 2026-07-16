@@ -1,4 +1,6 @@
-"""AI text generation service — now backed by AWS Bedrock (Claude Sonnet 4.5).
+"""AI text generation service — backed by AWS Bedrock (Claude Sonnet 4.5) by
+default, or OpenAI (gpt-4o-mini) when the request carries X-AI-Provider: openai
+(iOS 設定頁的 AI 分析引擎切換). Both providers use the exact same prompts.
 
 Public interface is unchanged: all 6 class methods retain the same signatures
 so callers (stocks.py, fortune_service.py, daily_pack_service.py, cards.py)
@@ -18,7 +20,7 @@ from typing import Any, Dict, Optional
 
 from starlette.concurrency import run_in_threadpool
 
-from app.services.bedrock_llm_service import get_bedrock_llm
+from app.services.llm_router import current_provider, get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -157,11 +159,11 @@ class OpenAIService:
             "可以描述市場現象（例如：賣壓較重、買盤動能強、量能萎縮），也可以談論焦慮分數與情緒安撫，但絕不告訴用戶該做什麼交易動作。"
         )
         try:
-            llm = get_bedrock_llm()
+            llm = get_llm()
             result = await run_in_threadpool(
                 llm.converse, system=system, user=user, temperature=0.7, max_tokens=1024
             )
-            logger.info("Generated stock analysis via Bedrock for %s", symbol)
+            logger.info("Generated stock analysis via %s for %s", current_provider(), symbol)
             return cls._normalize_analysis_format(result)
         except Exception:
             logger.exception("Bedrock stock analysis failed for %s; using fallback", symbol)
@@ -193,13 +195,13 @@ class OpenAIService:
             "不得保證報酬或未來配息;若用戶的條件跟找股票無關,items 回傳空陣列。"
         )
         try:
-            llm = get_bedrock_llm()
+            llm = get_llm()
             result = await run_in_threadpool(
                 llm.converse_json, system=system, user=user, temperature=0.3, max_tokens=1024
             )
             items = result.get("items")
             if isinstance(items, list):
-                logger.info("Generated stock screen via Bedrock for query: %s", query)
+                logger.info("Generated stock screen via %s for query: %s", current_provider(), query)
                 return items
         except Exception:
             logger.exception("Bedrock stock screen failed for query: %s", query)
@@ -249,11 +251,11 @@ class OpenAIService:
             "可以描述市場現象（例如：賣壓較重、買盤動能強），但絕不告訴用戶該做什麼交易動作。"
         )
         try:
-            llm = get_bedrock_llm()
+            llm = get_llm()
             result = await run_in_threadpool(
                 llm.converse_json, system=system, user=user, temperature=0.9, max_tokens=512
             )
-            logger.info("Generated card message via Bedrock")
+            logger.info("Generated card message via %s", current_provider())
             return {
                 "card_type": result.get("card_type", fallback_card["card_type"]),
                 "title": result.get("title", fallback_card["title"]),
@@ -302,11 +304,11 @@ class OpenAIService:
             "凶籤走安撫語氣,不製造恐慌;可描述市場現象,但不告訴用戶該做什麼交易動作。"
         )
         try:
-            llm = get_bedrock_llm()
+            llm = get_llm()
             result = await run_in_threadpool(
                 llm.converse_json, system=system, user=user, temperature=0.8, max_tokens=512
             )
-            logger.info("Generated fortune text via Bedrock")
+            logger.info("Generated fortune text via %s", current_provider())
             notices = result.get("notices")
             return {
                 "summary": result.get("summary"),
@@ -341,13 +343,13 @@ class OpenAIService:
             "等任何引導操作的字眼;只安撫情緒,永遠不給操作方向。"
         )
         try:
-            llm = get_bedrock_llm()
+            llm = get_llm()
             result = await run_in_threadpool(
                 llm.converse_json, system=system, user=user, temperature=0.9, max_tokens=256
             )
             text = result.get("text")
             if isinstance(text, str) and text.strip():
-                logger.info("Generated companion text via Bedrock")
+                logger.info("Generated companion text via %s", current_provider())
                 return text.strip()
         except Exception:
             logger.exception("Bedrock companion text failed; using fallback")
@@ -394,11 +396,11 @@ class OpenAIService:
             "不預測明天漲跌;可描述現況,但不告訴用戶該做什麼交易動作。"
         )
         try:
-            llm = get_bedrock_llm()
+            llm = get_llm()
             result = await run_in_threadpool(
                 llm.converse_json, system=system, user=user, temperature=0.7, max_tokens=256
             )
-            logger.info("Generated pack AI text via Bedrock")
+            logger.info("Generated pack AI text via %s", current_provider())
             return {"conclusion": result.get("conclusion")}
         except Exception:
             logger.exception("Bedrock pack AI text failed; using fallback")

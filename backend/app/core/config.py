@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     ADMIN_API_KEY: Optional[str] = None
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8080"
     OPENAI_API_KEY: str = ""
+    # OpenAI model used when the app sends X-AI-Provider: openai(iOS 設定頁的 AI 引擎切換)
+    OPENAI_MODEL: str = "gpt-4o-mini"
 
     # --- AWS / Bedrock ---
     AWS_REGION: str = "us-east-1"

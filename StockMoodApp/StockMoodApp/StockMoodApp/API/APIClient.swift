@@ -137,6 +137,8 @@ class APIClient {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         request.setValue(AppPreferenceStore.shared.currentUserId, forHTTPHeaderField: "X-User-Id")
+        // AI 分析引擎切換(設定頁):claude = AWS Bedrock(預設)/ openai = OpenAI GPT
+        request.setValue(AppPreferenceStore.shared.aiProvider, forHTTPHeaderField: "X-AI-Provider")
     }
 
     /// Like request() but accepts an Encodable body and encodes it as JSON automatically.
