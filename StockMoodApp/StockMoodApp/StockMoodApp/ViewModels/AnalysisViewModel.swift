@@ -18,9 +18,19 @@ class AnalysisViewModel: ObservableObject {
     @Published var watchFilterId: String? = nil   // nil = 全部清單
 
     private let container: DependencyContainer
+    private var cancellables = Set<AnyCancellable>()
 
     init(container: DependencyContainer? = nil) {
         self.container = container ?? .shared
+        // 持股或觀察清單異動後自動重載分析,不必等使用者下拉刷新;
+        // debounce 合併短時間內的連續異動(如匯入多筆、快速加減碼)只打一次 API
+        NotificationCenter.default.publisher(for: .holdingsDidChange)
+            .merge(with: NotificationCenter.default.publisher(for: .watchlistDidChange))
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+            .sink { [weak self] _ in
+                Task { await self?.load() }
+            }
+            .store(in: &cancellables)
     }
 
     func load() async {

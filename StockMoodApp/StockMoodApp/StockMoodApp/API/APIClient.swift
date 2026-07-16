@@ -76,6 +76,10 @@ class APIClient {
         }
         
         var request = URLRequest(url: url)
+        // API 回應都是個人化的即時資料,強制略過 URLCache:
+        // iOS 有時會把沒帶快取 header 的 GET 回應留在記憶體快取,
+        // 導致持股改了、畫面卻拿到舊資料,重開 App 才恢復。
+        request.cachePolicy = .reloadIgnoringLocalCacheData
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         APIClient.attachAuthHeaders(to: &request)

@@ -942,7 +942,7 @@
       /* Dense v2 pages: preserve the larger type by improving composition. */
       .judge-body { grid-template-columns:1fr; gap:0; }
       .judge-proof { display:none; }
-      .solve-list { grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+      .solve-list { grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
       .solve-row {
         min-height:224px;
         grid-template-columns:1fr;
@@ -953,15 +953,13 @@
       .solve-arrow { width:22px; height:22px; justify-self:center; transform:rotate(90deg); font-size:20px; }
       .solve-cause span,.solve-answer span { margin-top:3px; }
 
-      .success-system.input-trust .success-stage { grid-template-columns:minmax(260px,31fr) minmax(0,69fr); gap:2.2vw; }
+      .success-system.input-trust .success-stage { grid-template-columns:minmax(260px,30fr) minmax(0,70fr); gap:2.4vw; }
       .success-system.input-trust .success-phone { height:min(62vh,640px); }
       .success-system.input-trust .input-barriers { gap:6px; margin-bottom:6px; }
-      .success-system.input-trust .barrier-card { min-height:92px; padding:9px 10px; }
-      .success-system.input-trust .motivation-bridge { gap:5px; }
-      .success-system.input-trust .bridge-row { min-height:70px; padding:7px 10px; }
-      .success-system.input-trust .value-pillars { margin-top:6px; gap:6px; }
-      .success-system.input-trust .value-pillar { padding:7px 8px; }
-      .success-system.input-trust .metric-disclaimer { margin-top:5px; }
+      .success-system.input-trust .barrier-card { min-height:108px; padding:11px 12px; }
+      .success-system.input-trust .motivation-bridge { gap:7px; }
+      .success-system.input-trust .bridge-row { min-height:80px; padding:9px 12px; }
+      .success-system.input-trust .metric-disclaimer { margin-top:10px; }
 
       .entry .steps { margin-top:18px; gap:8px; }
       .entry .step { padding:11px 14px; }
@@ -1003,12 +1001,12 @@
       </div>
     </section>
 
-    <section class="slide judge-core" data-duration="24" data-notes="我們鎖定持有一到十檔股票的新手。他們不缺行情或新聞，真正卡住的是四件事：每次漲跌都怕做錯、AI 只給一句結論所以不敢信、庫存工具用過一次就沒有回訪理由，以及多券商庫存分散，無法在同一個 App 完整分析。對應解法也很清楚：先用真實持股拆出焦慮主因；再用來源數據與可展開推導鏈，讓 AI 可以被驗證；接著用每日卡包與成就收集，讓回訪與更新庫存本身變得有期待；最後把多券商庫存彙整到同一個分析視角。">
+    <section class="slide judge-core" data-duration="24" data-notes="我們鎖定持有一到十檔股票的新手。他們不缺行情或新聞，真正卡住的是三件事：每次漲跌都怕做錯、AI 只給一句結論所以不敢信，以及多券商庫存分散，無法在同一個 App 完整分析。對應解法也很清楚：先用真實持股拆出焦慮主因；再用來源數據、可展開推導鏈與每週對帳，讓 AI 可以被驗證；最後把多券商庫存彙整到同一個分析視角。">
       <div class="aurora"></div>
       <div class="shell">
         <div class="judge-head">
           <div><div class="eyebrow reveal">TA · Anxiety · Trust</div><h2 class="reveal" style="--delay:.08s">持有 1–10 檔的新手，<br><span class="gradient-text">不缺資訊；缺的是跟自己有關的解釋。</span></h2></div>
-          <span class="chip reveal" style="--delay:.12s"><span class="dot"></span>四個痛點，四個產品解法</span>
+          <span class="chip reveal" style="--delay:.12s"><span class="dot"></span>三個痛點，三個產品解法</span>
         </div>
         <div class="audience-strip reveal" style="--delay:.12s">
           <div class="audience-item glass"><i>TA</i><div><small>目標使用者</small><b>持有 1–10 檔股票、剛開始建立判斷的新手</b></div></div>
@@ -1019,8 +1017,7 @@
             <div class="solve-list">
               <div class="solve-row glass reveal" style="--delay:.16s"><div class="solve-cause"><small>WHY 01</small><b>每次漲跌都怕做錯</b><span>不知道波動來自個股、大盤，還是自己的配置。</span></div><div class="solve-arrow">→</div><div class="solve-answer"><small>SOLVE</small><b>先拆出焦慮主因</b><span>持股、大盤、產業、法人與情緒分層說明。</span></div></div>
               <div class="solve-row glass reveal" style="--delay:.22s"><div class="solve-cause"><small>WHY 02</small><b>AI 一句話不敢信</b><span>沒有資料來源，也看不到結論怎麼來。</span></div><div class="solve-arrow">→</div><div class="solve-answer"><small>SOLVE</small><b>數據 + 推導 + 每週對帳</b><span>事實與判斷分開，之後還要接受結果驗證。</span></div></div>
-              <div class="solve-row glass reveal" style="--delay:.28s"><div class="solve-cause"><small>WHY 03</small><b>庫存工具沒有回訪理由</b><span>輸入一次、看完損益，之後就不再打開。</span></div><div class="solve-arrow">→</div><div class="solve-answer"><small>SOLVE</small><b>每日卡包 + 成就收集</b><span>固定節奏、個人內容，更新庫存還能解鎖。</span></div></div>
-              <div class="solve-row glass reveal" style="--delay:.34s"><div class="solve-cause"><small>WHY 04</small><b>多券商庫存分散</b><span>帳戶分散在不同券商，很難一起看曝險與配置。</span></div><div class="solve-arrow">→</div><div class="solve-answer"><small>SOLVE</small><b>同一個 App 彙整分析</b><span>把多券商庫存拉到同一視角，分析整體部位。</span></div></div>
+              <div class="solve-row glass reveal" style="--delay:.28s"><div class="solve-cause"><small>WHY 03</small><b>多券商庫存分散</b><span>帳戶分散在不同券商，很難一起看曝險與配置。</span></div><div class="solve-arrow">→</div><div class="solve-answer"><small>SOLVE</small><b>同一個 App 彙整分析</b><span>把多券商庫存拉到同一視角，分析整體部位。</span></div></div>
             </div>
           </div>
           <div class="judge-proof reveal" style="--delay:.2s">
@@ -1033,7 +1030,7 @@
       </div>
     </section>
 
-    <section class="slide success-system input-trust" data-duration="25" data-notes="這頁補上為什麼使用者不願意輸入真實持股。表面看起來是懶得輸入，其實是四個心理成本：第一，輸入很麻煩；第二，不知道為什麼要交出這麼私人的資料；第三，看不到提供之後立刻會得到什麼；第四，持股一直變，使用者不相信自己會持續更新。所以解法不能只做一個輸入表單，而是要先把價值、信任和回訪誘因放在前面。股感安心卡用低摩擦匯入降低第一步；用不取帳號、不取下單權限和辨識後刪除影像降低疑慮；用首次回饋、每日卡包和盤後推播讓使用者馬上看到跟自己有關的內容；最後用成就、週末健檢和個人化品質提升，把更新庫存變成有回報的行為。">
+    <section class="slide success-system input-trust" data-duration="25" data-notes="這頁補上為什麼使用者不願意輸入真實持股。表面看起來是懶得輸入，其實是四個心理成本：第一，輸入很麻煩；第二，擔心持股資料交給 App 是否安全；第三，看不到提供之後立刻會得到什麼；第四，每次更新若沒有回報，就沒有動力持續維護。所以解法不能只做一個輸入表單，而是要先把價值、信任和回訪誘因放在前面。股感安心卡用低摩擦匯入降低第一步；用不取帳號、不取下單權限和辨識後刪除影像降低疑慮；用首次回饋、每日卡包和盤後推播讓使用者馬上看到跟自己有關的內容；最後用成就、週末健檢和個人化品質提升，把更新庫存變成有回報的行為。">
       <div class="aurora"></div>
       <div class="shell">
         <div class="success-head">
@@ -1045,20 +1042,15 @@
           <div class="success-right reveal" style="--delay:.18s">
             <div class="input-barriers">
               <div class="barrier-card glass"><small>WHY 01</small><b>覺得麻煩</b><span>逐筆輸入股號、張數、成本，第一步就放棄。</span></div>
-              <div class="barrier-card glass"><small>WHY 02</small><b>為什麼要給</b><span>持股很私密，不知道 App 會拿去做什麼。</span></div>
+              <div class="barrier-card glass"><small>WHY 02</small><b>交給你，安全嗎？</b><span>持股很私密，擔心資料外流或被拿去做別的用途。</span></div>
               <div class="barrier-card glass"><small>WHY 03</small><b>給了能得到什麼</b><span>若只是看損益，券商 App 已經有了。</span></div>
-              <div class="barrier-card glass"><small>WHY 04</small><b>無法持續更新</b><span>買賣會變動，使用者怕維護成本越來越高。</span></div>
+              <div class="barrier-card glass"><small>WHY 04</small><b>沒有動力更新</b><span>買賣會變動；若每次更新都沒有回報，就不想維護。</span></div>
             </div>
             <div class="motivation-bridge">
               <div class="bridge-row glass"><div><small>SOLVE 01</small><b>降低輸入成本</b></div><p><strong>截圖、相簿、相機、手動備援</strong>，先完成股票代號與股數，不逼使用者一次填完所有欄位。</p></div>
               <div class="bridge-row glass"><div><small>SOLVE 02</small><b>先講清楚界線</b></div><p><strong>不取帳號、不取下單權限</strong>；影像辨識本地優先，雲端辨識也不會將圖片上傳，只保留所需欄位。</p></div>
               <div class="bridge-row glass"><div><small>SOLVE 03</small><b>立刻給個人回饋</b></div><p>匯入後馬上看到<strong>焦慮主因、持股報告、盤後提醒</strong>，不是泛用新聞摘要。</p></div>
               <div class="bridge-row glass"><div><small>SOLVE 04</small><b>讓更新有誘因</b></div><p><strong>每日卡包、成就收集、週末健檢、AI 更懂我</strong>，讓更新庫存每次都有可見回報。</p></div>
-            </div>
-            <div class="value-pillars">
-              <div class="value-pillar"><b>價值先於資料</b><span>先讓使用者看見「跟我有關」。</span></div>
-              <div class="value-pillar"><b>隱私可被理解</b><span>只拿必要欄位，避免帳戶權限恐懼。</span></div>
-              <div class="value-pillar"><b>更新有回報</b><span>資料越新，卡包與健檢越準。</span></div>
             </div>
             <p class="metric-disclaimer">核心轉換：首次匯入率 · 完成後首張回饋開啟率 · 7 日內更新庫存率</p>
           </div>
@@ -1117,7 +1109,7 @@
             <div class="profile-verdict" style="margin-top:13px">量測：持股更新率 · 成就解鎖後回訪率</div>
           </div>
         </div>
-        <span class="slide-no">05 / 11</span>
+        <span class="slide-no">08 / 11</span>
       </div>
     </section>
 
@@ -1146,11 +1138,11 @@
             <span class="weekly-state passed">已更新庫存｜週末健檢解鎖</span>
           </div>
         </div>
-        <span class="slide-no">06 / 11</span>
+        <span class="slide-no">09 / 11</span>
       </div>
     </section>
 
-    <section class="slide profile-evidence" data-duration="29" data-notes="建立回訪與信任後，才進到個人化。第一層是投資風格問卷，知道使用者的風險承受、活躍程度、投資期限與證據偏好；第二層是投資習慣，從真實持股檔數、最大集中度、產業比重、近三十日調整與買價完整度自動整理；第三層是風格轉變，每次更新持股都留下快照，只有跨類別時才提醒。這三層會調整 AI 解釋的語氣、證據深度與風險判斷，但不會直接產生買賣指令，也不會因一次問卷就永久貼標籤。">
+    <section class="slide profile-evidence" data-duration="29" data-notes="完成真實持股匯入後，就進到個人化。第一層是投資風格問卷，知道使用者的風險承受、活躍程度、投資期限與證據偏好；第二層是投資習慣，從真實持股檔數、最大集中度、產業比重、近三十日調整與買價完整度自動整理；第三層是風格轉變，每次更新持股都留下快照，只有跨類別時才提醒。這三層會調整 AI 解釋的語氣、證據深度與風險判斷，接著再交給 PortfolioInsight Agent 組合資料與分析，但不會直接產生買賣指令，也不會因一次問卷就永久貼標籤。">
       <div class="aurora"></div>
       <div class="shell">
         <div class="evidence-head">
@@ -1167,7 +1159,7 @@
             <div class="profile-verdict">影響的是 AI 口吻、證據深度與風險說明；不產生交易指令。</div>
           </div>
         </div>
-        <span class="slide-no">07 / 11</span>
+        <span class="slide-no">05 / 11</span>
       </div>
     </section>
 
@@ -1195,7 +1187,7 @@
             </div>
           </div>
         </div>
-        <span class="slide-no">08 / 11</span>
+        <span class="slide-no">06 / 11</span>
       </div>
     </section>
 
@@ -1211,7 +1203,7 @@
           <div class="trust-screen reveal" style="--delay:.2s"><div class="live-shot"><img src="stockmood-deck-assets/inference-live.jpg" alt="AI 推論與可展開推導鏈實機畫面"></div><span class="trust-screen-tag glass">2 · 推論卡／推導鏈</span></div>
           <div class="trust-screen reveal" style="--delay:.28s"><div class="live-shot"><img src="stockmood-deck-assets/community-live.jpg" alt="社群討論量與自身三十日基準實機畫面"></div><span class="trust-screen-tag glass">3 · 社群卡／30 日基準</span></div>
         </div>
-        <span class="slide-no">09 / 11</span>
+        <span class="slide-no">07 / 11</span>
       </div>
     </section>
 
@@ -1263,7 +1255,29 @@
 
   <script>
     (() => {
+      const deck = document.querySelector('.deck');
+      const slideOrder = [
+        'hero',
+        'judge-core',
+        'input-trust',
+        'entry',
+        'profile-evidence',
+        'evidence-analysis',
+        'trust-evidence',
+        'achievement-evidence',
+        'weekly-evidence',
+        'stack',
+        'closing'
+      ];
+      slideOrder.forEach(className => {
+        const slide = deck.querySelector(`.slide.${className}`);
+        if (slide) deck.appendChild(slide);
+      });
       const slides = [...document.querySelectorAll('.slide')];
+      slides.forEach((slide, i) => {
+        const marker = slide.querySelector('.slide-no');
+        if (marker) marker.textContent = `${String(i + 1).padStart(2,'0')} / ${String(slides.length).padStart(2,'0')}`;
+      });
       const progress = document.querySelector('.progress');
       const counter = document.querySelector('.counter');
       const notes = document.querySelector('.notes span');

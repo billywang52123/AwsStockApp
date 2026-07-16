@@ -16,9 +16,17 @@ class TodayDashboardViewModel: ObservableObject {
     @Published var errorMessage = ""
     
     private let container: DependencyContainer
-    
+    private var cancellables = Set<AnyCancellable>()
+
     init(container: DependencyContainer? = nil) {
         self.container = container ?? .shared
+        // 持股異動後焦慮分數/大盤比較也要跟著變,自動重載
+        NotificationCenter.default.publisher(for: .holdingsDidChange)
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+            .sink { [weak self] _ in
+                Task { await self?.loadData() }
+            }
+            .store(in: &cancellables)
     }
     
     func loadData() async {

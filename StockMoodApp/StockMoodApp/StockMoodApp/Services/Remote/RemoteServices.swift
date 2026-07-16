@@ -20,6 +20,11 @@ struct ReminderItemsBody: Codable {
     let volatilityAlert: Bool
 }
 
+/// 資料異動成功後統一從服務層廣播,任何入口(持股頁、詳情頁、匯入、觀察清單)改動都會通知到監聽頁面。
+private func postDataChanged(_ name: Notification.Name) {
+    NotificationCenter.default.post(name: name, object: nil)
+}
+
 // MARK: - Remote Portfolio Service
 class RemotePortfolioService: PortfolioServiceProtocol {
     func getPortfolioItems() async throws -> [PortfolioItem] {
@@ -39,10 +44,12 @@ class RemotePortfolioService: PortfolioServiceProtocol {
         let bodyData = try encoder.encode(bodyObj)
         
         let _: PortfolioItem = try await APIClient.shared.request("/portfolio/items", method: "POST", body: bodyData)
+        postDataChanged(.holdingsDidChange)
     }
-    
+
     func deletePortfolioItem(id: UUID) async throws {
         let _: Bool = try await APIClient.shared.request("/portfolio/items/\(id.uuidString.lowercased())", method: "DELETE")
+        postDataChanged(.holdingsDidChange)
     }
 }
 
@@ -63,35 +70,45 @@ class RemoteHoldingService: HoldingServiceProtocol {
     }
 
     func buy(symbol: String, shares: Int, price: Double?, broker: String?) async throws -> TradeResult {
-        return try await APIClient.shared.requestBody(
+        let result: TradeResult = try await APIClient.shared.requestBody(
             "/portfolio/holdings/\(symbol)/buy",
             body: TradeRequestBody(shares: shares, price: price, broker: broker)
         )
+        postDataChanged(.holdingsDidChange)
+        return result
     }
 
     func sell(symbol: String, shares: Int, price: Double?, broker: String?) async throws -> TradeResult {
-        return try await APIClient.shared.requestBody(
+        let result: TradeResult = try await APIClient.shared.requestBody(
             "/portfolio/holdings/\(symbol)/sell",
             body: TradeRequestBody(shares: shares, price: price, broker: broker)
         )
+        postDataChanged(.holdingsDidChange)
+        return result
     }
 
     func override(symbol: String, shares: Int, broker: String?) async throws -> TradeResult {
-        return try await APIClient.shared.requestBody(
+        let result: TradeResult = try await APIClient.shared.requestBody(
             "/portfolio/holdings/\(symbol)/override",
             body: OverrideRequestBody(shares: shares, broker: broker)
         )
+        postDataChanged(.holdingsDidChange)
+        return result
     }
 
     func restore(symbol: String) async throws -> TradeResult {
-        return try await APIClient.shared.request("/portfolio/holdings/\(symbol)/restore", method: "POST")
+        let result: TradeResult = try await APIClient.shared.request("/portfolio/holdings/\(symbol)/restore", method: "POST")
+        postDataChanged(.holdingsDidChange)
+        return result
     }
 
     func importMerge(decisions: [MergeDecision]) async throws -> ImportMergeResult {
-        return try await APIClient.shared.requestBody(
+        let result: ImportMergeResult = try await APIClient.shared.requestBody(
             "/portfolio/import/merge",
             body: ImportMergeRequestBody(decisions: decisions)
         )
+        postDataChanged(.holdingsDidChange)
+        return result
     }
 
     func getActivities(symbol: String) async throws -> [HoldingActivity] {
@@ -100,11 +117,13 @@ class RemoteHoldingService: HoldingServiceProtocol {
 
     func deleteActivity(id: String) async throws {
         let _: Bool = try await APIClient.shared.request("/portfolio/activities/\(id)", method: "DELETE")
+        postDataChanged(.holdingsDidChange)
     }
 
     func deleteLot(id: String) async throws {
         // 分帳就是一筆 PortfolioItem,沿用既有刪除端點
         let _: Bool = try await APIClient.shared.request("/portfolio/items/\(id)", method: "DELETE")
+        postDataChanged(.holdingsDidChange)
     }
 
     func updateLot(id: String, broker: String?, shares: Int, price: Double?) async throws {
@@ -113,6 +132,7 @@ class RemoteHoldingService: HoldingServiceProtocol {
             "/portfolio/items/\(id)", method: "PATCH",
             body: LotUpdateBody(broker: broker, shares: shares, costPrice: price)
         )
+        postDataChanged(.holdingsDidChange)
     }
 }
 
@@ -135,6 +155,8 @@ class RemotePrivacyService: PrivacyServiceProtocol {
 
     func deleteAllData() async throws -> PrivacySummary {
         let result: DeleteAllResult = try await APIClient.shared.request("/privacy/all", method: "DELETE")
+        postDataChanged(.holdingsDidChange)
+        postDataChanged(.watchlistDidChange)
         return result.deleted
     }
 }
@@ -182,13 +204,16 @@ class RemoteWatchlistService: WatchlistServiceProtocol {
     }
 
     func createWatchlist(name: String, color: String?) async throws -> WatchlistSummary {
-        return try await APIClient.shared.requestBody(
+        let result: WatchlistSummary = try await APIClient.shared.requestBody(
             "/watchlists", body: WatchlistCreateBody(name: name, color: color)
         )
+        postDataChanged(.watchlistDidChange)
+        return result
     }
 
     func deleteWatchlist(id: String) async throws {
         let _: Bool = try await APIClient.shared.request("/watchlists/\(id)", method: "DELETE")
+        postDataChanged(.watchlistDidChange)
     }
 
     func getDetail(id: String) async throws -> WatchlistDetail {
@@ -196,22 +221,29 @@ class RemoteWatchlistService: WatchlistServiceProtocol {
     }
 
     func addItem(watchlistId: String, symbol: String) async throws -> WatchStock {
-        return try await APIClient.shared.requestBody(
+        let result: WatchStock = try await APIClient.shared.requestBody(
             "/watchlists/\(watchlistId)/items", body: WatchItemAddBody(symbol: symbol)
         )
+        postDataChanged(.watchlistDidChange)
+        return result
     }
 
     func removeItem(watchlistId: String, symbol: String) async throws {
         let _: Bool = try await APIClient.shared.request(
             "/watchlists/\(watchlistId)/items/\(symbol)", method: "DELETE"
         )
+        postDataChanged(.watchlistDidChange)
     }
 
     func convertToHolding(watchlistId: String, symbol: String, shares: Int, price: Double?) async throws -> ConvertResult {
-        return try await APIClient.shared.requestBody(
+        let result: ConvertResult = try await APIClient.shared.requestBody(
             "/watchlists/\(watchlistId)/items/\(symbol)/convert",
             body: ConvertRequestBody(shares: shares, price: price)
         )
+        // 轉持股同時動到觀察清單與持股兩邊
+        postDataChanged(.watchlistDidChange)
+        postDataChanged(.holdingsDidChange)
+        return result
     }
 
     func getAnalysis(watchlistId: String?) async throws -> WatchlistAnalysis {
