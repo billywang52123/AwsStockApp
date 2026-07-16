@@ -23,6 +23,7 @@ from app.models.daily_pack import DailyPackModel
 from app.models.push_device import PushDevice
 from app.models.app_setting import AppSetting
 from app.models.investment_profile import InvestmentProfileModel, InvestmentHabitSnapshotModel
+from app.models.insight_cache import InsightCache
 
 # Routes
 from app.api.routes import (

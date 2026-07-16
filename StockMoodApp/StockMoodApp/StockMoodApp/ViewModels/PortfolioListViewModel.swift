@@ -22,10 +22,24 @@ class PortfolioListViewModel: ObservableObject {
         hasError = false
         do {
             holdings = try await container.holdingService.getHoldings()
-            for holding in holdings {
-                let price = try await container.stockService.getDailyPrice(symbol: holding.symbol)
-                dailyPrices[holding.symbol] = price
+            // 各檔股價並行抓:原本逐檔序列等待,N 檔就是 N 趟往返,持股頁會轉圈很久
+            let stockService = container.stockService
+            let prices = try await withThrowingTaskGroup(
+                of: (String, StockDailyPrice).self
+            ) { group in
+                for holding in holdings {
+                    let symbol = holding.symbol
+                    group.addTask {
+                        (symbol, try await stockService.getDailyPrice(symbol: symbol))
+                    }
+                }
+                var result: [String: StockDailyPrice] = [:]
+                for try await (symbol, price) in group {
+                    result[symbol] = price
+                }
+                return result
             }
+            dailyPrices = prices
         } catch {
             hasError = true
             errorMessage = error.localizedDescription

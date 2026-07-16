@@ -71,9 +71,22 @@ def get_stock_insights(db: Session = Depends(get_db), user_id: str = Depends(get
             rule_based["_agent_insight"] = ai_result["insight_summary"]
         return ApiResponse(success=True, data=rule_based)
 
-    # Fallback: pure rule-based
-    service = StockInsightService(db)
-    return ApiResponse(success=True, data=service.get_insights(user_id))
+    cached = get_fresh_payload(db, user_id)
+    if cached is not None:
+        return ApiResponse(success=True, data=cached)
+    return ApiResponse(success=True, data=refresh_insights(user_id))
+
+
+@router.post("/insights/prewarm", response_model=ApiResponse[str])
+def prewarm_insights(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
+    """App 啟動時呼叫:快取已是今天+目前持股就回 ready;
+    否則排背景預抓並立刻回 warming,使用者稍後進分析頁即可秒開。"""
+    from app.services.insight_prefetch_service import get_fresh_payload, schedule_insight_prefetch
+
+    if get_fresh_payload(db, user_id) is not None:
+        return ApiResponse(success=True, data="ready")
+    schedule_insight_prefetch(user_id)
+    return ApiResponse(success=True, data="warming")
 
 
 @router.get("/insights/{symbol}", response_model=ApiResponse[StockInsightDetail])

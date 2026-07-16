@@ -50,6 +50,11 @@ struct AppTabView: View {
                 achievementCenter.dismissPopup()
             }
         }
+        .task {
+            // App 啟動先請後端預熱 /insights 快取(換日後第一次開 App 就開始算),
+            // 使用者稍後點「分析」分頁即可秒開;fire-and-forget,失敗無妨。
+            let _: String? = try? await APIClient.shared.request("/insights/prewarm", method: "POST")
+        }
         .onAppear {
             // Apply standard UITabBar appearance for clear styling
             let appearance = UITabBarAppearance()

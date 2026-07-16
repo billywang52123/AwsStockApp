@@ -11,6 +11,7 @@ from app.schemas.holding_schema import (
     TradeResult, ImportMergeRequest, ImportMergeResult,
 )
 from app.services.holding_service import HoldingService
+from app.services.insight_prefetch_service import schedule_insight_prefetch
 
 router = APIRouter(prefix="/portfolio", tags=["Holdings"])
 
@@ -48,6 +49,7 @@ def buy(symbol: str, body: TradeRequest, db: Session = Depends(get_db),
         user_id: str = Depends(get_current_user_id)):
     service = _service(db)
     result = _run_trade(db, service.buy, user_id, symbol, body.shares, body.price, body.broker)
+    schedule_insight_prefetch(user_id)
     return ApiResponse(success=True, data=result)
 
 
@@ -56,6 +58,7 @@ def sell(symbol: str, body: TradeRequest, db: Session = Depends(get_db),
          user_id: str = Depends(get_current_user_id)):
     service = _service(db)
     result = _run_trade(db, service.sell, user_id, symbol, body.shares, body.price, body.broker)
+    schedule_insight_prefetch(user_id)
     return ApiResponse(success=True, data=result)
 
 
@@ -64,6 +67,7 @@ def override(symbol: str, body: OverrideRequest, db: Session = Depends(get_db),
              user_id: str = Depends(get_current_user_id)):
     service = _service(db)
     result = _run_trade(db, service.override, user_id, symbol, body.shares, body.broker)
+    schedule_insight_prefetch(user_id)
     return ApiResponse(success=True, data=result)
 
 
@@ -72,6 +76,7 @@ def restore(symbol: str, db: Session = Depends(get_db),
             user_id: str = Depends(get_current_user_id)):
     service = _service(db)
     result = _run_trade(db, service.restore, user_id, symbol)
+    schedule_insight_prefetch(user_id)
     return ApiResponse(success=True, data=result)
 
 
@@ -81,6 +86,7 @@ def import_merge(body: ImportMergeRequest, db: Session = Depends(get_db),
     service = _service(db)
     result = service.import_merge(user_id, [d.model_dump() for d in body.decisions])
     db.commit()
+    schedule_insight_prefetch(user_id)
     return ApiResponse(success=True, data=result)
 
 
@@ -97,4 +103,5 @@ def delete_activity(activity_id: str, db: Session = Depends(get_db),
     if not ok:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="找不到這筆異動")
     db.commit()
+    schedule_insight_prefetch(user_id)
     return ApiResponse(success=True, data=True)

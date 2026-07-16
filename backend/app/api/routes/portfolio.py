@@ -5,6 +5,7 @@ from app.db.database import get_db
 from app.schemas.common_schema import ApiResponse
 from app.schemas.portfolio_schema import PortfolioItemRead, PortfolioItemCreate, PortfolioItemUpdate
 from app.services.services import PortfolioService
+from app.services.insight_prefetch_service import schedule_insight_prefetch
 
 router = APIRouter(prefix="/portfolio", tags=["Portfolio"])
 
@@ -19,6 +20,7 @@ def add_portfolio_item(item: PortfolioItemCreate, db: Session = Depends(get_db),
     service = PortfolioService(db)
     saved = service.add_item(item.symbol, item.cost_price, item.shares, broker=item.broker, user_id=user_id)
     db.commit()
+    schedule_insight_prefetch(user_id)
 
     from app.services.services import AchievementService
     AchievementService(db).trigger_unlock("IMPORT_MANUAL", user_id)
@@ -38,6 +40,7 @@ def update_portfolio_item(item_id: str, item: PortfolioItemUpdate, db: Session =
             detail="Portfolio item not found"
         )
     db.commit()
+    schedule_insight_prefetch(user_id)
     return ApiResponse(success=True, data=updated)
 
 @router.delete("/items/{item_id}", response_model=ApiResponse[bool])
@@ -50,4 +53,5 @@ def delete_portfolio_item(item_id: str, db: Session = Depends(get_db), user_id: 
             detail="Portfolio item not found"
         )
     db.commit()
+    schedule_insight_prefetch(user_id)
     return ApiResponse(success=True, data=True)
