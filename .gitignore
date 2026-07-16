@@ -11,3 +11,7 @@ __pycache__/
 
 # Apple Sign-In private key — never commit
 *.p8
+
+# Google/Firebase 設定檔 — 本機保留,不進 repo
+GoogleService-Info.plist
+client_*.apps.googleusercontent.com.plist

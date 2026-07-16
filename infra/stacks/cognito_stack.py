@@ -48,12 +48,10 @@ class CognitoStack(Stack):
         supported_idps = [cognito.UserPoolClientIdentityProvider.COGNITO]
         idp_dependencies = []
 
-        # 黑客松:憑證直接寫死當預設,context 有給仍可覆寫。
-        # (client secret 進了 git history;賽後要換掉或刪掉這個 OAuth client)
-        google_client_id = (self.node.try_get_context("google_client_id")
-                            or "155358777599-kide00o4ucthin7bqfvb0ngej2h7lkp5.apps.googleusercontent.com")
-        google_client_secret = (self.node.try_get_context("google_client_secret")
-                                or "***REMOVED***")
+        # 憑證只從 CDK context 讀(-c google_client_id=... -c google_client_secret=...),
+        # 沒提供就不建 Google IdP,不再把 secret 寫死在程式碼裡。
+        google_client_id = self.node.try_get_context("google_client_id")
+        google_client_secret = self.node.try_get_context("google_client_secret")
         if google_client_id and google_client_secret:
             google_idp = cognito.UserPoolIdentityProviderGoogle(
                 self,
