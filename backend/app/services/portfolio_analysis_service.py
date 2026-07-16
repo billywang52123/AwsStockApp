@@ -254,16 +254,71 @@ class PortfolioAnalysisService:
         return score, note
 
     def _risk_notices(self, holdings: List[_Holding], exposure: List[dict], tech_percent: float, user_id: str = "demo-user") -> List[dict]:
-        """產生風險提醒卡片。啟用 AgentCore 時,用 AI 根據多維度資料產生;
-        失敗時退回規則式。回傳格式不變:severity/badge/title/body/highlight/plain_talk。"""
+        """產生風險提醒卡片。
+        - X-AI-Provider: openai → 走本地編排(繞過 AgentCore)
+        - AgentCore enabled + Claude → 走 AgentCore Runtime
+        - 失敗時退回規則式
+        回傳格式不變:severity/badge/title/body/highlight/plain_talk。"""
         from app.core.config import settings
+        from app.services.llm_router import current_provider, PROVIDER_OPENAI
 
-        if settings.AGENTCORE_STOCK_ANALYSIS_ENABLED:
+        if current_provider() == PROVIDER_OPENAI:
+            ai_notices = self._local_llm_risk_notices(user_id)
+            if ai_notices:
+                return ai_notices
+        elif settings.AGENTCORE_STOCK_ANALYSIS_ENABLED:
             ai_notices = self._agentcore_risk_notices(user_id)
             if ai_notices:
                 return ai_notices
 
         return self._rule_based_risk_notices(holdings, exposure, tech_percent)
+
+    def _local_llm_risk_notices(self, user_id: str) -> List[dict] | None:
+        """Use local LLM orchestration (OpenAI or Bedrock) to generate risk notices."""
+        import logging
+        from starlette.concurrency import run_in_threadpool
+        from app.services.local_insight_service import generate_local_insight
+        from app.services.services import run_async
+
+        logger = logging.getLogger(__name__)
+        try:
+            result = run_async(run_in_threadpool(generate_local_insight, self.db, user_id))
+            if not result or not result.get("insight_summary"):
+                return None
+
+            notices = []
+            summary = result["insight_summary"]
+            plain = result.get("plain_talk") or "不用急著做什麼,先知道自己的投組長什麼樣子就好。"
+            notices.append({
+                "severity": "rose",
+                "badge": "AI 觀察",
+                "title": "AI 看出要留意的地方",
+                "body": summary,
+                "highlight": "",
+                "plain_talk": plain,
+            })
+
+            for note in result.get("holding_notes", [])[:2]:
+                symbol = note.get("symbol", "")
+                note_text = note.get("note", "")
+                if not note_text:
+                    continue
+                note_plain = note.get("plain_talk") or f"白話說：先觀察 {symbol} 的走勢,不需要急著反應。"
+                notices.append({
+                    "severity": "amber",
+                    "badge": "留意",
+                    "title": f"{symbol} 觀察提醒",
+                    "body": note_text,
+                    "highlight": symbol,
+                    "plain_talk": note_plain,
+                })
+
+            logger.info("Local LLM risk_notices generated (%d items) via %s",
+                       len(notices), current_provider())
+            return notices if notices else None
+        except Exception:
+            logger.exception("Local LLM risk_notices failed, using rule-based")
+            return None
 
     def _agentcore_risk_notices(self, user_id: str) -> List[dict] | None:
         """呼叫 AgentCore 產生 AI 風險提醒,回傳 RiskNotice 格式或 None。"""

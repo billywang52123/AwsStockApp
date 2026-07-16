@@ -22,37 +22,54 @@ def get_portfolio_analysis(db: Session = Depends(get_db), user_id: str = Depends
 def get_stock_insights(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     """個股 AI 觀點總覽(8d):每檔持股的觀點、分數與一句話理由。
     啟用 AgentCore 時,agent 會呼叫多工具(法人/社群/動能)產生更豐富的觀點;
+    X-AI-Provider: openai 時走本地編排(繞過 AgentCore);
     失敗時退回規則式計算。"""
     from app.core.config import settings
+    from app.services.llm_router import current_provider, PROVIDER_OPENAI
+    import logging
+    logger = logging.getLogger(__name__)
 
-    if settings.AGENTCORE_STOCK_ANALYSIS_ENABLED:
+    ai_result = None
+
+    if current_provider() == PROVIDER_OPENAI:
+        # OpenAI path: local orchestration (bypass AgentCore)
+        from app.services.local_insight_service import generate_local_insight
+        from starlette.concurrency import run_in_threadpool
+        from app.services.services import run_async
+        try:
+            ai_result = run_async(run_in_threadpool(generate_local_insight, db, user_id))
+            if ai_result and ai_result.get("insight_summary"):
+                logger.info("Insights generated via local OpenAI for user %s", user_id)
+        except Exception:
+            logger.exception("Local OpenAI insights failed, using fallback")
+            ai_result = None
+
+    elif settings.AGENTCORE_STOCK_ANALYSIS_ENABLED:
+        # Claude path: AgentCore Runtime
         from starlette.concurrency import run_in_threadpool
         from app.services.agentcore_service import get_agentcore_service
         from app.services.services import run_async
-        import logging
-        logger = logging.getLogger(__name__)
         try:
             agentcore = get_agentcore_service()
-            result = run_async(run_in_threadpool(agentcore.get_stock_insight, user_id))
-            if result and result.get("insight_summary"):
-                # Map AgentCore holding_notes → InsightListRead format
-                holding_notes = result.get("holding_notes", [])
-                # We need holdings data to fill weight_percent, industry etc.
-                service = StockInsightService(db)
-                rule_based = service.get_insights(user_id)
-                # Enhance rule-based items with AgentCore notes
-                notes_by_symbol = {h["symbol"]: h["note"] for h in holding_notes}
-                for item in rule_based["items"]:
-                    agent_note = notes_by_symbol.get(item["symbol"])
-                    if agent_note:
-                        item["headline"] = agent_note
-                # Prepend overall insight as headline of first item if available
-                if rule_based["items"] and result.get("insight_summary"):
-                    rule_based["_agent_insight"] = result["insight_summary"]
+            ai_result = run_async(run_in_threadpool(agentcore.get_stock_insight, user_id))
+            if ai_result and ai_result.get("insight_summary"):
                 logger.info("Insights enhanced by AgentCore for user %s", user_id)
-                return ApiResponse(success=True, data=rule_based)
         except Exception:
             logger.exception("AgentCore insights failed, using rule-based fallback")
+            ai_result = None
+
+    if ai_result and ai_result.get("insight_summary"):
+        holding_notes = ai_result.get("holding_notes", [])
+        service = StockInsightService(db)
+        rule_based = service.get_insights(user_id)
+        notes_by_symbol = {h["symbol"]: h["note"] for h in holding_notes}
+        for item in rule_based["items"]:
+            agent_note = notes_by_symbol.get(item["symbol"])
+            if agent_note:
+                item["headline"] = agent_note
+        if rule_based["items"] and ai_result.get("insight_summary"):
+            rule_based["_agent_insight"] = ai_result["insight_summary"]
+        return ApiResponse(success=True, data=rule_based)
 
     # Fallback: pure rule-based
     service = StockInsightService(db)
