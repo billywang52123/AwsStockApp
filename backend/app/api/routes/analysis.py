@@ -21,71 +21,32 @@ def get_portfolio_analysis(db: Session = Depends(get_db), user_id: str = Depends
 @router.get("/insights", response_model=ApiResponse[InsightListRead])
 def get_stock_insights(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     """個股 AI 觀點總覽(8d):每檔持股的觀點、分數與一句話理由。
-    啟用 AgentCore 時,agent 會呼叫多工具(法人/社群/動能)產生更豐富的觀點;
-    X-AI-Provider: openai 時走本地編排(繞過 AgentCore);
-    失敗時退回規則式計算。"""
-    from app.core.config import settings
-    from app.services.llm_router import current_provider, PROVIDER_OPENAI
-    import logging
-    logger = logging.getLogger(__name__)
 
-    ai_result = None
+    依 X-AI-Provider 選路:claude 走 AgentCore 多工具、openai 走本地編排
+    (local_insight_service,單發 Chat Completions,較快)。兩條路都吃同一套
+    insight_cache(鍵含 provider):持股異動後、App 啟動 prewarm 時已背景算好,
+    命中直接秒回;未命中才同步計算(single-flight,不會重複打 AI)。"""
+    from app.services.insight_prefetch_service import get_fresh_payload, refresh_insights
+    from app.services.llm_router import current_provider
 
-    if current_provider() == PROVIDER_OPENAI:
-        # OpenAI path: local orchestration (bypass AgentCore)
-        from app.services.local_insight_service import generate_local_insight
-        from starlette.concurrency import run_in_threadpool
-        from app.services.services import run_async
-        try:
-            ai_result = run_async(run_in_threadpool(generate_local_insight, db, user_id))
-            if ai_result and ai_result.get("insight_summary"):
-                logger.info("Insights generated via local OpenAI for user %s", user_id)
-        except Exception:
-            logger.exception("Local OpenAI insights failed, using fallback")
-            ai_result = None
-
-    elif settings.AGENTCORE_STOCK_ANALYSIS_ENABLED:
-        # Claude path: AgentCore Runtime
-        from starlette.concurrency import run_in_threadpool
-        from app.services.agentcore_service import get_agentcore_service
-        from app.services.services import run_async
-        try:
-            agentcore = get_agentcore_service()
-            ai_result = run_async(run_in_threadpool(agentcore.get_stock_insight, user_id))
-            if ai_result and ai_result.get("insight_summary"):
-                logger.info("Insights enhanced by AgentCore for user %s", user_id)
-        except Exception:
-            logger.exception("AgentCore insights failed, using rule-based fallback")
-            ai_result = None
-
-    if ai_result and ai_result.get("insight_summary"):
-        holding_notes = ai_result.get("holding_notes", [])
-        service = StockInsightService(db)
-        rule_based = service.get_insights(user_id)
-        notes_by_symbol = {h["symbol"]: h["note"] for h in holding_notes}
-        for item in rule_based["items"]:
-            agent_note = notes_by_symbol.get(item["symbol"])
-            if agent_note:
-                item["headline"] = agent_note
-        if rule_based["items"] and ai_result.get("insight_summary"):
-            rule_based["_agent_insight"] = ai_result["insight_summary"]
-        return ApiResponse(success=True, data=rule_based)
-
-    cached = get_fresh_payload(db, user_id)
+    provider = current_provider()
+    cached = get_fresh_payload(db, user_id, provider)
     if cached is not None:
         return ApiResponse(success=True, data=cached)
-    return ApiResponse(success=True, data=refresh_insights(user_id))
+    return ApiResponse(success=True, data=refresh_insights(user_id, provider))
 
 
 @router.post("/insights/prewarm", response_model=ApiResponse[str])
 def prewarm_insights(db: Session = Depends(get_db), user_id: str = Depends(get_current_user_id)):
-    """App 啟動時呼叫:快取已是今天+目前持股就回 ready;
+    """App 啟動時呼叫:快取已是今天+目前持股+目前引擎就回 ready;
     否則排背景預抓並立刻回 warming,使用者稍後進分析頁即可秒開。"""
     from app.services.insight_prefetch_service import get_fresh_payload, schedule_insight_prefetch
+    from app.services.llm_router import current_provider
 
-    if get_fresh_payload(db, user_id) is not None:
+    provider = current_provider()
+    if get_fresh_payload(db, user_id, provider) is not None:
         return ApiResponse(success=True, data="ready")
-    schedule_insight_prefetch(user_id)
+    schedule_insight_prefetch(user_id, provider)
     return ApiResponse(success=True, data="warming")
 
 

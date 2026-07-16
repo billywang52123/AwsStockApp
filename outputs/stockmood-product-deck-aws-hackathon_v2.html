@@ -386,6 +386,38 @@
     .guard { padding:13px 15px; border-radius:15px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); font-size:clamp(11px,.88vw,14px); color:#d2d1df; display:flex; align-items:center; gap:9px; }
     .guard::before { content:""; width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 13px var(--green); flex:none; }
 
+    /* Business value + KPI */
+    .business-value .shell { grid-template-rows:auto 1fr; gap:1.6vh; }
+    .business-head { display:flex; justify-content:space-between; align-items:end; gap:3vw; }
+    .business-head h2 { margin-top:12px; }
+    .business-stage { min-height:0; align-self:center; display:grid; grid-template-columns:minmax(0,57fr) minmax(340px,43fr); gap:2.8vw; align-items:stretch; }
+    .kpi-stack { display:grid; gap:10px; align-content:center; }
+    .kpi-card { min-height:116px; padding:16px 18px; border-radius:21px; display:grid; grid-template-columns:46px minmax(0,1fr) auto; gap:15px; align-items:center; }
+    .kpi-index { width:46px; height:46px; border-radius:15px; display:grid; place-items:center; color:#111522; background:linear-gradient(135deg,var(--cyan),var(--violet-2)); font-size:20px; font-weight:950; }
+    .kpi-card small { display:block; color:var(--cyan); font-size:11px; font-weight:850; letter-spacing:.13em; text-transform:uppercase; }
+    .kpi-card h3 { margin-top:5px; font-size:clamp(20px,1.55vw,26px); }
+    .kpi-card p { margin-top:5px; color:var(--muted); font-size:clamp(12px,.95vw,15px); line-height:1.4; }
+    .kpi-target { min-width:118px; text-align:right; }
+    .kpi-target strong { display:block; color:var(--violet-2); font-size:clamp(25px,2.15vw,35px); line-height:1; }
+    .kpi-target span { display:block; margin-top:7px; color:#8e8d9f; font-size:10px; }
+    .moat-panel { min-height:408px; padding:clamp(24px,2.4vw,36px); border-radius:30px; position:relative; overflow:hidden; display:flex; flex-direction:column; }
+    .moat-panel::before { content:""; position:absolute; width:330px; height:330px; right:-140px; top:-145px; border-radius:50%; background:conic-gradient(var(--violet),var(--cyan),var(--gold),var(--violet)); filter:blur(50px); opacity:.25; }
+    .moat-panel > * { position:relative; }
+    .moat-brand { display:flex; align-items:center; gap:13px; }
+    .moat-brand img { width:54px; height:54px; border-radius:16px; box-shadow:0 12px 30px rgba(123,127,212,.35); }
+    .moat-brand small { display:block; color:var(--cyan); font-size:10px; font-weight:900; letter-spacing:.13em; }
+    .moat-brand b { display:block; margin-top:4px; font-size:clamp(17px,1.3vw,22px); }
+    .moat-panel h3 { margin-top:18px; font-size:clamp(27px,2.35vw,38px); line-height:1.14; }
+    .moat-panel > p { margin-top:10px; color:var(--muted); font-size:clamp(13px,1vw,16px); line-height:1.48; }
+    .moat-flow { margin-top:17px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+    .moat-step { min-height:76px; padding:11px; border-radius:15px; background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.09); position:relative; }
+    .moat-step:not(:last-child)::after { content:"›"; position:absolute; right:-8px; top:50%; transform:translateY(-50%); color:var(--cyan); font-size:21px; z-index:2; }
+    .moat-step small { display:block; color:#9291a6; font-size:9px; font-weight:850; letter-spacing:.1em; }
+    .moat-step b { display:block; margin-top:6px; font-size:clamp(13px,1.05vw,17px); line-height:1.25; }
+    .moat-outcome { margin-top:auto; padding:14px 16px; border-radius:17px; background:rgba(110,231,220,.08); border:1px solid rgba(110,231,220,.18); }
+    .moat-outcome b { display:block; color:#dffdfa; font-size:clamp(18px,1.45vw,24px); }
+    .moat-outcome span { display:block; margin-top:5px; color:#a7c0bf; font-size:12px; line-height:1.4; }
+
     /* metrics (reserved) */
     .metrics .shell { grid-template-columns: 58% 42%; align-items:center; gap:5vw; }
     .measure-flow { margin-top:32px; display:grid; grid-template-columns:repeat(5,1fr); gap:8px; align-items:end; }
@@ -939,6 +971,28 @@
       .closing .lead { font-size:clamp(30px,2.475vw,40.5px); line-height:1.38; }
       .final-line { font-size:clamp(27px,2.175vw,34.5px); }
 
+      .business-head h2 { font-size:clamp(42px,4.05vw,66px); }
+      .business-stage { grid-template-columns:minmax(0,58fr) minmax(390px,42fr); gap:2.5vw; }
+      .kpi-card { min-height:128px; padding:17px 19px; grid-template-columns:52px minmax(0,1fr) auto; }
+      .kpi-index { width:52px; height:52px; font-size:24px; }
+      .kpi-card small { font-size:16.5px; }
+      .kpi-card h3 { font-size:clamp(27px,2.1vw,35px); }
+      .kpi-card p { font-size:clamp(18px,1.42vw,22.5px); line-height:1.35; }
+      .kpi-target { min-width:138px; }
+      .kpi-target strong { font-size:clamp(34px,2.7vw,45px); }
+      .kpi-target span { font-size:15px; }
+      .moat-panel { min-height:414px; padding:27px 29px; }
+      .moat-brand img { width:60px; height:60px; }
+      .moat-brand small { font-size:15px; }
+      .moat-brand b { font-size:clamp(24px,1.95vw,30px); }
+      .moat-panel h3 { font-size:clamp(34px,2.75vw,45px); }
+      .moat-panel > p { font-size:clamp(19.5px,1.5vw,24px); line-height:1.4; }
+      .moat-step { min-height:86px; padding:12px; }
+      .moat-step small { font-size:13.5px; }
+      .moat-step b { font-size:clamp(19.5px,1.58vw,25.5px); }
+      .moat-outcome b { font-size:clamp(27px,2.1vw,36px); }
+      .moat-outcome span { font-size:18px; }
+
       /* Dense v2 pages: preserve the larger type by improving composition. */
       .judge-body { grid-template-columns:1fr; gap:0; }
       .judge-proof { display:none; }
@@ -997,11 +1051,11 @@
           <div class="phone primary"><img src="stockmood-deck-assets/home-live.jpg" alt="今日焦慮度與大盤對比實機畫面"></div>
           <div class="hero-label glass"><span class="dot"></span>&nbsp; SwiftUI 原生體驗 · AWS AI Stack</div>
         </div>
-        <span class="slide-no">01 / 11</span>
+        <span class="slide-no">01 / 12</span>
       </div>
     </section>
 
-    <section class="slide judge-core" data-duration="24" data-notes="我們鎖定持有一到十檔股票的新手。他們不缺行情或新聞，真正卡住的是三件事：每次漲跌都怕做錯、AI 只給一句結論所以不敢信，以及多券商庫存分散，無法在同一個 App 完整分析。對應解法也很清楚：先用真實持股拆出焦慮主因；再用來源數據、可展開推導鏈與每週對帳，讓 AI 可以被驗證；最後把多券商庫存彙整到同一個分析視角。">
+    <section class="slide judge-core" data-duration="22" data-notes="我們鎖定持有一到五檔股票的新手。他們不缺行情或新聞，真正卡住的是三件事：每次漲跌都怕做錯、AI 只給一句結論所以不敢信，以及多券商庫存分散，無法在同一個 App 完整分析。對應解法也很清楚：先用真實持股拆出焦慮主因；再用來源數據、可展開推導鏈與每週對帳，讓 AI 可以被驗證；最後把多券商庫存彙整到同一個分析視角。">
       <div class="aurora"></div>
       <div class="shell">
         <div class="judge-head">
@@ -1026,11 +1080,11 @@
           </div>
         </div>
         <div class="solve-lenses glass reveal" style="--delay:.36s"><b>產品飛輪</b><span>每天回來</span><span>看懂原因</span><span>驗證來源</span><span>更新庫存</span><span>AI 更懂我</span><span>焦慮可管理</span></div>
-        <span class="slide-no">02 / 11</span>
+        <span class="slide-no">02 / 12</span>
       </div>
     </section>
 
-    <section class="slide success-system input-trust" data-duration="25" data-notes="這頁補上為什麼使用者不願意輸入真實持股。表面看起來是懶得輸入，其實是四個心理成本：第一，輸入很麻煩；第二，擔心持股資料交給 App 是否安全；第三，看不到提供之後立刻會得到什麼；第四，每次更新若沒有回報，就沒有動力持續維護。所以解法不能只做一個輸入表單，而是要先把價值、信任和回訪誘因放在前面。股感安心卡用低摩擦匯入降低第一步；用不取帳號、不取下單權限和辨識後刪除影像降低疑慮；用首次回饋、每日卡包和盤後推播讓使用者馬上看到跟自己有關的內容；最後用成就、週末健檢和個人化品質提升，把更新庫存變成有回報的行為。">
+    <section class="slide success-system input-trust" data-duration="22" data-notes="這頁補上為什麼使用者不願意輸入真實持股。表面看起來是懶得輸入，其實是四個心理成本：第一，輸入很麻煩；第二，擔心持股資料交給 App 是否安全；第三，看不到提供之後立刻會得到什麼；第四，每次更新若沒有回報，就沒有動力持續維護。所以解法不能只做一個輸入表單，而是要先把價值、信任和回訪誘因放在前面。股感安心卡用低摩擦匯入降低第一步；用不取帳號、不取下單權限和辨識後刪除影像降低疑慮；用首次回饋、每日卡包和盤後推播讓使用者馬上看到跟自己有關的內容；最後用成就、週末健檢和個人化品質提升，把更新庫存變成有回報的行為。">
       <div class="aurora"></div>
       <div class="shell">
         <div class="success-head">
@@ -1055,11 +1109,11 @@
             <p class="metric-disclaimer">核心轉換：首次匯入率 · 完成後首張回饋開啟率 · 7 日內更新庫存率</p>
           </div>
         </div>
-        <span class="slide-no">03 / 11</span>
+        <span class="slide-no">03 / 12</span>
       </div>
     </section>
 
-    <section class="slide entry" data-duration="18" data-notes="要讓卡包、成就與個人化飛輪成立，更新庫存就不能麻煩。我們提供券商庫存截圖、相簿、相機與手動備援，Vision 優先在裝置端辨識，只取股票代號與股數；不取得身分、帳號與下單權限，辨識完成後刪除影像。產品目標是六十秒內完成首次持股匯入與回饋，這是待驗證目標，不是現在已宣稱的成果。">
+    <section class="slide entry" data-duration="16" data-notes="要讓卡包、成就與個人化飛輪成立，更新庫存就不能麻煩。我們提供券商庫存截圖、相簿、相機與手動備援，Vision 優先在裝置端辨識，只取股票代號與股數；不取得身分、帳號與下單權限，辨識完成後刪除影像。產品目標是六十秒內完成首次持股匯入與回饋，這是待驗證目標，不是現在已宣稱的成果。">
       <div class="aurora"></div>
       <div class="shell">
         <div class="entry-copy">
@@ -1082,11 +1136,11 @@
           <div class="phone"><img src="stockmood-deck-assets/home.png" alt="今日持股焦慮度畫面"></div>
           <div class="privacy-note glass"><b>隱私先講清楚</b><br>不取得帳號、不取得下單權限；辨識完成即刪除影像。</div>
         </div>
-        <span class="slide-no">04 / 11</span>
+        <span class="slide-no">04 / 12</span>
       </div>
     </section>
 
-    <section class="slide achievement-evidence" data-duration="23" data-notes="第三個核心是讓使用者願意更新庫存。成就不是投資績效排行榜，而是把匯入、更新、理解與回訪變成可以收藏的進度。每次更新持股，系統都會重新判定成就；例如第一次匯入真實持股、虧損後仍回來理解原因，或辨識到集中焦慮，都可能解鎖。畫面目前有九十五種可收藏成就、六個判定類別與五種稀有度。使用者為了完成收藏更願意更新庫存，而更新後的資料又會讓下一次卡包、習慣與人格判讀更貼近。">
+    <section class="slide achievement-evidence" data-duration="20" data-notes="第三個核心是讓使用者願意更新庫存。成就不是投資績效排行榜，而是把匯入、更新、理解與回訪變成可以收藏的進度。每次更新持股，系統都會重新判定成就；例如第一次匯入真實持股、虧損後仍回來理解原因，或辨識到集中焦慮，都可能解鎖。畫面目前有九十五種可收藏成就、六個判定類別與五種稀有度。使用者為了完成收藏更願意更新庫存，而更新後的資料又會讓下一次卡包、習慣與人格判讀更貼近。">
       <div class="aurora"></div>
       <div class="shell">
         <div class="evidence-head">
@@ -1109,11 +1163,11 @@
             <div class="profile-verdict" style="margin-top:13px">量測：持股更新率 · 成就解鎖後回訪率</div>
           </div>
         </div>
-        <span class="slide-no">08 / 11</span>
+        <span class="slide-no">09 / 12</span>
       </div>
     </section>
 
-    <section class="slide weekly-evidence" data-duration="25" data-notes="週末健檢不是固定送給所有人的漂亮報告，而是促使用戶持續更新庫存的回訪誘因。沒有更新持股或資料不足的人，系統會誠實說本週還無法對帳，因為沒有足夠新資料驗證 AI 上週提醒。持續更新的人，週末就能把上週 AI 提醒與本週實際結果放回同一頁逐條驗證：哪些應驗、哪些未發生，並保留來源數據供查證。這讓更新庫存變成有回饋的行為，也讓使用者越來越相信 App 提供的內容，進一步提高黏著度與回訪率。">
+    <section class="slide weekly-evidence" data-duration="22" data-notes="週末健檢不是固定送給所有人的漂亮報告，而是促使用戶持續更新庫存的回訪誘因。沒有更新持股或資料不足的人，系統會誠實說本週還無法對帳，因為沒有足夠新資料驗證 AI 上週提醒。持續更新的人，週末就能把上週 AI 提醒與本週實際結果放回同一頁逐條驗證：哪些應驗、哪些未發生，並保留來源數據供查證。這讓更新庫存變成有回饋的行為，也讓使用者越來越相信 App 提供的內容，進一步提高黏著度與回訪率。">
       <div class="aurora"></div>
       <div class="shell">
         <div class="evidence-head">
@@ -1138,11 +1192,11 @@
             <span class="weekly-state passed">已更新庫存｜週末健檢解鎖</span>
           </div>
         </div>
-        <span class="slide-no">09 / 11</span>
+        <span class="slide-no">08 / 12</span>
       </div>
     </section>
 
-    <section class="slide profile-evidence" data-duration="29" data-notes="完成真實持股匯入後，就進到個人化。第一層是投資風格問卷，知道使用者的風險承受、活躍程度、投資期限與證據偏好；第二層是投資習慣，從真實持股檔數、最大集中度、產業比重、近三十日調整與買價完整度自動整理；第三層是風格轉變，每次更新持股都留下快照，只有跨類別時才提醒。這三層會調整 AI 解釋的語氣、證據深度與風險判斷，接著再交給 PortfolioInsight Agent 組合資料與分析，但不會直接產生買賣指令，也不會因一次問卷就永久貼標籤。">
+    <section class="slide profile-evidence" data-duration="26" data-notes="完成真實持股匯入後，就進到個人化。第一層是投資風格問卷，知道使用者的風險承受、活躍程度、投資期限與證據偏好；第二層是投資習慣，從真實持股檔數、最大集中度、產業比重、近三十日調整與買價完整度自動整理；第三層是風格轉變，每次更新持股都留下快照，只有跨類別時才提醒。這三層會調整 AI 解釋的語氣、證據深度與風險判斷，接著再交給 PortfolioInsight Agent 組合資料與分析，但不會直接產生買賣指令，也不會因一次問卷就永久貼標籤。">
       <div class="aurora"></div>
       <div class="shell">
         <div class="evidence-head">
@@ -1159,11 +1213,11 @@
             <div class="profile-verdict">影響的是 AI 口吻、證據深度與風險說明；不產生交易指令。</div>
           </div>
         </div>
-        <span class="slide-no">05 / 11</span>
+        <span class="slide-no">05 / 12</span>
       </div>
     </section>
 
-    <section class="slide evidence-analysis" data-duration="31" data-notes="這頁交代 PortfolioInsight Agent 產出的分析報告與資料運用。Agent 透過 AgentCore tools 讀取投組、個股與證據資料，再結合前端查詢結果，產出 AI 投組問題洞察、焦慮洞察與 AI 專家分析。資料不需要逐一列出表名，重點是行情估值、法人籌碼、報酬動能、產業分類與社群溫度如何被用在投組風險、個股下鑽、焦慮分數與社群溫度。畫面中的市值、損益、風險分數與產業曝險來自 TestFlight 實機案例；重點不是下買賣指令，而是把問題、情緒、證據與專家分析整理成可理解的報告。">
+    <section class="slide evidence-analysis" data-duration="28" data-notes="這頁交代 PortfolioInsight Agent 產出的分析報告與資料運用。Agent 透過 AgentCore tools 讀取投組、個股與證據資料，再結合前端查詢結果，產出 AI 投組問題洞察、焦慮洞察與 AI 專家分析。資料不需要逐一列出表名，重點是行情估值、法人籌碼、報酬動能、產業分類與社群溫度如何被用在投組風險、個股下鑽、焦慮分數與社群溫度。畫面中的市值、損益、風險分數與產業曝險來自 TestFlight 實機案例；重點不是下買賣指令，而是把問題、情緒、證據與專家分析整理成可理解的報告。">
       <div class="aurora"></div>
       <div class="shell">
         <div class="evidence-head">
@@ -1187,11 +1241,11 @@
             </div>
           </div>
         </div>
-        <span class="slide-no">06 / 11</span>
+        <span class="slide-no">06 / 12</span>
       </div>
     </section>
 
-    <section class="slide trust-evidence" data-duration="31" data-notes="第二個核心是信任。卡包不是只給一段 AI 摘要，而是把事實、推論與社群分開。第一張事實卡整理市值、收盤、漲跌、占比、外資持股與法人買賣超；每筆來源數據都能回到原始欄位。第二張明確標示這是判斷，不是事實，並把產業占比、相對大盤波動與同學會熱度列成可展開的推導鏈。第三張社群卡也不直接喊多空，而是把今日討論量和這檔自己的三十日基準比較。使用者不必盲信 AI，他可以一路追到資料與判斷過程。">
+    <section class="slide trust-evidence" data-duration="28" data-notes="第二個核心是信任。卡包不是只給一段 AI 摘要，而是把事實、推論與社群分開。第一張事實卡整理市值、收盤、漲跌、占比、外資持股與法人買賣超；每筆來源數據都能回到原始欄位。第二張明確標示這是判斷，不是事實，並把產業占比、相對大盤波動與同學會熱度列成可展開的推導鏈。第三張社群卡也不直接喊多空，而是把今日討論量和這檔自己的三十日基準比較。使用者不必盲信 AI，他可以一路追到資料與判斷過程。">
       <div class="aurora"></div>
       <div class="shell">
         <div class="evidence-head">
@@ -1203,11 +1257,11 @@
           <div class="trust-screen reveal" style="--delay:.2s"><div class="live-shot"><img src="stockmood-deck-assets/inference-live.jpg" alt="AI 推論與可展開推導鏈實機畫面"></div><span class="trust-screen-tag glass">2 · 推論卡／推導鏈</span></div>
           <div class="trust-screen reveal" style="--delay:.28s"><div class="live-shot"><img src="stockmood-deck-assets/community-live.jpg" alt="社群討論量與自身三十日基準實機畫面"></div><span class="trust-screen-tag glass">3 · 社群卡／30 日基準</span></div>
         </div>
-        <span class="slide-no">07 / 11</span>
+        <span class="slide-no">07 / 12</span>
       </div>
     </section>
 
-    <section class="slide stack" data-duration="18" data-notes="這是 AWS 黑客松中支撐整個體驗的技術架構。敏感影像優先留在裝置端；持股、卡包與分析服務透過 FastAPI 跑在 ECS，個人狀態放私有 RDS；CMoney 十一份結構化資料提供行情、法人、報酬、動能、產業與社群訊號；Bedrock 負責受控生成，AgentCore 透過工具取得持股與證據。每個結論保留來源帳本，並以規則限制交易指令詞彙。">
+    <section class="slide stack" data-duration="16" data-notes="這是 AWS 黑客松中支撐整個體驗的技術架構。敏感影像優先留在裝置端；持股、卡包與分析服務透過 FastAPI 跑在 ECS，個人狀態放私有 RDS；CMoney 十一份結構化資料提供行情、法人、報酬、動能、產業與社群訊號；Bedrock 負責受控生成，AgentCore 透過工具取得持股與證據。每個結論保留來源帳本，並以規則限制交易指令詞彙。">
       <div class="aurora"></div>
       <div class="shell">
         <div><div class="eyebrow reveal">AWS AI Hackathon · Architecture</div><h2 class="reveal" style="--delay:.08s">AWS 串起個人狀態、<br><span class="gradient-text">結構化資料與可驗證推理。</span></h2></div>
@@ -1220,7 +1274,48 @@
           <div class="arch-node glass reveal" style="--delay:.4s"><div class="arch-icon"><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.5L20 10l-5.8 2.5L12 18l-2.2-5.5L4 10l5.8-2.5zM18 16l1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/></svg></div><div><h3>Bedrock + AgentCore</h3><p>受控生成、工具調用、規則式 fallback</p></div><span class="arch-tag">Reasoning</span></div>
         </div>
         <div class="guardrails"><div class="guard">影像辨識後即刪除</div><div class="guard">RDS 無對外路由</div><div class="guard">禁用交易指令詞彙</div><div class="guard">每個結論保留來源帳本</div></div>
-        <div class="source">依據專案 as-built 架構、Swift 服務與 CMoney 2026/07/02 資料工作坊</div><span class="slide-no">10 / 11</span>
+        <div class="source">依據專案 as-built 架構、Swift 服務與 CMoney 2026/07/02 資料工作坊</div><span class="slide-no">10 / 12</span>
+      </div>
+    </section>
+
+    <section class="slide business-value" data-duration="24" data-notes="最後回到 CMoney 堆深護城河的命題。股感安心卡是生態系最適合的破冰船。對應大會要求，我們設立三大成效指標：用六十秒 OCR 追蹤首次匯入率；用每日卡包與對帳推升 D1、D7 回訪率；再用成就解鎖確保庫存更新率。商業價值不只是一個新手 App。我們用陪伴圈住廣大的新手，當他們心智成熟後，自然導流到籌碼 K 線等進階產品，在 AI 時代創造無法被取代的獲客護城河。">
+      <div class="aurora"></div>
+      <div class="shell">
+        <div class="business-head">
+          <div><div class="eyebrow reveal">Business value · Metrics &amp; KPIs</div><h2 class="reveal" style="--delay:.08s">用陪伴成為新手入口，<br><span class="gradient-text">再把信任帶進 CMoney 生態。</span></h2></div>
+          <span class="chip reveal" style="--delay:.12s"><span class="dot"></span>三層 KPI · 一條成長路徑</span>
+        </div>
+        <div class="business-stage">
+          <div class="kpi-stack reveal" style="--delay:.14s">
+            <div class="kpi-card glass">
+              <div class="kpi-index">A</div>
+              <div><small>Acquisition · 獲客與啟動</small><h3>首次持股匯入完成率</h3><p>以 OCR 降低第一次輸入門檻，追蹤是否完成啟動。</p></div>
+              <div class="kpi-target"><strong>&lt; 60s</strong><span>啟動體驗目標</span></div>
+            </div>
+            <div class="kpi-card glass">
+              <div class="kpi-index">R</div>
+              <div><small>Retention · 黏著與留存</small><h3>D1 / D7 回訪率</h3><p>每日卡包開啟率 · 週末體檢對帳完成率。</p></div>
+              <div class="kpi-target"><strong>D1 / D7</strong><span>回訪核心指標</span></div>
+            </div>
+            <div class="kpi-card glass">
+              <div class="kpi-index">E</div>
+              <div><small>Engagement · 行為與互動</small><h3>庫存持股更新率</h3><p>搭配成就解鎖後回訪率，驗證遊戲化是否驅動更新。</p></div>
+              <div class="kpi-target"><strong>更新率</strong><span>互動核心指標</span></div>
+            </div>
+          </div>
+          <div class="moat-panel glass reveal" style="--delay:.22s">
+            <div class="moat-brand"><img src="stockmood-deck-assets/app-icon.png" alt="股感安心卡 App 圖示"><div><small>CMONEY ECOSYSTEM VALUE</small><b>新手市場的破冰船</b></div></div>
+            <h3>先建立陪伴，<br>再自然走向進階產品。</h3>
+            <p>安心卡累積信任、回訪與真實持股習慣；使用者成熟後，自然銜接《籌碼 K 線》等進階服務。</p>
+            <div class="moat-flow">
+              <div class="moat-step"><small>01 · ENTRY</small><b>廣大投資新手</b></div>
+              <div class="moat-step"><small>02 · TRUST</small><b>陪伴與資料習慣</b></div>
+              <div class="moat-step"><small>03 · GROWTH</small><b>CMoney 進階生態</b></div>
+            </div>
+            <div class="moat-outcome"><b>AI 時代的獲客護城河</b><span>從一次使用，走向 CMoney 生態的長期關係。</span></div>
+          </div>
+        </div>
+        <span class="slide-no">11 / 12</span>
       </div>
     </section>
 
@@ -1235,7 +1330,7 @@
           <div class="brandline reveal" style="--delay:.28s"><img src="stockmood-deck-assets/app-icon.png" alt="股感安心卡 App 圖示"><div><div class="brand-name">股感安心卡</div><div class="brand-tag">Your calm layer for every market day.</div></div></div>
         </div>
         <div class="closing-phones" aria-hidden="true"><div class="phone p1"><img src="stockmood-deck-assets/holding-close-live.jpg" alt=""></div><div class="phone p2"><img src="stockmood-deck-assets/settings.png" alt=""></div></div>
-        <span class="slide-no">11 / 11</span>
+        <span class="slide-no">12 / 12</span>
       </div>
     </section>
   </main>
@@ -1245,7 +1340,7 @@
     <div class="timer" title="按 R 重新計時">00:00 / 04:00</div>
     <div class="controls">
       <button type="button" id="prev" aria-label="上一頁">←</button>
-      <span class="counter">01 / 11</span>
+      <span class="counter">01 / 12</span>
       <button type="button" id="next" aria-label="下一頁">→</button>
       <button type="button" id="note" aria-label="顯示講稿">N</button>
       <button type="button" id="full" aria-label="全螢幕">F</button>
@@ -1264,9 +1359,10 @@
         'profile-evidence',
         'evidence-analysis',
         'trust-evidence',
-        'achievement-evidence',
         'weekly-evidence',
+        'achievement-evidence',
         'stack',
+        'business-value',
         'closing'
       ];
       slideOrder.forEach(className => {

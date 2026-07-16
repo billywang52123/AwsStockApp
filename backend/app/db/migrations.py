@@ -19,9 +19,11 @@ _COLUMNS = [
     ("portfolio_items", "source", "VARCHAR DEFAULT 'manual'"),
     ("portfolio_items", "updated_at", "TIMESTAMP"),
     ("fortune_results", "session", "VARCHAR DEFAULT 'day'"),
+    ("insight_cache", "provider", "VARCHAR DEFAULT 'claude'"),
 ]
 
 _BACKFILLS = [
+    "UPDATE insight_cache SET provider = 'claude' WHERE provider IS NULL",
     "UPDATE portfolio_items SET status = 'active' WHERE status IS NULL",
     "UPDATE portfolio_items SET source = 'manual' WHERE source IS NULL",
     "UPDATE fortune_results SET session = 'day' WHERE session IS NULL",

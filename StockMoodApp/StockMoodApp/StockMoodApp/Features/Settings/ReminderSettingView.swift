@@ -139,6 +139,11 @@ struct ReminderSettingView: View {
                         .onChange(of: aiProvider) { _, newValue in
                             AppPreferenceStore.shared.aiProvider = newValue
                             HapticManager.shared.triggerImpact(style: .light)
+                            // 換引擎 = 換一份 insight 快取,先請後端預熱,
+                            // 稍後進分析頁就不用等現算
+                            Task {
+                                let _: String? = try? await APIClient.shared.request("/insights/prewarm", method: "POST")
+                            }
                         }
                     }
 
