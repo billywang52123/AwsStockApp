@@ -372,19 +372,22 @@
     .loop-arrow { position:absolute; width:13px; height:13px; border-right:2px solid var(--violet-2); border-bottom:2px solid var(--violet-2); opacity:.7; }
     .a1 { right:17%; top:23%; transform:rotate(-20deg); } .a2 { right:18%; bottom:24%; transform:rotate(65deg); } .a3 { left:18%; bottom:24%; transform:rotate(155deg); } .a4 { left:18%; top:23%; transform:rotate(245deg); }
 
-    /* 09 stack */
-    .stack .shell { grid-template-rows:auto 1fr auto; }
-    .architecture { align-self:center; display:grid; grid-template-columns:repeat(6,1fr); gap:clamp(8px,1vw,15px); align-items:stretch; margin-top:3vh; }
-    .arch-node { min-height:220px; border-radius:22px; padding:18px 15px; position:relative; display:flex; flex-direction:column; justify-content:space-between; }
-    .arch-node:not(:last-child)::after { content:""; position:absolute; right:-12px; top:50%; width:18px; height:1px; background:linear-gradient(90deg,var(--violet-2),var(--cyan)); box-shadow:0 0 12px var(--violet); }
-    .arch-icon { width:42px; height:42px; border-radius:13px; display:grid; place-items:center; background:rgba(123,127,212,.2); color:var(--violet-2); }
-    .arch-icon svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; }
-    .arch-node h3 { font-size:clamp(15px,1.2vw,20px); }
-    .arch-node p { color:var(--muted); font-size:clamp(11px,.86vw,14px); line-height:1.5; margin-top:8px; }
-    .arch-tag { color:var(--cyan); font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
-    .guardrails { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:2vh; }
-    .guard { padding:13px 15px; border-radius:15px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); font-size:clamp(11px,.88vw,14px); color:#d2d1df; display:flex; align-items:center; gap:9px; }
-    .guard::before { content:""; width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 13px var(--green); flex:none; }
+    /* 10 AWS architecture */
+    .stack .shell { grid-template-rows:auto minmax(0,1fr); gap:1.3vh; min-height:0; overflow:hidden; }
+    .stack-head { display:flex; justify-content:space-between; align-items:end; gap:3vw; }
+    .stack-head h2 { margin-top:8px; font-size:clamp(34px,3.2vw,52px); line-height:1.08; }
+    .stack-stage { min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,23%); gap:1.7vw; align-items:stretch; }
+    .architecture-board { min-width:0; min-height:0; padding:8px; border-radius:24px; background:#fff; border:1px solid rgba(255,255,255,.55); overflow:hidden; box-shadow:0 28px 80px rgba(0,0,0,.42),0 0 55px rgba(123,127,212,.14); display:grid; place-items:center; }
+    .architecture-board img { width:100%; height:100%; object-fit:contain; display:block; border-radius:17px; background:#fff; }
+    .architecture-guide { min-height:0; padding:18px; border-radius:24px; display:flex; flex-direction:column; gap:9px; }
+    .architecture-guide-head small { display:block; color:var(--cyan); font-size:10px; font-weight:900; letter-spacing:.14em; text-transform:uppercase; }
+    .architecture-guide-head h3 { margin-top:5px; font-size:clamp(20px,1.55vw,26px); line-height:1.15; }
+    .architecture-route { flex:1; min-height:0; padding:10px 11px; border-radius:15px; display:grid; grid-template-columns:34px minmax(0,1fr); gap:10px; align-items:center; background:rgba(255,255,255,.052); border:1px solid rgba(255,255,255,.085); }
+    .architecture-route i { width:34px; height:34px; border-radius:11px; display:grid; place-items:center; color:#101522; background:linear-gradient(135deg,var(--cyan),var(--violet-2)); font-style:normal; font-size:12px; font-weight:950; }
+    .architecture-route b { display:block; font-size:clamp(13px,1vw,17px); line-height:1.1; }
+    .architecture-route span { display:block; margin-top:4px; color:var(--muted); font-size:clamp(10px,.76vw,12px); line-height:1.35; }
+    .architecture-services { padding-top:8px; border-top:1px solid rgba(255,255,255,.09); color:#9d9caf; font-size:10px; line-height:1.35; }
+    .architecture-services b { color:#d9d8e5; }
 
     /* Business value + KPI */
     .business-value .shell { grid-template-rows:auto 1fr; gap:1.6vh; }
@@ -1261,20 +1264,27 @@
       </div>
     </section>
 
-    <section class="slide stack" data-duration="16" data-notes="這是 AWS 黑客松中支撐整個體驗的技術架構。敏感影像優先留在裝置端；持股、卡包與分析服務透過 FastAPI 跑在 ECS，個人狀態放私有 RDS；CMoney 十一份結構化資料提供行情、法人、報酬、動能、產業與社群訊號；Bedrock 負責受控生成，AgentCore 透過工具取得持股與證據。每個結論保留來源帳本，並以規則限制交易指令詞彙。">
+    <section class="slide stack" data-duration="16" data-notes="這張圖是產品目前的 AWS 全貌。使用者從 iOS App 經 Cognito 登入，再由 ALB 進入 ECS Fargate 上的核心 API，個人狀態只存於私有 RDS。AI 服務分成兩條路：Bedrock 直接處理 OCR 與推播內容，AgentCore Runtime 則經 MCP Gateway 調用 Lambda tools，取得系統資料與 CMoney 資料。每日推播由 EventBridge 觸發 Lambda，串接 Bedrock、DynamoDB、SNS 與 Apple APNs；CloudWatch、ECR、Secrets Manager、Parameter Store 與 CDK 則支撐監控、部署和機密管理。">
       <div class="aurora"></div>
       <div class="shell">
-        <div><div class="eyebrow reveal">AWS AI Hackathon · Architecture</div><h2 class="reveal" style="--delay:.08s">AWS 串起個人狀態、<br><span class="gradient-text">結構化資料與可驗證推理。</span></h2></div>
-        <div class="architecture">
-          <div class="arch-node glass reveal" style="--delay:.1s"><div class="arch-icon"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M9 18h6"/></svg></div><div><h3>SwiftUI App</h3><p>原生動畫、Haptic、減少動態、Face ID</p></div><span class="arch-tag">Experience</span></div>
-          <div class="arch-node glass reveal" style="--delay:.16s"><div class="arch-icon"><svg viewBox="0 0 24 24"><path d="M4 7h16v12H4zM8 3h8v4M8 11h8m-8 4h5"/></svg></div><div><h3>Vision OCR</h3><p>裝置端優先；必要時 TLS 雲端 fallback</p></div><span class="arch-tag">Privacy first</span></div>
-          <div class="arch-node glass reveal" style="--delay:.22s"><div class="arch-icon"><svg viewBox="0 0 24 24"><path d="M4 12h16M7 7l-3 5 3 5m10-10l3 5-3 5"/></svg></div><div><h3>FastAPI on ECS</h3><p>REST API、規則計算、卡包與分析服務</p></div><span class="arch-tag">Compute</span></div>
-          <div class="arch-node glass reveal" style="--delay:.28s"><div class="arch-icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v7c0 1.7 3.1 3 7 3s7-1.3 7-3V5M5 12v7c0 1.7 3.1 3 7 3s7-1.3 7-3v-7"/></svg></div><div><h3>Private RDS</h3><p>真實持股、快照、claims 與回訪狀態</p></div><span class="arch-tag">Personal state</span></div>
-          <div class="arch-node glass reveal" style="--delay:.34s"><div class="arch-icon"><svg viewBox="0 0 24 24"><path d="M3 18l5-5 4 3 7-8M16 8h3v3"/></svg></div><div><h3>CMoney Data</h3><p>11 份資料：行情、法人、報酬、動能、產業、社群</p></div><span class="arch-tag">Evidence</span></div>
-          <div class="arch-node glass reveal" style="--delay:.4s"><div class="arch-icon"><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.5L20 10l-5.8 2.5L12 18l-2.2-5.5L4 10l5.8-2.5zM18 16l1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/></svg></div><div><h3>Bedrock + AgentCore</h3><p>受控生成、工具調用、規則式 fallback</p></div><span class="arch-tag">Reasoning</span></div>
+        <div class="stack-head">
+          <div><div class="eyebrow reveal">AWS AI Hackathon · Architecture</div><h2 class="reveal" style="--delay:.08s">從登入、AI 推理到每日推播，<br><span class="gradient-text">AWS 串起完整產品閉環。</span></h2></div>
+          <span class="chip reveal" style="--delay:.12s"><span class="dot"></span>us-east-1 · 2 AZ</span>
         </div>
-        <div class="guardrails"><div class="guard">影像辨識後即刪除</div><div class="guard">RDS 無對外路由</div><div class="guard">禁用交易指令詞彙</div><div class="guard">每個結論保留來源帳本</div></div>
-        <div class="source">依據專案 as-built 架構、Swift 服務與 CMoney 2026/07/02 資料工作坊</div><span class="slide-no">10 / 12</span>
+        <div class="stack-stage">
+          <figure class="architecture-board reveal" style="--delay:.12s">
+            <img src="file:///Users/wangchuanwei/Pictures/Photos%20Library.photoslibrary/originals/D/D729AFBD-0766-44A7-8705-13C4C025CAC4.png" alt="StockMood AWS Architecture 完整架構圖，包含 Cognito、ECS Fargate、RDS、Bedrock、AgentCore 與每日推播流程">
+          </figure>
+          <aside class="architecture-guide glass reveal" style="--delay:.2s">
+            <div class="architecture-guide-head"><small>Four critical paths</small><h3>一眼讀懂<br>四條關鍵路徑</h3></div>
+            <div class="architecture-route"><i>01</i><div><b>登入與安全</b><span>Cognito → ALB</span></div></div>
+            <div class="architecture-route"><i>02</i><div><b>核心服務</b><span>ECS Fargate → Private RDS</span></div></div>
+            <div class="architecture-route"><i>03</i><div><b>AI / Agent</b><span>Bedrock → AgentCore → Lambda tools</span></div></div>
+            <div class="architecture-route"><i>04</i><div><b>每日推播</b><span>EventBridge → SNS → APNs</span></div></div>
+            <div class="architecture-services"><b>Supporting services</b><br>CloudWatch · ECR · Secrets · SSM · CDK</div>
+          </aside>
+        </div>
+        <div class="source">依據 StockMood AWS Architecture as-built 架構圖</div><span class="slide-no">10 / 12</span>
       </div>
     </section>
 
