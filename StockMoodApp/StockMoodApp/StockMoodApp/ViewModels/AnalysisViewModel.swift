@@ -26,10 +26,11 @@ class AnalysisViewModel: ObservableObject {
 
     init(container: DependencyContainer? = nil) {
         self.container = container ?? .shared
-        // 持股或觀察清單異動後自動重載分析,不必等使用者下拉刷新;
+        // 持股/觀察清單異動、模擬日期切換後自動重載分析,不必等使用者下拉刷新;
         // debounce 合併短時間內的連續異動(如匯入多筆、快速加減碼)只打一次 API
         NotificationCenter.default.publisher(for: .holdingsDidChange)
             .merge(with: NotificationCenter.default.publisher(for: .watchlistDidChange))
+            .merge(with: NotificationCenter.default.publisher(for: .simDateDidChange))
             .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in
                 Task { await self?.load() }

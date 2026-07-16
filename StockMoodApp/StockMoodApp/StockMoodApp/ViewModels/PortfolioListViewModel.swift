@@ -16,9 +16,17 @@ class PortfolioListViewModel: ObservableObject {
     @Published var errorMessage = ""
 
     private let container: DependencyContainer
+    private var cancellables = Set<AnyCancellable>()
 
     init(container: DependencyContainer? = nil) {
         self.container = container ?? .shared
+        // 模擬日期切換後股價/漲跌都是另一天的,自動重載,不必等使用者進分頁下拉
+        NotificationCenter.default.publisher(for: .simDateDidChange)
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+            .sink { [weak self] _ in
+                Task { await self?.loadPortfolio() }
+            }
+            .store(in: &cancellables)
     }
 
     private var loadInFlight = false

@@ -20,8 +20,9 @@ class TodayDashboardViewModel: ObservableObject {
 
     init(container: DependencyContainer? = nil) {
         self.container = container ?? .shared
-        // 持股異動後焦慮分數/大盤比較也要跟著變,自動重載
+        // 持股異動、模擬日期切換後焦慮分數/大盤比較也要跟著變,自動重載
         NotificationCenter.default.publisher(for: .holdingsDidChange)
+            .merge(with: NotificationCenter.default.publisher(for: .simDateDidChange))
             .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in
                 Task { await self?.loadData() }
